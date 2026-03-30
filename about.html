@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>About | Mexico City Black Car</title>
+<meta name="description" content="Mexico City Black Car is a luxury ground transportation company powered by Mikey AI — a division of Infinite Logistic Technologies. 35 years of destination management experience. Learn about our story, technology, and global vision."/>
+<link rel="canonical" href="https://www.mexicocityblackcar.com/about"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@200;300;400;500&family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --ink:#070707;--deep:#0b0b0b;--card:#111;--panel:#181818;--rim:#1e1e1e;--border:#272727;
+  --gold:#C9A96E;--gold-pale:#e8d5a8;--gold-dim:#7a6030;--gold-glow:rgba(201,169,110,0.08);
+  --cream:#f0ede8;--mist:#7e7b77;--soft:#48463f;
+  --fd:'Cormorant Garamond',serif;--fu:'Montserrat',sans-serif;--fm:'IBM Plex Mono',monospace;
+}
+html{scroll-behavior:smooth;}
+body{background:var(--ink);color:var(--cream);font-family:var(--fu);font-weight:300;line-height:1.7;overflow-x:hidden;}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:0.18;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+a{color:inherit;text-decoration:none;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+.fade-up{opacity:0;animation:fadeUp .75s cubic-bezier(.22,1,.36,1) forwards;}
+.d1{animation-delay:.1s;}.d2{animation-delay:.22s;}.d3{animation-delay:.38s;}.d4{animation-delay:.52s;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:0 56px;height:72px;display:flex;align-items:center;justify-content:space-between;background:rgba(7,7,7,0.97);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);}
+.nav-logo{font-family:var(--fd);font-size:16px;font-weight:600;color:var(--gold);letter-spacing:.14em;text-transform:uppercase;}
+.nav-links{display:flex;align-items:center;gap:36px;}
+.nav-links a{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--mist);transition:color .2s;}
+.nav-links a:hover{color:var(--cream);}
+.nav-cta{border:1px solid var(--gold-dim)!important;color:var(--gold)!important;padding:8px 20px;border-radius:3px;transition:background .2s!important;}
+.nav-cta:hover{background:rgba(201,169,110,.07)!important;}
+
+.mw{max-width:1100px;margin:0 auto;}
+
+/* HERO */
+.page-hero{padding:160px 56px 88px;border-bottom:1px solid var(--border);position:relative;overflow:hidden;}
+.hero-bg-text{position:absolute;right:-2%;top:50%;transform:translateY(-50%);font-family:var(--fd);font-size:clamp(140px,18vw,260px);font-weight:600;color:rgba(201,169,110,.028);line-height:1;pointer-events:none;user-select:none;letter-spacing:-.04em;}
+.eyebrow{font-size:9.5px;letter-spacing:.36em;text-transform:uppercase;color:var(--gold);font-family:var(--fm);margin-bottom:20px;display:flex;align-items:center;gap:14px;}
+.eyebrow::before{content:'';width:34px;height:1px;background:var(--gold);flex-shrink:0;}
+h1{font-family:var(--fd);font-size:clamp(46px,5.5vw,76px);font-weight:300;line-height:1.07;color:var(--cream);}
+h1 em{color:var(--gold);font-style:italic;}
+.hero-sub{font-size:14px;color:var(--mist);max-width:580px;line-height:1.9;margin-top:20px;}
+
+/* HERITAGE BANNER */
+.heritage-banner{background:linear-gradient(135deg,rgba(201,169,110,0.06) 0%,rgba(201,169,110,0.02) 100%);border-top:1px solid rgba(201,169,110,.15);border-bottom:1px solid rgba(201,169,110,.15);padding:48px 56px;}
+.heritage-inner{display:flex;align-items:center;gap:56px;max-width:1100px;margin:0 auto;}
+.heritage-num{font-family:var(--fd);font-size:clamp(80px,10vw,120px);color:var(--gold);font-weight:300;line-height:1;flex-shrink:0;opacity:.85;}
+.heritage-divider{width:1px;height:80px;background:var(--border);flex-shrink:0;}
+.heritage-text h3{font-family:var(--fd);font-size:clamp(22px,2.4vw,32px);font-weight:300;color:var(--cream);line-height:1.2;margin-bottom:10px;}
+.heritage-text h3 em{color:var(--gold);font-style:italic;}
+.heritage-text p{font-size:13px;color:var(--mist);line-height:1.85;max-width:580px;}
+
+section{padding:88px 56px;}
+.grule{width:38px;height:1px;background:var(--gold);margin:26px 0;opacity:.45;}
+h2{font-family:var(--fd);font-size:clamp(30px,3.2vw,48px);font-weight:300;line-height:1.12;}
+h2 em{color:var(--gold);font-style:italic;}
+p{font-size:13.5px;color:var(--mist);line-height:1.9;margin-bottom:16px;}
+p:last-child{margin-bottom:0;}
+p strong{color:var(--cream);font-weight:400;}
+.sect-label{font-size:9px;letter-spacing:.36em;text-transform:uppercase;color:var(--gold);font-family:var(--fm);margin-bottom:14px;}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:start;}
+
+/* CONCIERGE SECTION */
+.concierge-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-top:44px;}
+.con-item{background:var(--card);padding:32px 28px;position:relative;overflow:hidden;transition:background .25s;}
+.con-item::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),transparent);opacity:0;transition:opacity .25s;}
+.con-item:hover{background:var(--panel);}
+.con-item:hover::before{opacity:1;}
+.con-icon{font-family:var(--fm);font-size:9px;color:var(--gold-dim);letter-spacing:.22em;margin-bottom:12px;}
+.con-title{font-family:var(--fd);font-size:20px;color:var(--cream);font-weight:300;margin-bottom:10px;}
+.con-body{font-size:12.5px;color:var(--mist);line-height:1.8;}
+.con-body strong{color:var(--gold-pale);font-weight:400;}
+
+/* CDMX KNOWLEDGE SECTION */
+.cdmx-section{background:var(--card);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.cdmx-intro{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:start;margin-bottom:56px;}
+.neighborhood-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:0;}
+.hood{background:var(--deep);border:1px solid var(--border);border-radius:4px;padding:18px 16px;transition:border-color .22s;}
+.hood:hover{border-color:var(--gold-dim);}
+.hood-name{font-family:var(--fd);font-size:16px;color:var(--gold);font-weight:300;margin-bottom:4px;}
+.hood-desc{font-size:11px;color:var(--mist);line-height:1.7;}
+
+/* TIMELINE */
+.timeline{position:relative;margin-top:44px;padding-left:32px;}
+.timeline::before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:1px;background:linear-gradient(to bottom,var(--gold),transparent);}
+.tl-item{position:relative;margin-bottom:36px;}
+.tl-item::before{content:'';position:absolute;left:-36px;top:8px;width:8px;height:8px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--gold);}
+.tl-year{font-family:var(--fm);font-size:9px;color:var(--gold);letter-spacing:.22em;margin-bottom:6px;}
+.tl-title{font-family:var(--fd);font-size:18px;color:var(--cream);font-weight:300;margin-bottom:6px;}
+.tl-body{font-size:12px;color:var(--mist);line-height:1.78;}
+
+/* VALUES */
+.values-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:44px;}
+.val{background:var(--card);border:1px solid var(--border);border-radius:5px;padding:24px 20px;border-top:2px solid transparent;transition:border-top-color .25s;}
+.val:hover{border-top-color:var(--gold);}
+.val-num{font-family:var(--fm);font-size:9px;color:var(--gold-dim);letter-spacing:.2em;margin-bottom:10px;}
+.val-title{font-family:var(--fd);font-size:18px;color:var(--gold);font-weight:300;margin-bottom:8px;}
+.val-body{font-size:12px;color:var(--mist);line-height:1.78;}
+
+/* STATS */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-top:44px;}
+.stat{background:var(--card);padding:32px 22px;text-align:center;}
+.stat-num{font-family:var(--fd);font-size:52px;color:var(--gold);font-weight:300;line-height:1;}
+.stat-lbl{font-size:9px;color:var(--mist);letter-spacing:.18em;text-transform:uppercase;margin-top:6px;font-family:var(--fm);}
+
+/* TESTIMONIAL PULL QUOTE */
+.pull-quote{border-left:2px solid var(--gold);padding:24px 32px;margin:44px 0;background:var(--gold-glow);}
+.pull-quote blockquote{font-family:var(--fd);font-size:clamp(20px,2.2vw,28px);color:var(--cream);font-weight:300;font-style:italic;line-height:1.45;}
+.pull-quote cite{display:block;font-size:10px;color:var(--gold);font-style:normal;letter-spacing:.2em;text-transform:uppercase;font-family:var(--fm);margin-top:14px;}
+
+/* BUTTONS */
+.bp{display:inline-flex;align-items:center;gap:9px;background:var(--gold);color:#050505;padding:14px 30px;border-radius:3px;font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;border:none;cursor:pointer;transition:opacity .2s;font-family:var(--fu);}
+.bp:hover{opacity:.80;}
+.bg{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--border);color:var(--cream);padding:14px 28px;border-radius:3px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;transition:border-color .2s;margin-left:12px;font-family:var(--fu);}
+.bg:hover{border-color:var(--gold-dim);}
+
+.cta-sect{background:var(--card);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+
+footer{background:var(--deep);border-top:1px solid var(--border);padding:40px 56px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.fcopy{font-size:10px;color:var(--soft);}
+.flinks{display:flex;gap:24px;flex-wrap:wrap;}
+.flinks a{font-size:10px;color:var(--mist);transition:color .2s;}
+.flinks a:hover{color:var(--cream);}
+
+@media(max-width:900px){
+  nav{padding:0 24px;}.nav-links{display:none;}
+  .page-hero{padding:120px 24px 64px;}.hero-bg-text{display:none;}
+  section{padding:64px 24px;}
+  .heritage-banner{padding:40px 24px;}
+  .heritage-inner{flex-direction:column;gap:28px;align-items:flex-start;}
+  .heritage-divider{width:60px;height:1px;}
+  .two-col{grid-template-columns:1fr;gap:44px;}
+  .concierge-grid{grid-template-columns:1fr;}
+  .cdmx-intro{grid-template-columns:1fr;gap:40px;}
+  .neighborhood-grid{grid-template-columns:1fr 1fr;}
+  .values-grid{grid-template-columns:1fr 1fr;}
+  .stat-row{grid-template-columns:1fr 1fr;}
+  footer{padding:32px 24px;}
+}
+@media(max-width:520px){
+  .values-grid{grid-template-columns:1fr;}
+  .stat-row{grid-template-columns:1fr 1fr;}
+  .neighborhood-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<nav>
+  <a class="nav-logo" href="index.html">Mexico City Black Car</a>
+  <div class="nav-links">
+    <a href="index.html#services">Services</a>
+    <a href="index.html#fleet">Fleet</a>
+    <a href="index.html#blog">Journal</a>
+    <a href="about.html" style="color:var(--cream)">About</a>
+    <a href="terms.html">Terms</a>
+    <a class="nav-cta" href="mikey.html">Talk to Mikey</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="page-hero">
+  <div class="hero-bg-text" aria-hidden="true">ILT</div>
+  <div class="mw">
+    <div class="eyebrow fade-up d1">Our Story</div>
+    <h1 class="fade-up d2">Where Human Expertise<br/>Meets <em>Intelligent</em> Precision.</h1>
+    <p class="hero-sub fade-up d3">Thirty-five years of destination management. A lifetime of knowing Mexico City's streets, rhythms, and rules. Now amplified by the most advanced AI concierge system ever deployed in ground transportation.</p>
+  </div>
+</div>
+
+<!-- 35 YEARS HERITAGE BANNER -->
+<div class="heritage-banner fade-up d4">
+  <div class="heritage-inner">
+    <div class="heritage-num">35</div>
+    <div class="heritage-divider"></div>
+    <div class="heritage-text">
+      <h3>Years of Destination Management<br/>&amp; <em>Logistics Mastery.</em></h3>
+      <p>Before algorithms. Before apps. Before AI. Our operational foundation was built by moving high-stakes clients through complex logistics — diplomatic missions, film productions, Fortune 500 roadshows, and private estate travel across Mexico and Latin America. That institutional knowledge lives inside every route we plan, every contingency we anticipate, and every client interaction we manage.</p>
+    </div>
+  </div>
+</div>
+
+<!-- WHO WE ARE / MIKEY -->
+<section>
+  <div class="mw two-col">
+    <div>
+      <div class="sect-label">Who We Are</div>
+      <h2>A New Standard<br/>in <em>Ground Transportation.</em></h2>
+      <div class="grule"></div>
+      <p>Mexico City Black Car is a premium luxury ground transportation company serving CDMX's airports, private terminals, five-star hotels, corporate districts, and exclusive venues. We operate as a division of <strong>Infinite Logistic Technologies (ILT)</strong> — a global logistics technology company founded by James-Michael Prieto Corbin.</p>
+      <p>Our team brings <strong>three and a half decades of on-the-ground destination management</strong> across Mexico — coordinating complex multi-leg itineraries, navigating private event access, managing VIP arrivals for heads of state, entertainment industry clients, and the world's most discerning private travelers.</p>
+      <p>We launched in Mexico City as our pilot market, establishing the operational blueprint that will be deployed across 50+ cities worldwide. Our official partner, <strong><a href="https://www.luxtourtravel.com" target="_blank" rel="noopener" style="color:var(--gold)">Lux Tour Travel</a></strong>, extends our reach across full-service travel logistics, concierge services, and curated experiences throughout Mexico and beyond.</p>
+    </div>
+    <div>
+      <div class="sect-label">Why Mikey Was Built</div>
+      <h2>Artificial Intelligence<br/>Meets <em>White-Glove</em> Service.</h2>
+      <div class="grule"></div>
+      <p>Mikey AI was developed to solve a real problem: luxury clients expect immediate, accurate, bilingual responses — at 2am, in Tokyo, in Japanese, about a ride in Mexico City. No human team can deliver that at scale. But the <em>knowledge</em> behind Mikey's answers? That comes from 35 years of living this work.</p>
+      <p>Mikey speaks 29 languages, understands every vehicle class, knows Mexico City's geography intimately, and delivers instant quotes with Stripe auto-population — all without a human in the loop. When a booking is confirmed, three precision emails go out automatically: a client confirmation, an executive report, and a logistics brief for operations.</p>
+      <p>Mikey is the AI engine behind Mexico City Black Car. He carries our institutional knowledge, our cultural fluency, and our operational standards into every conversation — 24 hours a day, in any language, from any time zone.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CONCIERGE EXPERTISE -->
+<section style="background:var(--card);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="mw">
+    <div class="sect-label">Concierge Expertise</div>
+    <h2>This Is What <em>35 Years</em> Looks Like.</h2>
+    <p style="max-width:620px;margin-top:16px;">Our concierge capability is not a feature — it is our foundation. Decades of destination management have produced an operational intelligence that no competitor can replicate overnight.</p>
+
+    <div class="concierge-grid">
+      <div class="con-item">
+        <div class="con-icon">01 — VIP PROTOCOL</div>
+        <div class="con-title">High-Stakes Client Management</div>
+        <div class="con-body">We have coordinated arrivals and motorcades for <strong>diplomatic delegations, heads of industry, and A-list entertainment talent</strong>. We know how to brief drivers, manage advance teams, coordinate with venue security, and execute arrivals that are invisible in their perfection.</div>
+      </div>
+      <div class="con-item">
+        <div class="con-icon">02 — DESTINATION INTELLIGENCE</div>
+        <div class="con-title">Mexico City, Curated</div>
+        <div class="con-body">We don't use a tourist map. We know which <strong>Polanco restaurants require a relationship, not a reservation</strong>. We know which private clubs have member-only entrances, where helicopters land near the city, which routes stay clear during Formula E weekend, and which venues will bend their rules for the right client.</div>
+      </div>
+      <div class="con-item">
+        <div class="con-icon">03 — CONTINGENCY PLANNING</div>
+        <div class="con-title">ALPHA · BRAVO · CHARLIE</div>
+        <div class="con-body">Every mission runs with a three-tier contingency framework. If Plan A is disrupted — weather, traffic, civil event, mechanical — <strong>Plan B is already in motion before the client notices</strong>. After 35 years, we have seen every variable. None of them surprise us anymore.</div>
+      </div>
+      <div class="con-item">
+        <div class="con-icon">04 — INDUSTRY VERTICALS</div>
+        <div class="con-title">Sector-Specific Experience</div>
+        <div class="con-body">Our logistics background spans <strong>film and television production transport, pharmaceutical executive travel, private equity roadshows, government contract logistics, and touring support</strong> for major entertainment acts. Each sector has its own rules. We know all of them.</div>
+      </div>
+      <div class="con-item">
+        <div class="con-icon">05 — CULTURAL FLUENCY</div>
+        <div class="con-title">Mexico Is Our Home</div>
+        <div class="con-body">Our drivers are not contractors — they are professionals with <strong>deep roots in Mexico City's culture, geography, and social landscape</strong>. They know when to speak, when to be silent, and how to make a foreign client feel immediately at home in one of the world's most complex cities.</div>
+      </div>
+      <div class="con-item">
+        <div class="con-icon">06 — NETWORK ACCESS</div>
+        <div class="con-title">The Relationships That Matter</div>
+        <div class="con-body">Thirty-five years builds relationships that cannot be bought. We have <strong>direct lines to hotel chiefs of staff, airport VIP terminal coordinators, private aviation FBOs, and venue directors</strong> across Mexico City. Our clients benefit from access that exists only through trust earned over decades.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CDMX KNOWLEDGE -->
+<section class="cdmx-section">
+  <div class="mw">
+    <div class="cdmx-intro">
+      <div>
+        <div class="sect-label">Local Mastery</div>
+        <h2>We Know This City<br/><em>Intimately.</em></h2>
+        <div class="grule"></div>
+        <p>Mexico City is 21 million people, 16 boroughs, 400 neighborhoods, three international airports, and the most complex traffic ecosystem in Latin America. To a visitor, it is overwhelming. To us, it is home.</p>
+        <p>We know where the roads flood after summer rain. We know which delegaciones have their own informal checkpoint protocols. We know which avenues run south in the morning and north in the evening. We know which gated communities require 48-hour advance authorization and which accept our name at the gate.</p>
+        <p><strong>This is not knowledge you can Google.</strong> This is operational intelligence accumulated over 35 years of running missions in and around one of the world's great megacities.</p>
+      </div>
+      <div>
+        <div class="sect-label">Neighborhoods We Know</div>
+        <div class="neighborhood-grid">
+          <div class="hood">
+            <div class="hood-name">Polanco</div>
+            <div class="hood-desc">Luxury hotel access, private dining, embassies. We know the service entrances and the front of house.</div>
+          </div>
+          <div class="hood">
+            <div class="hood-name">Santa Fe</div>
+            <div class="hood-desc">Corporate campus logistics, BBVA tower access, executive arrival protocols.</div>
+          </div>
+          <div class="hood">
+            <div class="hood-name">Lomas de Chapultepec</div>
+            <div class="hood-desc">Private estate travel, residential discretion, colonia access for ultra-HNW clients.</div>
+          </div>
+          <div class="hood">
+            <div class="hood-name">Roma &amp; Condesa</div>
+            <div class="hood-desc">Boutique hotel pickup, cultural event logistics, late-night venue access.</div>
+          </div>
+          <div class="hood">
+            <div class="hood-name">Aeropuerto Internacional</div>
+            <div class="hood-desc">AICM Terminal 1 &amp; 2 precision meets, real-time flight monitoring, tarmac coordination.</div>
+          </div>
+          <div class="hood">
+            <div class="hood-name">NAICM / Felipe Ángeles</div>
+            <div class="hood-desc">New international terminal operations, government and private charter arrivals.</div>
+          </div>
+          <div class="hood">
+            <div class="hood-name">Pedregal</div>
+            <div class="hood-desc">Exclusive residential transport, private event access, security-conscious routing.</div>
+          </div>
+          <div class="hood">
+            <div class="hood-name">Centro Histórico</div>
+            <div class="hood-desc">Cultural mission transport, restricted zones, pedestrian corridor navigation.</div>
+          </div>
+          <div class="hood">
+            <div class="hood-name">Interlomas</div>
+            <div class="hood-desc">Western corridor logistics, Naucalpan corporate access, suburban executive routing.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pull-quote">
+      <blockquote>"A truly great driver in Mexico City is not someone who knows the streets. It is someone who knows which version of the street exists at 7am on a Tuesday versus 10pm on a Friday — and has a plan for both."</blockquote>
+      <cite>Mexico City Black Car — Operational Philosophy</cite>
+    </div>
+  </div>
+</section>
+
+<!-- HERITAGE TIMELINE -->
+<section>
+  <div class="mw two-col">
+    <div>
+      <div class="sect-label">Our Journey</div>
+      <h2>Built Over<br/><em>Three Decades.</em></h2>
+      <div class="grule"></div>
+      <p>The experience behind Mexico City Black Car did not begin with an app or a funding round. It began on the ground, moving real clients through real complexity, in one of the world's most demanding cities.</p>
+      <p>The systems, the standards, and the institutional intelligence that power our operation today are the product of <strong>35 years of destination management, logistics engineering, and client relationship mastery</strong>.</p>
+      <p>ILT Platform v5 and Mikey AI are the technology layer. The human foundation underneath them is what makes them extraordinary.</p>
+    </div>
+    <div>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-year">YEAR ONE</div>
+          <div class="tl-title">The Foundation</div>
+          <div class="tl-body">First luxury ground transportation missions in Mexico City. Private clients, hotel partnerships, and the early discovery that premium service requires more than a nice vehicle — it requires an entire intelligence system around it.</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-year">YEARS 5 – 15</div>
+          <div class="tl-title">Destination Management Expansion</div>
+          <div class="tl-body">Extended into full destination management — coordinating multi-leg corporate itineraries, film production logistics, government contract transport, and international entertainment touring across Mexico and Latin America.</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-year">YEARS 15 – 25</div>
+          <div class="tl-title">Enterprise &amp; Ultra-HNW Clientele</div>
+          <div class="tl-body">Developed deep specialization in ultra-high-net-worth client logistics. Refined our contingency framework, built our exclusive venue network, and established relationships with private aviation operators across the country.</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-year">YEARS 25 – 35</div>
+          <div class="tl-title">Technology Integration</div>
+          <div class="tl-body">Began systematizing 35 years of operational knowledge into digital infrastructure — culminating in the ILT Platform, Mikey AI, and the global deployment playbook that now powers Mexico City Black Car.</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-year">NOW</div>
+          <div class="tl-title">Mexico City Black Car Goes Live</div>
+          <div class="tl-body">The pilot market launches. Three decades of expertise, 29 languages, Stripe-powered instant booking, and real-time GPS dispatch — all in one platform. Fifty cities are next.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section style="background:var(--card);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="mw">
+    <div class="sect-label">Our Numbers</div>
+    <h2>Built to <em>Scale.</em></h2>
+    <div class="stat-row">
+      <div class="stat"><div class="stat-num">35</div><div class="stat-lbl">Years Experience</div></div>
+      <div class="stat"><div class="stat-num">29</div><div class="stat-lbl">Languages</div></div>
+      <div class="stat"><div class="stat-num">50+</div><div class="stat-lbl">Planned Markets</div></div>
+      <div class="stat"><div class="stat-num">24/7</div><div class="stat-lbl">AI Availability</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- VALUES -->
+<section>
+  <div class="mw">
+    <div class="sect-label">Our Values</div>
+    <h2>What We Stand For.</h2>
+    <div class="values-grid">
+      <div class="val"><div class="val-num">01</div><div class="val-title">Safety First</div><div class="val-body">Every driver is background-checked, licensed, and insured. All vehicles have GPS tracking and are in constant contact with our operations team. Non-negotiable, always.</div></div>
+      <div class="val"><div class="val-num">02</div><div class="val-title">Discretion</div><div class="val-body">Our drivers are trained in confidentiality and professional conduct — a standard refined over 35 years of serving clients who require absolute privacy. Your journey is your own.</div></div>
+      <div class="val"><div class="val-num">03</div><div class="val-title">Precision</div><div class="val-body">We operate on-time guarantee standards. Flight monitoring, real-time dispatch, contingency planning, and proactive client communication are built into every mission.</div></div>
+      <div class="val"><div class="val-num">04</div><div class="val-title">Bilingual Excellence</div><div class="val-body">Our drivers speak English and Spanish. Mikey AI operates in 29 languages. No client is ever made to feel like a foreigner in our vehicles or our communications.</div></div>
+      <div class="val"><div class="val-num">05</div><div class="val-title">Intelligent Systems</div><div class="val-body">Powered by ILT Platform v5 — our proprietary dispatch, pricing, and client management system built to 6-Sigma execution standards and backed by 35 years of operational data.</div></div>
+      <div class="val"><div class="val-num">06</div><div class="val-title">Global Ambition</div><div class="val-body">CDMX is our pilot. Our formula is proven, documented, and ready to replicate. San Diego, Los Angeles, London, and 47 more markets are next — built on this foundation.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-sect">
+  <div class="mw" style="text-align:center;">
+    <div class="sect-label" style="justify-content:center;">Ready to Experience It?</div>
+    <h2>35 Years of Expertise.<br/><em>One Conversation Away.</em></h2>
+    <p style="max-width:460px;margin:14px auto 0;font-size:13.5px;color:var(--mist);line-height:1.9;">Talk to Mikey and get an instant quote backed by three decades of destination management intelligence. Your first class begins before you step into the car.</p>
+    <div style="margin-top:28px;">
+      <a class="bp" href="mikey.html">Talk to Mikey →</a>
+      <a class="bg" href="index.html">Back to Home</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="fcopy">© 2026 Mexico City Black Car · Infinite Logistic Technologies · Patent Pending</div>
+  <div class="flinks">
+    <a href="index.html">Home</a>
+    <a href="terms.html">Terms &amp; Conditions</a>
+    <a href="mikey.html">Talk to Mikey</a>
+    <a href="https://www.luxtourtravel.com" target="_blank" rel="noopener">Lux Tour Travel</a>
+  </div>
+</footer>
+</body>
+</html>
