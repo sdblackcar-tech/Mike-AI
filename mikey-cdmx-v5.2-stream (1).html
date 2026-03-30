@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mikey — Lux Tour Mexico City</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --black:#0e0e0e;--deep:#141414;--panel:#1a1a1a;--border:#2a2a2a;
+  --gold:#C9A96E;--gold-dim:#8a7248;--white:#f0ede8;--muted:#6a6a6a;
+  --green:#3ecf6a;--red:#ef4444;--radius:12px;
+}
+html,body{height:100%;background:var(--black);font-family:'Montserrat',sans-serif;color:var(--white);overflow:hidden}
+.shell{display:flex;height:100vh;width:100vw}
+
+/* ═══ MIKEY PANEL — FULL WIDTH ═══ */
+.mikey-panel{display:flex;flex-direction:column;width:100%;max-width:520px;min-width:360px;margin:0 auto;background:var(--deep);transition:max-width 0.4s ease}
+.mikey-header{padding:18px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:var(--panel)}
+.mikey-avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#1f1a12,#3a2f1e);border:1.5px solid var(--gold-dim);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gold);flex-shrink:0;position:relative}
+.mikey-avatar::after{content:'';position:absolute;bottom:1px;right:1px;width:9px;height:9px;background:var(--green);border-radius:50%;border:2px solid var(--panel)}
+.mikey-info{flex:1;min-width:0}
+.mikey-name{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--gold);letter-spacing:0.06em;line-height:1}
+.gold-rule{width:40px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:4px 0 3px}
+.mikey-sub{font-size:10px;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase}
+.lang-wrap{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.lang-flag{font-size:18px;line-height:1}
+.lang-select{background:var(--black);border:1px solid var(--border);color:var(--muted);font-family:'Montserrat',sans-serif;font-size:10px;padding:5px 8px;border-radius:20px;cursor:pointer;outline:none;transition:all 0.2s;appearance:none;max-width:110px;display:none}
+.lang-select:hover,.lang-select:focus{border-color:var(--gold-dim);color:var(--gold)}
+.lang-select option{background:#1a1a1a;color:var(--white)}
+.detecting-badge{font-size:9px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;padding:3px 8px;border:1px solid var(--border);border-radius:20px;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:0.5}50%{opacity:1}}
+
+/* ═══ MESSAGES ═══ */
+.messages{flex:1;overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
+.messages::-webkit-scrollbar{width:4px}
+.messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.msg{display:flex;gap:10px;animation:fadeUp 0.3s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{flex-direction:row-reverse}
+.msg-avatar{width:28px;height:28px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted);flex-shrink:0;margin-top:2px}
+.msg.assistant .msg-avatar{background:linear-gradient(135deg,#1f1a12,#3a2f1e);border:1px solid var(--gold-dim);color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:14px}
+.msg-bubble{max-width:82%;padding:11px 14px;border-radius:var(--radius);font-size:13px;line-height:1.6}
+.msg.assistant .msg-bubble{background:var(--panel);border:1px solid var(--border);color:var(--white);border-radius:4px var(--radius) var(--radius) var(--radius)}
+.msg.user .msg-bubble{background:linear-gradient(135deg,#2a2215,#3a2f1e);border:1px solid var(--gold-dim);color:var(--white);border-radius:var(--radius) 4px var(--radius) var(--radius)}
+
+/* ═══ SUGGESTION CHIPS ═══ */
+.suggestion-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:6px 11px;background:rgba(201,169,110,0.06);border:1px solid var(--gold-dim);border-radius:20px;font-size:11px;color:var(--gold);cursor:pointer;transition:all 0.18s;font-family:'Montserrat',sans-serif}
+.chip:hover{background:rgba(201,169,110,0.14)}
+.chip svg{width:11px;height:11px;flex-shrink:0}
+
+/* ═══ EMAIL BANNER ═══ */
+.email-banner{display:flex;align-items:center;gap:8px;margin-top:10px;padding:9px 13px;background:rgba(62,207,106,0.08);border:1px solid rgba(62,207,106,0.3);border-radius:8px;font-size:11px;color:var(--green)}
+.email-banner svg{width:14px;height:14px;flex-shrink:0}
+
+/* ═══ VENUE CARDS ═══ */
+.venue-grid{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.venue-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color 0.2s;cursor:pointer}
+.venue-card:hover{border-color:var(--gold-dim)}
+.venue-card-top{padding:12px 14px;display:flex;gap:12px;align-items:flex-start}
+.venue-emoji{font-size:22px;line-height:1;flex-shrink:0;margin-top:1px}
+.venue-info{flex:1;min-width:0}
+.venue-name{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;color:var(--gold);letter-spacing:0.03em;line-height:1.2}
+.venue-meta{font-size:10px;color:var(--muted);margin-top:3px;letter-spacing:0.04em}
+.venue-desc{font-size:11px;color:var(--white);margin-top:5px;line-height:1.5;opacity:0.85}
+.venue-tags{display:flex;flex-wrap:wrap;gap:4px;padding:0 14px 10px}
+.venue-tag{font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border:1px solid var(--border);border-radius:20px;color:var(--muted)}
+.venue-tag.highlight{border-color:var(--gold-dim);color:var(--gold-dim)}
+.venue-footer{padding:10px 14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(201,169,110,0.03)}
+.venue-spend{font-size:11px;color:var(--muted)}
+.venue-spend strong{color:var(--white)}
+.venue-book-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:linear-gradient(135deg,#2a2215,#3a2f1e);border:1px solid var(--gold-dim);border-radius:6px;color:var(--gold);font-family:'Montserrat',sans-serif;font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.2s}
+.venue-book-btn:hover{border-color:var(--gold);box-shadow:0 0 12px rgba(201,169,110,0.15)}
+.venue-book-btn svg{width:11px;height:11px}
+
+/* ═══ COMMISSION CARD ═══ */
+.commission-card{margin-top:10px;padding:12px 14px;background:linear-gradient(135deg,#0a140a,#0e1a0e);border:1px solid rgba(62,207,106,0.3);border-radius:10px}
+.commission-header{display:flex;align-items:center;gap:7px;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--green);margin-bottom:8px}
+.commission-header svg{width:13px;height:13px}
+.commission-row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0}
+.commission-row span:first-child{color:var(--muted)}
+.commission-row span:last-child{color:var(--white)}
+.commission-total{display:flex;justify-content:space-between;margin-top:8px;padding-top:7px;border-top:1px solid rgba(62,207,106,0.2)}
+.commission-total span:first-child{font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted)}
+.commission-total span:last-child{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--green);font-weight:600}
+
+/* ═══ VENUE SENT BANNER ═══ */
+.venue-banner{display:flex;align-items:center;gap:8px;margin-top:10px;padding:9px 13px;background:rgba(201,169,110,0.06);border:1px solid var(--gold-dim);border-radius:8px;font-size:11px;color:var(--gold)}
+.venue-banner svg{width:14px;height:14px;flex-shrink:0}
+
+/* ═══ QUOTE CARD ═══ */
+.quote-card{margin-top:12px;background:linear-gradient(135deg,#1a1a0e,#1e1a0e);border:1px solid var(--gold-dim);border-radius:10px;padding:14px 16px;min-width:240px}
+.quote-vehicle{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--gold);font-weight:600;letter-spacing:0.04em;margin-bottom:6px}
+.quote-total-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:1px solid var(--gold-dim)}
+.quote-total-label{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)}
+.quote-total-amount{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold);font-weight:600}
+.quote-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+
+/* ═══ ITINERARY CARD ═══ */
+.itinerary-card{margin-top:12px;background:linear-gradient(135deg,#0f0f0a,#141409);border:1px solid var(--gold-dim);border-radius:10px;overflow:hidden;min-width:260px}
+.itinerary-header{padding:12px 16px;background:rgba(201,169,110,0.06);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.itinerary-title{font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--gold);font-weight:600}
+.itinerary-count{font-size:10px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase}
+.itinerary-legs{max-height:240px;overflow-y:auto}
+.itinerary-legs::-webkit-scrollbar{width:3px}
+.itinerary-legs::-webkit-scrollbar-thumb{background:var(--border)}
+.leg-row{padding:9px 16px;border-bottom:1px solid rgba(255,255,255,0.04);display:grid;grid-template-columns:1fr auto;gap:8px;align-items:start}
+.leg-row:last-child{border-bottom:none}
+.leg-num{font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:2px}
+.leg-route{font-size:12px;color:var(--white);font-weight:500}
+.leg-detail{font-size:10px;color:var(--muted);margin-top:2px}
+.leg-amount{font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--gold);font-weight:600;white-space:nowrap;padding-top:14px}
+.itinerary-footer{padding:12px 16px;background:rgba(201,169,110,0.04);border-top:1px solid var(--gold-dim);display:flex;justify-content:space-between;align-items:center}
+.itinerary-grand-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted)}
+.itinerary-grand-amount{font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--gold);font-weight:600}
+
+/* ═══ BUTTONS ═══ */
+.btn-gold{display:inline-flex;align-items:center;gap:7px;padding:10px 16px;background:linear-gradient(135deg,#2a2215,#3a2f1e);border:1px solid var(--gold);border-radius:6px;color:var(--gold);font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;text-decoration:none}
+.btn-gold:hover{background:linear-gradient(135deg,#3a2f1e,#4a3d26);box-shadow:0 0 20px rgba(201,169,110,0.15)}
+.btn-gold svg{width:13px;height:13px;flex-shrink:0}
+.btn-gold.loading{pointer-events:none;opacity:0.6}
+.btn-gold.loading svg{animation:spin 1s linear infinite}
+
+/* ═══ TYPING ═══ */
+.typing-indicator{display:none}.typing-indicator.active{display:flex}
+.typing-dots{display:flex;gap:4px;padding:4px 2px}
+.typing-dots span{width:6px;height:6px;border-radius:50%;background:var(--gold-dim);animation:blink 1.2s infinite}
+.typing-dots span:nth-child(2){animation-delay:0.2s}.typing-dots span:nth-child(3){animation-delay:0.4s}
+@keyframes blink{0%,80%,100%{opacity:0.3;transform:scale(0.8)}40%{opacity:1;transform:scale(1)}}
+
+/* ═══ INPUT BAR ═══ */
+.input-bar{padding:12px 16px;border-top:1px solid var(--border);background:var(--panel);display:flex;gap:8px;align-items:flex-end}
+.input-wrap{flex:1}
+textarea{width:100%;background:var(--black);border:1px solid var(--border);border-radius:8px;color:var(--white);font-family:'Montserrat',sans-serif;font-size:13px;padding:10px 14px;resize:none;outline:none;line-height:1.5;min-height:42px;max-height:120px;overflow-y:auto;transition:border-color 0.2s}
+textarea::placeholder{color:var(--muted)}
+textarea:focus{border-color:var(--gold-dim)}
+.icon-btn{width:42px;height:42px;border-radius:8px;background:var(--black);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;position:relative}
+.icon-btn:hover{border-color:var(--gold-dim);color:var(--gold)}
+.icon-btn svg{width:16px;height:16px}
+.icon-btn.recording{border-color:var(--red);color:var(--red);animation:recPulse 1s ease infinite}
+@keyframes recPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4)}50%{box-shadow:0 0 0 6px rgba(239,68,68,0)}}
+.mic-dot{width:7px;height:7px;background:var(--red);border-radius:50%;position:absolute;top:7px;right:7px;display:none;animation:blinkDot 0.8s infinite}
+.icon-btn.recording .mic-dot{display:block}
+@keyframes blinkDot{0%,100%{opacity:1}50%{opacity:0}}
+.send-btn{width:42px;height:42px;border-radius:8px;background:linear-gradient(135deg,#2a2215,#3a2f1e);border:1px solid var(--gold-dim);color:var(--gold);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0}
+.send-btn:hover{border-color:var(--gold);box-shadow:0 0 14px rgba(201,169,110,0.2)}
+.send-btn:disabled{opacity:0.4;cursor:not-allowed}
+#fileInput{display:none}
+
+/* ═══ UPLOAD PROCESSING ═══ */
+.upload-msg{display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(201,169,110,0.06);border:1px solid var(--gold-dim);border-radius:8px;font-size:11px;color:var(--gold)}
+.upload-msg svg{width:14px;height:14px;flex-shrink:0;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:640px){
+  .mikey-panel{max-width:100vw!important;min-width:100vw}
+}
+</style>
+</head>
+<body>
+<div class="shell" id="shell">
+
+  <div class="mikey-panel">
+    <div class="mikey-header">
+      <div class="mikey-avatar">M</div>
+      <div class="mikey-info">
+        <div class="mikey-name">MIKEY</div>
+        <div class="gold-rule"></div>
+        <div class="mikey-sub">Lux Tour · Mexico City</div>
+      </div>
+      <div class="lang-wrap">
+        <span class="lang-flag" id="langFlag">🌐</span>
+        <span class="detecting-badge" id="detectingBadge">detecting…</span>
+        <select class="lang-select" id="langSelect" onchange="manualLangChange(this.value)">
+          <option value="es">Español</option><option value="en">English</option>
+          <option value="fr">Français</option><option value="de">Deutsch</option>
+          <option value="pt">Português</option><option value="it">Italiano</option>
+          <option value="ja">日本語</option><option value="zh">中文(简)</option>
+          <option value="zh-TW">中文(繁)</option><option value="ko">한국어</option>
+          <option value="ar">العربية</option><option value="ru">Русский</option>
+          <option value="nl">Nederlands</option><option value="tr">Türkçe</option>
+          <option value="pl">Polski</option><option value="sv">Svenska</option>
+          <option value="no">Norsk</option><option value="da">Dansk</option>
+          <option value="fi">Suomi</option><option value="el">Ελληνικά</option>
+          <option value="he">עברית</option><option value="hi">हिन्दी</option>
+          <option value="th">ภาษาไทย</option><option value="vi">Tiếng Việt</option>
+          <option value="id">Bahasa ID</option><option value="ms">Bahasa MY</option>
+          <option value="uk">Українська</option><option value="ro">Română</option>
+          <option value="fa">فارسی</option>
+        </select>
+      </div>
+    </div>
+    <div class="messages" id="messages"></div>
+    <div class="input-bar">
+      <div class="input-wrap">
+        <textarea id="userInput" rows="1" placeholder="…" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      </div>
+      <button class="icon-btn" id="micBtn" onclick="toggleMic()" title="Voice input">
+        <svg id="micIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" y1="19" x2="12" y2="23"/>
+          <line x1="8" y1="23" x2="16" y2="23"/>
+        </svg>
+        <span class="mic-dot"></span>
+      </button>
+      <button class="icon-btn" onclick="document.getElementById('fileInput').click()" title="Upload itinerary spreadsheet">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+      </button>
+      <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" onchange="handleFileUpload(event)"/>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="10" x2="15" y2="10"/><polyline points="11 6 15 10 11 14"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// ⚙️  CONFIG — fill in before going live
+// ═══════════════════════════════════════════════════════════════════════════
+const CONFIG = {
+  WORKER_URL:          'https://mikey-api.luxtourtravel.workers.dev',  // ← your Cloudflare Worker
+  STRIPE_FALLBACK:     'https://buy.stripe.com/YOUR_LINK_HERE',
+  EMAILJS_PUBLIC_KEY:  'YOUR_EMAILJS_PUBLIC_KEY',
+  EMAILJS_SERVICE_ID:  'YOUR_EMAILJS_SERVICE_ID',
+  EMAILJS_TEMPLATE_CLIENT: 'YOUR_CLIENT_TEMPLATE_ID',
+  EMAILJS_TEMPLATE_OPS:    'YOUR_OPS_TEMPLATE_ID',
+  OPS_EMAIL:           'ops@luxtourtravel.com',
+  OPS_CC:              'info@luxtourtravel.com',
+  COMPANY_NAME:        'Lux Tour Travel',
+  COMPANY_PHONE:       '+1 858 999 1895',
+  COMPANY_WHATSAPP:    '+1 858 999 1895',
+  COMPANY_EMAIL:       'info@luxtourtravel.com',
+  COMPANY_WEBSITE:     'luxtourtravel.com',
+  IATA_NUMBER:         'YOUR_IATA_NUMBER',
+  EMBARK_ACCOUNT:      'Embark Beyond',
+  EMAILJS_TEMPLATE_VENUE: 'YOUR_VENUE_TEMPLATE_ID',
+  EMAILJS_TEMPLATE_COMMISSION: 'YOUR_COMMISSION_TEMPLATE_ID',
+  COMMISSION_BOTTLE:   0.07,
+  COMMISSION_DINNER:   0.05,
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TERMS & CONDITIONS
+// ═══════════════════════════════════════════════════════════════════════════
+const TERMS_AND_CONDITIONS = `
+LUX TOUR TRAVEL — TERMS & CONDITIONS
+
+1. RESERVATIONS & CONFIRMATION
+All reservations are confirmed upon receipt of payment. A booking confirmation will be sent to the email address provided. Lux Tour Travel reserves the right to substitute vehicles of equal or superior class when necessary.
+
+2. PAYMENT
+Full payment is required to confirm your reservation. We accept all major credit cards via our secure payment portal. Prices are quoted in USD and are subject to applicable taxes and fees.
+
+3. CANCELLATION POLICY
+• 72+ hours before service: Full refund
+• 24–72 hours before service: 50% refund
+• Less than 24 hours: Non-refundable
+• No-show: Non-refundable
+Cancellations must be submitted in writing to info@luxtourtravel.com.
+
+4. WAIT TIME
+• Domestic flights: 45 minutes complimentary wait time from actual landing
+• International flights: 60 minutes complimentary from actual landing
+• General pickups: 15 minutes complimentary
+• Additional wait time is billed in 15-minute increments at the applicable vehicle rate
+
+5. EXTRA STOPS
+Additional stops beyond the quoted itinerary are subject to extra charges as confirmed by dispatch.
+
+6. VEHICLE CAPACITY
+Passengers are responsible for ensuring their group does not exceed the vehicle's rated capacity.
+
+7. LUGGAGE
+Standard luggage is accommodated within normal vehicle capacity. Oversized items must be declared at time of booking.
+
+8. CONDUCT
+Lux Tour Travel reserves the right to terminate service without refund if a passenger's conduct endangers the driver, vehicle, or other passengers.
+
+9. DELAYS & FORCE MAJEURE
+Lux Tour Travel is not liable for delays caused by traffic, weather, road closures, civil unrest, or other circumstances beyond our control.
+
+10. AIRPORT TRANSFERS
+Our drivers monitor flight status in real time. In the event of a delayed flight, your driver will adjust accordingly.
+
+11. PRIVACY
+Your personal information is used solely to process your reservation. We do not sell or share your data with third parties.
+
+12. GOVERNING LAW
+These terms are governed by the laws of Mexico and the State of California, USA, as applicable.
+
+For questions: info@luxtourtravel.com | +1 858 999 1895
+© ${new Date().getFullYear()} Lux Tour Travel. All rights reserved.
+`.trim();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PRICING MATRIX
+// ═══════════════════════════════════════════════════════════════════════════
+const PRICING = {
+  vehicles: {
+    sedan:        {label:'Executive Sedan',  hourly:90,  hourlyMin:4, perMile:4.00, transferMin:80,  extraStop:10, luxury:false, hourlyOnly:false},
+    luxury_sedan: {label:'Luxury Sedan',     hourly:108, hourlyMin:4, perMile:4.80, transferMin:96,  extraStop:12, luxury:true,  hourlyOnly:false},
+    suv:          {label:'Executive SUV',    hourly:110, hourlyMin:4, perMile:4.50, transferMin:110, extraStop:15, luxury:false, hourlyOnly:false},
+    luxury_suv:   {label:'Luxury SUV',       hourly:132, hourlyMin:4, perMile:5.40, transferMin:132, extraStop:18, luxury:true,  hourlyOnly:false},
+    sprinter:     {label:'Premium Sprinter', hourly:199, hourlyMin:4, perMile:10.0, transferMin:425, extraStop:45, luxury:false, hourlyOnly:false},
+    armored:      {label:'Armored Escalade', hourly:399, hourlyMin:4, perMile:null, transferMin:null,extraStop:null,luxury:false,hourlyOnly:true}
+  },
+  greeter:60, waitTimeIncrement:15
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CDMX VENUE DATABASE
+// ═══════════════════════════════════════════════════════════════════════════
+const VENUES = {
+  pujol:{name:'Pujol',emoji:'🌮',type:'dinner',category:'Contemporary Mexican · Fine Dining',neighborhood:'Polanco',zone:'polanco',description:"Enrique Olvera's flagship. One of Latin America's top 5 restaurants. Tasting menus only, legendary mole madre.",tags:['michelin','tasting menu','iconic','polanco'],avgSpendPerPerson:180,minPartySpend:720,email:'reservaciones@pujol.com.mx',phone:'+52 55 5545 4111',commissionType:'dinner'},
+  quintonil:{name:'Quintonil',emoji:'🌿',type:'dinner',category:'Contemporary Mexican · Fine Dining',neighborhood:'Polanco',zone:'polanco',description:"Jorge Vallejo's celebrated restaurant, consistently ranked top 10 globally. Seasonal, ingredient-driven Mexican cuisine.",tags:['world top 10','seasonal','polanco',"chef's table"],avgSpendPerPerson:160,minPartySpend:640,email:'reservas@quintonil.com',phone:'+52 55 5280 2680',commissionType:'dinner'},
+  contramar:{name:'Contramar',emoji:'🦞',type:'dinner',category:'Seafood · Power Lunch',neighborhood:'Roma Norte',zone:'roma',description:'Iconic Mexico City seafood institution. The tuna tostadas and red-and-green snapper are legendary.',tags:['seafood','power lunch','iconic','roma'],avgSpendPerPerson:90,minPartySpend:360,email:'reservaciones@contramar.com.mx',phone:'+52 55 5514 9217',commissionType:'dinner'},
+  meridiem:{name:'Meridiem',emoji:'✨',type:'dinner',category:'Contemporary · Rooftop · Fine Dining',neighborhood:'Polanco',zone:'polanco',description:'Stunning rooftop dining in the heart of Polanco. Modern Mexican with exceptional wine list and panoramic city views.',tags:['rooftop','views','polanco','contemporary'],avgSpendPerPerson:130,minPartySpend:520,email:'events@meridiem.mx',phone:'+52 55 7589 0100',commissionType:'dinner'},
+  dulce_patria:{name:'Dulce Patria',emoji:'🌸',type:'dinner',category:'Contemporary Mexican · Boutique',neighborhood:'Polanco',zone:'polanco',description:"Martha Ortiz's visually stunning restaurant inside Las Alcobas hotel. Mexican haute cuisine with a theatrical, artistic touch.",tags:['boutique hotel','artistic','polanco','mexican'],avgSpendPerPerson:120,minPartySpend:480,email:'dining@lasalcobasmexico.com',phone:'+52 55 3300 3900',commissionType:'dinner'},
+  rosetta:{name:'Rosetta',emoji:'🌹',type:'dinner',category:'Italian-Mexican · Elena Reygadas',neighborhood:'Roma Norte',zone:'roma',description:"Elena Reygadas' acclaimed restaurant in a restored mansion. Latin America's best female chef. Italian-influenced with Mexican soul.",tags:['james beard','roma','italian-mexican','heritage building'],avgSpendPerPerson:110,minPartySpend:440,email:'contacto@rosetta.com.mx',phone:'+52 55 5533 7804',commissionType:'dinner'},
+  biko:{name:'Biko',emoji:'🇪🇸',type:'dinner',category:'Basque-Mexican Fusion · Fine Dining',neighborhood:'Polanco',zone:'polanco',description:"Mikel Alonso and Bruno Oteiza's celebrated Basque-Mexican restaurant. Creative tasting menus in an elegant setting.",tags:['basque','polanco','tasting menu','wine pairing'],avgSpendPerPerson:150,minPartySpend:600,email:'reservaciones@biko.com.mx',phone:'+52 55 5282 2064',commissionType:'dinner'},
+  loup_bar:{name:'Loup Bar',emoji:'🍷',type:'dinner',category:'Wine Bar · Small Plates',neighborhood:'Condesa',zone:'condesa',description:"Buzzing natural wine bar and small plates restaurant beloved by Mexico City's creative elite. Lively, unpretentious.",tags:['wine bar','condesa','natural wine','small plates'],avgSpendPerPerson:75,minPartySpend:300,email:'hello@loupbar.mx',phone:'+52 55 5211 5550',commissionType:'dinner'},
+  hyde_polanco:{name:'Hyde Club Polanco',emoji:'🥂',type:'bottle',category:'Nightclub · Bottle Service',neighborhood:'Polanco',zone:'polanco',description:"Upscale nightclub in the heart of Polanco. Premier bottle service, international DJs, VIP tables. Mexico City's most exclusive.",tags:['vip','bottle service','polanco','nightclub','dj'],avgSpendPerTable:2500,minTableSpend:2000,email:'reservas@hydepolanco.com',phone:'+52 55 5280 4444',commissionType:'bottle'},
+  white:{name:'White CDMX',emoji:'🪩',type:'bottle',category:'Nightclub · Electronic · Bottle Service',neighborhood:'Lomas de Chapultepec',zone:'lomas',description:'Iconic Mexico City nightclub. Top-tier electronic music, massive production, full VIP bottle service.',tags:['electronic','vip','lomas','bottle service','production'],avgSpendPerTable:3000,minTableSpend:2500,email:'vip@whitecdmx.com',phone:'+52 55 5520 7900',commissionType:'bottle'},
+  onyx:{name:'Onyx Club',emoji:'💎',type:'bottle',category:'Nightclub · Latin · Bottle Service',neighborhood:'Santa Fe',zone:'santa_fe',description:"Santa Fe's premier VIP lounge and nightclub. Latin and urban music, private VIP areas.",tags:['latin','santa fe','vip lounge','bottle service'],avgSpendPerTable:2000,minTableSpend:1500,email:'vip@onyxcdmx.com',phone:'+52 55 2591 3300',commissionType:'bottle'},
+  patron:{name:'Patrón Sports Bar & Club',emoji:'🏆',type:'bottle',category:'Sports Bar · Nightclub · Bottle Service',neighborhood:'Polanco',zone:'polanco',description:'Upscale sports bar with full nightclub transformation. Massive screens, bottle service, popular with corporate groups.',tags:['sports bar','polanco','corporate','bottle service','groups'],avgSpendPerTable:1800,minTableSpend:1500,email:'reservas@patronpolanco.mx',phone:'+52 55 5545 2200',commissionType:'bottle'},
+  bar_mil:{name:'Bar Mil',emoji:'🎶',type:'bottle',category:'Cocktail Bar · Live Music · Upscale',neighborhood:'Condesa',zone:'condesa',description:"Sophisticated cocktail bar with live jazz and curated spirits. Popular with Mexico City's cultural and business elite.",tags:['jazz','cocktails','condesa','live music','sophisticated'],avgSpendPerTable:800,minTableSpend:600,email:'reservas@barmil.mx',phone:'+52 55 5211 0703',commissionType:'bottle'},
+  babel:{name:'Babel Rooftop Bar',emoji:'🌃',type:'bottle',category:'Rooftop Bar · Bottle Service · Views',neighborhood:'Centro Histórico',zone:'centro',description:'Stunning rooftop bar atop a historic building in Centro. Sweeping views, craft cocktails, bottle service.',tags:['rooftop','centro','views','bottle service','skyline'],avgSpendPerTable:1200,minTableSpend:900,email:'reservas@babelrooftop.mx',phone:'+52 55 5510 2200',commissionType:'bottle'},
+};
+
+// ═══ VENUE HELPERS ═══
+function getVenuesByType(type,zone){return Object.entries(VENUES).filter(([,v])=>(!type||v.type===type)&&(!zone||v.zone===zone||zone==='any')).map(([key,v])=>({key,...v}));}
+function getVenueByKey(key){return VENUES[key]?{key,...VENUES[key]}:null;}
+function calcCommission(venue,estimatedSpend,partySize){const rate=venue.commissionType==='bottle'?CONFIG.COMMISSION_BOTTLE:CONFIG.COMMISSION_DINNER;const label=venue.commissionType==='bottle'?'Bottle Service (7%)':'Dinner Reservation (5%)';const spend=estimatedSpend||(venue.commissionType==='bottle'?(venue.avgSpendPerTable||venue.minTableSpend||2000):(venue.avgSpendPerPerson||100)*(partySize||2));const commission=parseFloat((spend*rate).toFixed(2));return{rate,label,estimatedSpend:spend,commission,commissionType:venue.commissionType};}
+
+// ═══ VENUE OUTREACH EMAIL ═══
+async function sendVenueReservationEmail(venue,reservationDetails,clientInfo){
+  const comm=calcCommission(venue,reservationDetails.estimatedSpend,reservationDetails.partySize);
+  const resDate=reservationDetails.date||'To Be Confirmed';
+  const resTime=reservationDetails.time||'To Be Confirmed';
+  const pax=reservationDetails.partySize||2;
+  const special=reservationDetails.specialRequests||'None';
+  await emailjs.send(CONFIG.EMAILJS_SERVICE_ID,CONFIG.EMAILJS_TEMPLATE_VENUE,{
+    to_email:venue.email,to_name:`${venue.name} Reservations`,
+    subject:`Reservation Request — ${CONFIG.COMPANY_NAME} / IATA ${CONFIG.IATA_NUMBER} — ${resDate}`,
+    venue_name:venue.name,client_name:clientInfo.name||'VIP Guest',party_size:pax,
+    res_date:resDate,res_time:resTime,special_requests:special,
+    agent_name:'Lux Tour Travel Operations',agent_email:CONFIG.OPS_EMAIL,agent_phone:CONFIG.COMPANY_PHONE,
+    iata_number:CONFIG.IATA_NUMBER,embark_account:CONFIG.EMBARK_ACCOUNT,
+    commission_rate:`${(comm.rate*100).toFixed(0)}%`,
+    commission_type:comm.commissionType==='bottle'?'bottle service':'dinner reservation',
+    company_name:CONFIG.COMPANY_NAME,
+    message:`Dear ${venue.name} Team,\n\nLux Tour Travel (IATA #${CONFIG.IATA_NUMBER}, affiliated with ${CONFIG.EMBARK_ACCOUNT}) is pleased to request the following reservation on behalf of our client:\n\nClient: ${clientInfo.name||'VIP Guest'}\nDate: ${resDate}\nTime: ${resTime}\nParty Size: ${pax}\nSpecial Requests: ${special}\n\nAs per our IATA agency agreement, we kindly request the applicable ${(comm.rate*100).toFixed(0)}% commission on ${comm.commissionType==='bottle'?'bottle service':'the reservation total'} be processed accordingly.\n\nPlease confirm this reservation at your earliest convenience.\n\nBest regards,\nLux Tour Travel Operations\n${CONFIG.OPS_EMAIL} | ${CONFIG.COMPANY_PHONE}`,
+  });
+  await emailjs.send(CONFIG.EMAILJS_SERVICE_ID,CONFIG.EMAILJS_TEMPLATE_COMMISSION,{
+    to_email:CONFIG.OPS_EMAIL,to_name:'Operations Team',
+    subject:`COMMISSION ALERT — ${venue.name} — ${resDate} — Est. $${comm.commission.toFixed(2)}`,
+    venue_name:venue.name,venue_email:venue.email,client_name:clientInfo.name||'Unknown',client_email:clientInfo.email||'N/A',
+    party_size:pax,res_date:resDate,res_time:resTime,commission_type:comm.label,
+    estimated_spend:`$${comm.estimatedSpend.toFixed(2)}`,commission_amount:`$${comm.commission.toFixed(2)}`,
+    commission_rate:`${(comm.rate*100).toFixed(0)}%`,iata_number:CONFIG.IATA_NUMBER,
+    message:`Venue reservation request sent. Commission tracking initiated. Follow up with ${venue.name} (${venue.email}) to confirm reservation and commission processing.`,
+  });
+  return comm;
+}
+
+function buildQuote(p){const v=PRICING.vehicles[p.vehicleKey];if(!v)return null;let total=0;if(p.serviceType==='hourly')total+=Math.max(p.hours||v.hourlyMin,v.hourlyMin)*v.hourly;else total+=v.hourlyOnly?Math.max(p.hours||v.hourlyMin,v.hourlyMin)*v.hourly:Math.max((p.miles||0)*v.perMile,v.transferMin);if(p.greeters>0)total+=p.greeters*PRICING.greeter;if(p.extraStops>0&&v.extraStop)total+=p.extraStops*v.extraStop;if(p.waitMinutes>0)total+=parseFloat((v.hourly/4*Math.ceil(p.waitMinutes/PRICING.waitTimeIncrement)).toFixed(2));return{vehicle:v.label,luxury:v.luxury,total:parseFloat(total.toFixed(2)),params:p};}
+
+// ═══ CDMX DISTANCE LOOKUP ═══
+const CDMX_DISTANCES={'aicm-polanco':12,'aicm-reforma':11,'aicm-condesa':9,'aicm-roma':8,'aicm-santa fe':18,'aicm-pedregal':14,'aicm-lomas':16,'aicm-interlomas':22,'aicm-tlalpan':16,'aicm-xochimilco':18,'aicm-centro':7,'aicm-narvarte':7,'aicm-del valle':9,'aicm-coyoacan':13,'aicm-satelite':24,'aifa-polanco':38,'aifa-reforma':37,'aifa-condesa':39,'aifa-santa fe':42,'aifa-pedregal':44,'aifa-lomas':40,'aifa-centro':34,'polanco-santa fe':9,'polanco-pedregal':11,'polanco-condesa':4,'polanco-roma':5,'polanco-centro':8,'reforma-condesa':3,'reforma-santa fe':11};
+function lookupDistance(f,t){const k1=`${(f||'').toLowerCase().trim()}-${(t||'').toLowerCase().trim()}`;const k2=`${(t||'').toLowerCase().trim()}-${(f||'').toLowerCase().trim()}`;return CDMX_DISTANCES[k1]||CDMX_DISTANCES[k2]||null;}
+function normalizeVehicle(r){if(!r)return'sedan';const s=r.toString().toLowerCase();if(s.includes('armored')||s.includes('blindado'))return'armored';if(s.includes('sprinter')||s.includes('van'))return'sprinter';if(s.includes('luxury suv')||s.includes('lujo suv'))return'luxury_suv';if(s.includes('luxury sedan')||s.includes('lujo sedan'))return'luxury_sedan';if(s.includes('suv')||s.includes('suburban')||s.includes('escalade')||s.includes('gls'))return'suv';return'sedan';}
+function normalizeServiceType(f,t){const a=(s)=>(s||'').toLowerCase();if(a(f).includes('aicm')||a(f).includes('aifa')||a(f).includes('airport')||a(f).includes('aeropuerto')||a(t).includes('aicm')||a(t).includes('aifa')||a(t).includes('airport')||a(t).includes('aeropuerto'))return'airport';return'transfer';}
+function col(row,...keys){for(const k of keys){for(const rk of Object.keys(row)){if(rk.includes(k.toLowerCase().replace(/\s/g,'_'))||rk===k.toLowerCase()){const v=row[rk];if(v!==undefined&&v!==null&&v!=='')return v.toString();}}}return'';}
+
+// ═══ EMAIL SYSTEM ═══
+emailjs.init(CONFIG.EMAILJS_PUBLIC_KEY);
+
+function buildTripSummary(bookingData){if(bookingData.legs){const legs=bookingData.legs;const grandTotal=legs.reduce((s,l)=>s+l.total,0);let html=`<table style="width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:13px"><tr style="background:#1a1a1a;color:#C9A96E"><th style="padding:8px 12px;text-align:left">Leg</th><th style="padding:8px 12px;text-align:left">Date/Time</th><th style="padding:8px 12px;text-align:left">Route</th><th style="padding:8px 12px;text-align:left">Vehicle</th><th style="padding:8px 12px;text-align:right">Total</th></tr>`;legs.forEach(l=>{html+=`<tr style="border-bottom:1px solid #eee"><td style="padding:7px 12px">${l.num}</td><td style="padding:7px 12px">${l.date||'TBD'} ${l.time||''}</td><td style="padding:7px 12px">${l.from} → ${l.to}</td><td style="padding:7px 12px">${l.vehicle}${l.greeters?' + Greeter':''}</td><td style="padding:7px 12px;text-align:right">$${l.total.toFixed(2)}</td></tr>`;});html+=`<tr style="background:#f9f9f9"><td colspan="4" style="padding:8px 12px;font-weight:bold">Grand Total</td><td style="padding:8px 12px;text-align:right;font-weight:bold;color:#8a5a00">$${grandTotal.toFixed(2)}</td></tr></table>`;return{text:`${legs.length}-Leg Itinerary — Grand Total: $${grandTotal.toFixed(2)}`,html,total:grandTotal.toFixed(2)};}else{const q=bookingData.quote;const p=q.params||{};let detail='';if(p.serviceType==='hourly')detail=`${Math.max(p.hours||4,4)} hours of service`;else detail=`Transfer${p.serviceType==='airport'?' (Airport)':''} · approx. ${p.miles||'TBD'} miles`;if(p.greeters)detail+=` · Greeter included`;if(p.extraStops)detail+=` · ${p.extraStops} extra stop(s)`;const html=`<table style="width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:13px"><tr style="background:#1a1a1a;color:#C9A96E"><th style="padding:8px 12px;text-align:left">Service</th><th style="padding:8px 12px;text-align:left">Details</th><th style="padding:8px 12px;text-align:right">Total</th></tr><tr><td style="padding:8px 12px">${q.vehicle}${q.luxury?' (Luxury)':''}</td><td style="padding:8px 12px">${detail}</td><td style="padding:8px 12px;text-align:right;font-weight:bold;color:#8a5a00">$${q.total.toFixed(2)}</td></tr></table>`;return{text:`${q.vehicle} — ${detail} — Total: $${q.total.toFixed(2)}`,html,total:q.total.toFixed(2)};}}
+
+async function sendConfirmationEmails(clientEmail,clientName,bookingData,tripDate){const summary=buildTripSummary(bookingData);const confirmationNum='LUX-'+Date.now().toString(36).toUpperCase();pendingConfirmNum=confirmationNum;const bookingDate=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});const sharedParams={confirmation_number:confirmationNum,booking_date:bookingDate,trip_date:tripDate||'As scheduled',trip_summary_text:summary.text,trip_summary_html:summary.html,total_amount:summary.total,company_name:CONFIG.COMPANY_NAME,company_phone:CONFIG.COMPANY_PHONE,company_whatsapp:CONFIG.COMPANY_WHATSAPP,company_email:CONFIG.COMPANY_EMAIL,terms_and_conditions:TERMS_AND_CONDITIONS};await emailjs.send(CONFIG.EMAILJS_SERVICE_ID,CONFIG.EMAILJS_TEMPLATE_CLIENT,{...sharedParams,to_email:clientEmail,to_name:clientName||'Valued Guest',subject:`Your Lux Tour Booking Confirmation — ${confirmationNum}`,message:`Your reservation with Lux Tour Travel has been received and is being processed. Your confirmation number is ${confirmationNum}. Our team will reach out to confirm final details within 2 hours.`});await emailjs.send(CONFIG.EMAILJS_SERVICE_ID,CONFIG.EMAILJS_TEMPLATE_OPS,{...sharedParams,to_email:CONFIG.OPS_EMAIL,to_name:'Operations Team',cc_email:CONFIG.OPS_CC,client_name:clientName||'Unknown',client_email:clientEmail,subject:`NEW BOOKING — ${confirmationNum} — ${clientName||clientEmail} — $${summary.total}`,message:`New booking received via Mikey AI. Client: ${clientName||'N/A'} <${clientEmail}>. Amount: $${summary.total}.`});return confirmationNum;}
+
+// ═══ VOICE INPUT ═══
+let recognition=null;let isRecording=false;
+function initSpeechRecognition(){const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SpeechRecognition)return null;const r=new SpeechRecognition();r.continuous=false;r.interimResults=true;r.maxAlternatives=1;r.onstart=()=>{isRecording=true;document.getElementById('micBtn').classList.add('recording')};r.onresult=(e)=>{const transcript=Array.from(e.results).map(r=>r[0].transcript).join('');document.getElementById('userInput').value=transcript;autoResize(document.getElementById('userInput'))};r.onend=()=>{isRecording=false;document.getElementById('micBtn').classList.remove('recording');recognition.lang=getLangCode(currentLang);const val=document.getElementById('userInput').value.trim();if(val)setTimeout(()=>sendMessage(),400)};r.onerror=(e)=>{isRecording=false;document.getElementById('micBtn').classList.remove('recording');if(e.error!=='no-speech')console.warn('Speech error:',e.error)};return r;}
+function getLangCode(lang){const map={es:'es-MX',en:'en-US',fr:'fr-FR',de:'de-DE',pt:'pt-BR',it:'it-IT',ja:'ja-JP',zh:'zh-CN','zh-TW':'zh-TW',ko:'ko-KR',ar:'ar-SA',ru:'ru-RU',nl:'nl-NL',tr:'tr-TR',pl:'pl-PL',sv:'sv-SE',no:'nb-NO',da:'da-DK',fi:'fi-FI',el:'el-GR',he:'he-IL',hi:'hi-IN',th:'th-TH',vi:'vi-VN',id:'id-ID',ms:'ms-MY',uk:'uk-UA',ro:'ro-RO',fa:'fa-IR'};return map[lang]||'es-MX';}
+function toggleMic(){if(!recognition){recognition=initSpeechRecognition();if(!recognition){appendMessage('assistant',currentLang==='es'?'Tu navegador no soporta entrada de voz. Prueba Chrome.':'Voice input not supported. Try Chrome.');return;}}if(isRecording){recognition.stop()}else{recognition.lang=getLangCode(currentLang);recognition.start()}}
+
+// ═══ SPREADSHEET PARSER ═══
+async function parseSpreadsheet(file){return new Promise((resolve,reject)=>{const reader=new FileReader();const ext=file.name.split('.').pop().toLowerCase();reader.onload=(e)=>{try{let rows=[];if(ext==='csv'){const r=Papa.parse(e.target.result,{header:true,skipEmptyLines:true});rows=r.data;}else{const wb=XLSX.read(e.target.result,{type:'array'});const ws=wb.Sheets[wb.SheetNames[0]];rows=XLSX.utils.sheet_to_json(ws,{defval:''});}const normalized=rows.map(row=>{const n={};for(const[k,v]of Object.entries(row)){const key=k.toString().toLowerCase().trim().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');n[key]=v;}return n;});resolve(normalized);}catch(err){reject(err);}};if(ext==='csv')reader.readAsText(file);else reader.readAsArrayBuffer(file);});}
+
+function buildItineraryLegs(rows){const legs=[];for(let i=0;i<rows.length;i++){const row=rows[i];const from=col(row,'from','pickup','origin','from_location','pickup_location','origen','recogida');const to=col(row,'to','dropoff','destination','to_location','drop_location','destino','entrega');if(!from&&!to)continue;const date=col(row,'date','fecha','day');const time=col(row,'time','hora','pickup_time');const veh=col(row,'vehicle','vehiculo','car','type','vehicle_type','clase');const pax=parseInt(col(row,'pax','passengers','pasajeros','guests','people'))||1;const greet=col(row,'greeter','greeters','meet_greet','meet','meetgreet').toLowerCase();const stops=parseInt(col(row,'extra_stops','stops','extra','paradas'))||0;const wait=parseInt(col(row,'wait','wait_time','waiting','espera'))||0;const hrs=parseFloat(col(row,'hours','horas','duration'))||0;const notes=col(row,'notes','notas','comments','note');const vehicleKey=normalizeVehicle(veh);const serviceType=hrs>0?'hourly':normalizeServiceType(from,to);const greeters=(greet==='yes'||greet==='y'||greet==='si'||greet==='sí'||greet==='1')?1:0;let miles=lookupDistance(from,to);if(!miles&&serviceType!=='hourly')miles=10;const quote=buildQuote({vehicleKey,serviceType,hours:hrs,miles,greeters,extraStops:stops,waitMinutes:wait});legs.push({num:i+1,date,time,from,to,vehicleKey,serviceType,pax,greeters,extraStops:stops,waitMinutes:wait,notes,vehicle:PRICING.vehicles[vehicleKey]?.label||vehicleKey,total:quote?.total||0});}return legs;}
+
+// ═══ LANGUAGE CONFIG (29 LANGUAGES) ═══
+const COUNTRY_LANG={MX:'es',ES:'es',AR:'es',CO:'es',CL:'es',PE:'es',VE:'es',EC:'es',GT:'es',CU:'es',BO:'es',DO:'es',HN:'es',PY:'es',SV:'es',NI:'es',CR:'es',PA:'es',UY:'es',GQ:'es',PR:'es',US:'en',GB:'en',CA:'en',AU:'en',NZ:'en',IE:'en',ZA:'en',SG:'en',PH:'en',NG:'en',GH:'en',JM:'en',MT:'en',FR:'fr',BE:'fr',LU:'fr',MC:'fr',SN:'fr',CI:'fr',HT:'fr',DE:'de',AT:'de',LI:'de',CH:'de',BR:'pt',PT:'pt',IT:'it',SM:'it',JP:'ja',CN:'zh',TW:'zh-TW',HK:'zh-TW',KR:'ko',SA:'ar',AE:'ar',EG:'ar',JO:'ar',KW:'ar',QA:'ar',MA:'ar',RU:'ru',BY:'ru',NL:'nl',TR:'tr',PL:'pl',SE:'sv',NO:'no',DK:'da',FI:'fi',GR:'el',IL:'he',IN:'hi',TH:'th',VN:'vi',ID:'id',MY:'ms',UA:'uk',RO:'ro',IR:'fa',AF:'fa'};
+
+const LANG={
+  es:{flag:'🇲🇽',label:'Español',ph:'Escribe o usa el micrófono…',payBtn:'Confirmar y Pagar',name:'Spanish',rtl:false},
+  en:{flag:'🇺🇸',label:'English',ph:'Type or use the microphone…',payBtn:'Confirm & Pay',name:'English',rtl:false},
+  fr:{flag:'🇫🇷',label:'Français',ph:'Écrivez ou utilisez le micro…',payBtn:'Confirmer et Payer',name:'French',rtl:false},
+  de:{flag:'🇩🇪',label:'Deutsch',ph:'Tippen oder Mikrofon nutzen…',payBtn:'Bestätigen & Zahlen',name:'German',rtl:false},
+  pt:{flag:'🇧🇷',label:'Português',ph:'Digite ou use o microfone…',payBtn:'Confirmar e Pagar',name:'Portuguese',rtl:false},
+  it:{flag:'🇮🇹',label:'Italiano',ph:'Scrivi o usa il microfono…',payBtn:'Conferma e Paga',name:'Italian',rtl:false},
+  ja:{flag:'🇯🇵',label:'日本語',ph:'入力またはマイクを使用…',payBtn:'確認して支払う',name:'Japanese',rtl:false},
+  zh:{flag:'🇨🇳',label:'中文(简)',ph:'输入或使用麦克风…',payBtn:'确认并付款',name:'Simplified Chinese',rtl:false},
+  'zh-TW':{flag:'🇹🇼',label:'中文(繁)',ph:'輸入或使用麥克風…',payBtn:'確認並付款',name:'Traditional Chinese',rtl:false},
+  ko:{flag:'🇰🇷',label:'한국어',ph:'입력하거나 마이크 사용…',payBtn:'확인 및 결제',name:'Korean',rtl:false},
+  ar:{flag:'🇸🇦',label:'العربية',ph:'اكتب أو استخدم الميكروفون…',payBtn:'تأكيد والدفع',name:'Arabic',rtl:true},
+  ru:{flag:'🇷🇺',label:'Русский',ph:'Введите или используйте микрофон…',payBtn:'Подтвердить и оплатить',name:'Russian',rtl:false},
+  nl:{flag:'🇳🇱',label:'Nederlands',ph:'Typ of gebruik de microfoon…',payBtn:'Bevestigen & Betalen',name:'Dutch',rtl:false},
+  tr:{flag:'🇹🇷',label:'Türkçe',ph:'Yazın veya mikrofon kullanın…',payBtn:'Onayla ve Öde',name:'Turkish',rtl:false},
+  pl:{flag:'🇵🇱',label:'Polski',ph:'Wpisz lub użyj mikrofonu…',payBtn:'Potwierdź i Zapłać',name:'Polish',rtl:false},
+  sv:{flag:'🇸🇪',label:'Svenska',ph:'Skriv eller använd mikrofonen…',payBtn:'Bekräfta & Betala',name:'Swedish',rtl:false},
+  no:{flag:'🇳🇴',label:'Norsk',ph:'Skriv eller bruk mikrofonen…',payBtn:'Bekreft og Betal',name:'Norwegian',rtl:false},
+  da:{flag:'🇩🇰',label:'Dansk',ph:'Skriv eller brug mikrofonen…',payBtn:'Bekræft og Betal',name:'Danish',rtl:false},
+  fi:{flag:'🇫🇮',label:'Suomi',ph:'Kirjoita tai käytä mikrofonia…',payBtn:'Vahvista ja Maksa',name:'Finnish',rtl:false},
+  el:{flag:'🇬🇷',label:'Ελληνικά',ph:'Γράψτε ή χρησιμοποιήστε μικρόφωνο…',payBtn:'Επιβεβαίωση & Πληρωμή',name:'Greek',rtl:false},
+  he:{flag:'🇮🇱',label:'עברית',ph:'כתוב או השתמש במיקרופון…',payBtn:'אשר ושלם',name:'Hebrew',rtl:true},
+  hi:{flag:'🇮🇳',label:'हिन्दी',ph:'टाइप करें या माइक का उपयोग करें…',payBtn:'पुष्टि करें और भुगतान करें',name:'Hindi',rtl:false},
+  th:{flag:'🇹🇭',label:'ภาษาไทย',ph:'พิมพ์หรือใช้ไมโครโฟน…',payBtn:'ยืนยันและชำระ',name:'Thai',rtl:false},
+  vi:{flag:'🇻🇳',label:'Tiếng Việt',ph:'Nhập hoặc dùng micro…',payBtn:'Xác nhận & Thanh toán',name:'Vietnamese',rtl:false},
+  id:{flag:'🇮🇩',label:'Bahasa ID',ph:'Ketik atau gunakan mikrofon…',payBtn:'Konfirmasi & Bayar',name:'Indonesian',rtl:false},
+  ms:{flag:'🇲🇾',label:'Bahasa MY',ph:'Taip atau gunakan mikrofon…',payBtn:'Sahkan & Bayar',name:'Malay',rtl:false},
+  uk:{flag:'🇺🇦',label:'Українська',ph:'Введіть або використайте мікрофон…',payBtn:'Підтвердити й оплатити',name:'Ukrainian',rtl:false},
+  ro:{flag:'🇷🇴',label:'Română',ph:'Scrieți sau folosiți microfonul…',payBtn:'Confirmați și Plătiți',name:'Romanian',rtl:false},
+  fa:{flag:'🇮🇷',label:'فارسی',ph:'بنویسید یا از میکروفون استفاده کنید…',payBtn:'تأیید و پرداخت',name:'Persian',rtl:true},
+};
+
+const GREETINGS={
+  es:`Buen día — soy **Mikey**, su concierge de Lux Tour para la Ciudad de México.\n\nPuedo cotizar transporte ejecutivo en todo el CDMX, recomendar restaurantes y clubs exclusivos, procesar itinerarios por hoja de cálculo, y enviar confirmación por correo al instante.\n\nPuede escribir o usar el 🎤 micrófono.\n\n¿A dónde va hoy?`,
+  en:`Good day — I'm **Mikey**, your Lux Tour concierge for Mexico City.\n\nI can quote executive transport anywhere in CDMX, recommend the best restaurants and clubs, process full spreadsheet itineraries, and send instant email confirmations to you and our team.\n\nFeel free to type or tap the 🎤 mic button.\n\nWhere are you heading today?`,
+  fr:`Bonjour — je suis **Mikey**, votre concierge Lux Tour pour Mexico.\n\nJe peux organiser votre transport exécutif dans tout CDMX, recommander restaurants et clubs, traiter des itinéraires via tableur et envoyer des confirmations par e-mail.\n\nOù souhaitez-vous aller aujourd'hui ?`,
+  de:`Guten Tag — ich bin **Mikey**, Ihr Lux Tour Concierge für Mexiko-Stadt.\n\nIch kann Executive-Transport in ganz CDMX buchen, Restaurants und Clubs empfehlen, Tabellen-Reisepläne verarbeiten und Bestätigungs-E-Mails senden.\n\nWohin fahren Sie heute?`,
+  pt:`Bom dia — sou **Mikey**, seu concierge Lux Tour para a Cidade do México.\n\nPosso cotar transporte executivo em toda CDMX, recomendar restaurantes e clubs, processar itinerários e enviar confirmações por e-mail.\n\nPara onde vai hoje?`,
+};
+
+// ═══ SYSTEM PROMPT ═══
+function buildSystemPrompt(lang){
+  const langName=(LANG[lang]||LANG.en).name;
+  return `You are Mikey, the elite AI logistics concierge for Lux Tour Travel's Mexico City black car division — a subsidiary of Infinite Logistic Technologies.
+
+PRIMARY LANGUAGE: ${langName}. Respond exclusively in ${langName} unless the customer switches. You speak EVERY language on Earth fluently.
+
+PERSONALITY: Confident, precise, warm, proactive. You know CDMX deeply: AICM T1&T2, AIFA, Polanco, Santa Fe, Roma, Condesa, Lomas, Pedregal, Interlomas, Tlalpan, Xochimilco, Centro Histórico, all major hotel corridors. You understand traffic, tolls, late-night conditions, airport protocols.
+
+FLEET & PRICING (CONFIDENTIAL — show final totals only):
+Hourly (4hr min): Sedan $90/hr | Luxury Sedan $108/hr | SUV $110/hr | Luxury SUV $132/hr | Sprinter $199/hr | Armored $399/hr (hourly only)
+Transfers: Sedan $4/mi min $80 | Luxury Sedan $4.80/mi min $96 | SUV $4.50/mi min $110 | Luxury SUV $5.40/mi min $132 | Sprinter $10/mi min $425 | Armored hourly only
+Add-ons: Greeter $60 | Extra stops: Sedan $10 / LuxSedan $12 / SUV $15 / LuxSUV $18 / Sprinter $45 | Wait: 15-min increments at 25% hourly rate
+CDMX distances: AICM→Polanco≈12mi, →Santa Fe≈18mi, →Pedregal≈14mi, →Condesa≈9mi, →Roma≈8mi, →Lomas≈16mi, AIFA→Polanco≈38mi
+
+SUGGESTION ENGINE: Be proactive — suggest upgrades, greeters, luxury for VIPs. Format: [[SUGGESTIONS:chip1|chip2|chip3]] max 3 chips under 30 chars.
+
+EMAIL COLLECTION (CRITICAL): Before finalizing ANY quote, collect: 1) Full name 2) Email 3) Trip date/time. Output: [[CLIENT_INFO:name|email|date]]
+
+QUOTING: [[QUOTE:vehicleKey|serviceType|hours|miles|greeters|extraStops|waitMinutes]]
+vehicleKey: sedan, luxury_sedan, suv, luxury_suv, sprinter, armored
+
+BOOKING CONFIRMATION: When the client confirms and you have name+email, output [[OPEN_BOOKING]] to trigger confirmation emails. The client will use the "Confirm & Pay" button on the quote card to complete payment via Stripe — the checkout will auto-populate their name, email, amount, and trip details. Do NOT mention any external booking forms or alternate checkout flows — Stripe is the single payment path.
+
+VENUE RECOMMENDATIONS (CDMX):
+DINNER (5% commission — NEVER mention to client): pujol (Polanco,$180/pp), quintonil (Polanco,$160/pp), contramar (Roma,$90/pp), meridiem (Polanco,$130/pp), dulce_patria (Polanco,$120/pp), rosetta (Roma,$110/pp), biko (Polanco,$150/pp), loup_bar (Condesa,$75/pp)
+NIGHTLIFE (7% commission — NEVER mention): hyde_polanco (Polanco,min$2000), white (Lomas,min$2500), onyx (Santa Fe,min$1500), patron (Polanco,min$1500), bar_mil (Condesa,min$600), babel (Centro,min$900)
+
+VENUE FLOW: 1) Ask occasion/neighborhood/party size 2) Recommend 2-3 venues 3) Output [[RECOMMEND_VENUES:key1,key2,key3]] 4) When picked, collect details 5) Output [[BOOK_VENUE:key|date|time|partySize|spend|requests]]
+
+Keep responses concise — 2-4 short paragraphs. Use **bold** for key details. Always end with a clear next step.`;
+}
+
+// ═══ STATE ═══
+let currentLang='es',conversationHistory=[],isThinking=false;
+let pendingQuote=null,pendingLegs=null,clientInfo={name:'',email:'',date:''},pendingConfirmNum=null;
+
+// ═══ STRIPE CHECKOUT SESSION ═══
+async function createCheckoutSession(amount, description, meta = {}) {
+  const confirmNum = pendingConfirmNum || 'LUX-' + Date.now().toString(36).toUpperCase();
+  const payload = {
+    amount: parseFloat(amount),
+    currency: 'usd',
+    email: clientInfo.email || '',
+    name: clientInfo.name || 'Guest',
+    description: description,
+    confirmation_number: confirmNum,
+    trip_date: clientInfo.date || 'TBD',
+    ...meta
+  };
+  try {
+    const res = await fetch(CONFIG.WORKER_URL + '/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.url) return data.url;
+    throw new Error('No checkout URL returned');
+  } catch (err) {
+    console.warn('Stripe session fallback:', err);
+    // Fallback: static link with prefilled params
+    const fallback = new URL(CONFIG.STRIPE_FALLBACK);
+    if (clientInfo.email) fallback.searchParams.set('prefilled_email', clientInfo.email);
+    fallback.searchParams.set('client_reference_id', confirmNum);
+    return fallback.toString();
+  }
+}
+
+// ═══ IP DETECTION ═══
+async function detectLang(){try{const r=await fetch('https://ipwho.is/',{signal:AbortSignal.timeout(4000)});const d=await r.json();return COUNTRY_LANG[d.country_code||'']||'es';}catch{return'es';}}
+
+// ═══ APPLY LANGUAGE ═══
+function applyLang(lang){const cfg=LANG[lang]||LANG.es;currentLang=lang;document.getElementById('langFlag').textContent=cfg.flag;document.getElementById('userInput').placeholder=cfg.ph;const dir=cfg.rtl?'rtl':'ltr';document.getElementById('messages').style.direction=dir;document.getElementById('userInput').style.direction=dir;const sel=document.getElementById('langSelect');if([...sel.options].some(o=>o.value===lang))sel.value=lang;else sel.value='es';if(recognition)recognition.lang=getLangCode(lang);}
+
+function manualLangChange(lang){applyLang(lang);document.getElementById('messages').innerHTML='';conversationHistory=[];pendingQuote=null;pendingLegs=null;clientInfo={name:'',email:'',date:''};appendMessage('assistant',GREETINGS[lang]||GREETINGS.en);}
+
+window.addEventListener('DOMContentLoaded',async()=>{const lang=await detectLang();document.getElementById('detectingBadge').style.display='none';document.getElementById('langSelect').style.display='block';applyLang(lang);appendMessage('assistant',GREETINGS[lang]||GREETINGS.en);});
+
+// ═══ RENDER HELPERS ═══
+function renderMarkdown(t){return t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>').replace(/\n/g,'<br>');}
+function fmtUSD(n){return '$'+parseFloat(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+
+function renderQuoteCard(quote,bubble){
+  const cfg=LANG[currentLang]||LANG.en;
+  const card=document.createElement('div');card.className='quote-card';
+  const p=quote.params||{};
+  let detail='';
+  if(p.serviceType==='hourly') detail=`${Math.max(p.hours||4,4)}hr service`;
+  else detail=`${p.serviceType==='airport'?'Airport ':''}Transfer${p.miles?' · ~'+p.miles+'mi':''}`;
+  if(p.greeters) detail+=' · Greeter';
+  if(p.extraStops) detail+=' · '+p.extraStops+' extra stop'+(p.extraStops>1?'s':'');
+
+  card.innerHTML=`<div class="quote-vehicle">${quote.vehicle}${quote.luxury?' <span style="font-size:9px;letter-spacing:.1em;color:var(--gold-dim)">· LUXURY</span>':''}</div><div class="quote-total-row"><span class="quote-total-label">Total</span><span class="quote-total-amount">${fmtUSD(quote.total)}</span></div><div class="quote-actions"><button class="btn-gold pay-btn" data-amount="${quote.total}" data-desc="${quote.vehicle} — ${detail}"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="18" height="13" rx="2"/><line x1="1" y1="9" x2="19" y2="9"/></svg><span class="pay-label">${cfg.payBtn}</span></button></div>`;
+
+  const btn=card.querySelector('.pay-btn');
+  btn.addEventListener('click', async ()=>{
+    if(btn.classList.contains('loading'))return;
+    btn.classList.add('loading');
+    btn.querySelector('.pay-label').textContent=currentLang==='es'?'Procesando…':'Processing…';
+    try{
+      const tripDesc=`${quote.vehicle} — ${detail} — ${clientInfo.date||'TBD'}`;
+      const url=await createCheckoutSession(quote.total, tripDesc, {vehicle:quote.vehicle,service_type:p.serviceType||'transfer'});
+      window.open(url,'_blank');
+    }catch(e){console.error('Checkout error:',e);}
+    btn.classList.remove('loading');
+    btn.querySelector('.pay-label').textContent=cfg.payBtn;
+  });
+
+  bubble.appendChild(card);
+}
+
+function renderItineraryCard(legs,bubble){
+  const cfg=LANG[currentLang]||LANG.en;
+  const grand=legs.reduce((s,l)=>s+l.total,0);
+  const card=document.createElement('div');card.className='itinerary-card';
+  const legsHtml=legs.map(l=>`<div class="leg-row"><div><div class="leg-num">Leg ${l.num}${l.date?' · '+l.date:''}${l.time?' '+l.time:''}</div><div class="leg-route">${l.from} → ${l.to}</div><div class="leg-detail">${l.vehicle} · ${l.pax} pax${l.greeters?' · Greeter':''}</div></div><div class="leg-amount">${fmtUSD(l.total)}</div></div>`).join('');
+  card.innerHTML=`<div class="itinerary-header"><span class="itinerary-title">Trip Manifest</span><span class="itinerary-count">${legs.length} legs</span></div><div class="itinerary-legs">${legsHtml}</div><div class="itinerary-footer"><span class="itinerary-grand-label">Grand Total</span><span class="itinerary-grand-amount">${fmtUSD(grand)}</span></div><div class="quote-actions" style="padding:12px 16px 14px"><button class="btn-gold pay-btn" data-amount="${grand}" data-desc="${legs.length}-Leg Itinerary"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="18" height="13" rx="2"/><line x1="1" y1="9" x2="19" y2="9"/></svg><span class="pay-label">${cfg.payBtn}</span></button></div>`;
+
+  const btn=card.querySelector('.pay-btn');
+  btn.addEventListener('click', async ()=>{
+    if(btn.classList.contains('loading'))return;
+    btn.classList.add('loading');
+    btn.querySelector('.pay-label').textContent=currentLang==='es'?'Procesando…':'Processing…';
+    try{
+      const legSummary=legs.map(l=>`Leg${l.num}: ${l.from}→${l.to} (${l.vehicle})`).join(', ');
+      const tripDesc=`${legs.length}-Leg Itinerary — ${clientInfo.date||'TBD'} — ${legSummary}`.substring(0,500);
+      const url=await createCheckoutSession(grand, tripDesc, {legs_count:legs.length,service_type:'itinerary'});
+      window.open(url,'_blank');
+    }catch(e){console.error('Checkout error:',e);}
+    btn.classList.remove('loading');
+    btn.querySelector('.pay-label').textContent=cfg.payBtn;
+  });
+
+  bubble.appendChild(card);
+}
+
+function renderSuggestionChips(chips,bubble){if(!chips.length)return;const wrap=document.createElement('div');wrap.className='suggestion-chips';chips.forEach(chip=>{const btn=document.createElement('button');btn.className='chip';btn.innerHTML=`<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 20 6"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>${chip}`;btn.onclick=()=>{document.getElementById('userInput').value=chip;document.getElementById('userInput').focus();};wrap.appendChild(btn);});bubble.appendChild(wrap);}
+
+function renderEmailBanner(confirmNum,bubble){const div=document.createElement('div');div.className='email-banner';div.innerHTML=`<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Confirmation <strong>${confirmNum}</strong> sent to ${clientInfo.email} and ops team`;bubble.appendChild(div);}
+
+function renderVenueCards(venueKeys,bubble){if(!venueKeys.length)return;const grid=document.createElement('div');grid.className='venue-grid';venueKeys.forEach(key=>{const v=getVenueByKey(key);if(!v)return;const isBottle=v.type==='bottle';const spendText=isBottle?`Min table <strong>$${(v.minTableSpend||v.avgSpendPerTable||1500).toLocaleString()}</strong>`:`Avg <strong>$${v.avgSpendPerPerson}/person</strong>`;const card=document.createElement('div');card.className='venue-card';card.innerHTML=`<div class="venue-card-top"><div class="venue-emoji">${v.emoji}</div><div class="venue-info"><div class="venue-name">${v.name}</div><div class="venue-meta">${v.category} · ${v.neighborhood}</div><div class="venue-desc">${v.description}</div></div></div><div class="venue-tags">${v.tags.slice(0,4).map(t=>`<span class="venue-tag ${t==='vip'||t==='michelin'||t==='world top 10'||t==='iconic'?'highlight':''}">${t}</span>`).join('')}<span class="venue-tag highlight">${isBottle?'🥂 bottle service':'🍽 dinner'}</span></div><div class="venue-footer"><span class="venue-spend">${spendText}</span><button class="venue-book-btn" onclick="requestVenueBooking('${key}')"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2z"/><path d="M16 2v4M8 2v4M2 10h20"/></svg>Reserve</button></div>`;grid.appendChild(card);});bubble.appendChild(grid);}
+
+function renderCommissionCard(venue,comm,bubble){const card=document.createElement('div');card.className='commission-card';card.innerHTML=`<div class="commission-header"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10" cy="10" r="8"/><path d="M7 10l2 2 4-4"/></svg>Lux Tour Commission Tracking</div><div class="commission-row"><span>Venue</span><span>${venue.name}</span></div><div class="commission-row"><span>Type</span><span>${comm.commissionType==='bottle'?'Bottle Service':'Dinner Reservation'}</span></div><div class="commission-row"><span>Est. Spend</span><span>$${comm.estimatedSpend.toLocaleString('en-US',{minimumFractionDigits:2})}</span></div><div class="commission-row"><span>Rate</span><span>${(comm.rate*100).toFixed(0)}% (IATA/Embark)</span></div><div class="commission-total"><span>Est. Commission</span><span>$${comm.commission.toFixed(2)}</span></div>`;bubble.appendChild(card);}
+
+function renderVenueBanner(venue,bubble){const div=document.createElement('div');div.className='venue-banner';div.innerHTML=`<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l7-5 7 5v9a1 1 0 01-1 1H4a1 1 0 01-1-1z"/><path d="M9 21V12h4v9"/></svg>Reservation request sent to <strong>${venue.name}</strong> — ops team will confirm within the hour`;bubble.appendChild(div);}
+
+function appendMessage(role,content,quote=null,legs=null,chips=[],confirmNum=null,venueKeys=[],commData=null,venueSent=null){const msgs=document.getElementById('messages');const wrap=document.createElement('div');wrap.className=`msg ${role}`;const av=document.createElement('div');av.className='msg-avatar';av.textContent=role==='assistant'?'M':'›';const bub=document.createElement('div');bub.className='msg-bubble';bub.innerHTML=renderMarkdown(content);if(quote)renderQuoteCard(quote,bub);if(legs&&legs.length)renderItineraryCard(legs,bub);if(venueKeys&&venueKeys.length)renderVenueCards(venueKeys,bub);if(commData&&commData.venue)renderCommissionCard(commData.venue,commData.comm,bub);if(venueSent)renderVenueBanner(venueSent,bub);if(chips&&chips.length)renderSuggestionChips(chips,bub);if(confirmNum)renderEmailBanner(confirmNum,bub);wrap.appendChild(av);wrap.appendChild(bub);msgs.appendChild(wrap);msgs.scrollTop=msgs.scrollHeight;}
+
+function requestVenueBooking(venueKey){const v=getVenueByKey(venueKey);if(!v)return;document.getElementById('userInput').value=`I'd like to reserve ${v.name}`;sendMessage();}
+
+function showTyping(){const msgs=document.getElementById('messages');const w=document.createElement('div');w.className='msg assistant typing-indicator active';w.id='typingIndicator';const a=document.createElement('div');a.className='msg-avatar';a.textContent='M';const b=document.createElement('div');b.className='msg-bubble';b.innerHTML='<div class="typing-dots"><span></span><span></span><span></span></div>';w.appendChild(a);w.appendChild(b);msgs.appendChild(w);msgs.scrollTop=msgs.scrollHeight;}
+function hideTyping(){const e=document.getElementById('typingIndicator');if(e)e.remove();}
+function appendUploadProcessing(fn){const msgs=document.getElementById('messages');const wrap=document.createElement('div');wrap.id='uploadProcessing';wrap.className='msg assistant';const av=document.createElement('div');av.className='msg-avatar';av.textContent='M';const bub=document.createElement('div');bub.className='msg-bubble';bub.innerHTML=`<div class="upload-msg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Processing ${fn}…</div>`;wrap.appendChild(av);wrap.appendChild(bub);msgs.appendChild(wrap);msgs.scrollTop=msgs.scrollHeight;}
+function removeUploadProcessing(){const e=document.getElementById('uploadProcessing');if(e)e.remove();}
+
+// ═══ SIGNAL PARSERS ═══
+function parseQuoteSignal(t){const m=t.match(/\[\[QUOTE:([^\]]+)\]\]/);if(!m)return null;const p=m[1].split('|');return{vehicleKey:p[0]||'sedan',serviceType:p[1]||'hourly',hours:parseFloat(p[2])||0,miles:parseFloat(p[3])||0,greeters:parseInt(p[4])||0,extraStops:parseInt(p[5])||0,waitMinutes:parseInt(p[6])||0};}
+function parseSuggestions(t){const m=t.match(/\[\[SUGGESTIONS:([^\]]+)\]\]/);if(!m)return[];return m[1].split('|').map(s=>s.trim()).filter(Boolean).slice(0,3);}
+function parseClientInfo(t){const m=t.match(/\[\[CLIENT_INFO:([^\]]+)\]\]/);if(!m)return null;const p=m[1].split('|');return{name:p[0]?.trim()||'',email:p[1]?.trim()||'',date:p[2]?.trim()||''};}
+function parseRecommendVenues(t){const m=t.match(/\[\[RECOMMEND_VENUES:([^\]]+)\]\]/);if(!m)return[];return m[1].split(',').map(k=>k.trim()).filter(Boolean);}
+function parseBookVenue(t){const m=t.match(/\[\[BOOK_VENUE:([^\]]+)\]\]/);if(!m)return null;const p=m[1].split('|');return{venueKey:p[0]?.trim(),date:p[1]?.trim()||'',time:p[2]?.trim()||'',partySize:parseInt(p[3])||2,estimatedSpend:parseFloat(p[4])||0,specialRequests:p[5]?.trim()||''};}
+function stripSignals(t){return t.replace(/\[\[QUOTE:[^\]]*\]\]/g,'').replace(/\[\[SUGGESTIONS:[^\]]*\]\]/g,'').replace(/\[\[CLIENT_INFO:[^\]]*\]\]/g,'').replace(/\[\[OPEN_BOOKING\]\]/g,'').replace(/\[\[ITINERARY_READY\]\]/g,'').replace(/\[\[RECOMMEND_VENUES:[^\]]*\]\]/g,'').replace(/\[\[BOOK_VENUE:[^\]]*\]\]/g,'').trim();}
+
+// ═══ STREAMING SSE READER ═══
+async function streamFromWorker(messages, systemPrompt, onToken, onDone, onError) {
+  const res = await fetch(CONFIG.WORKER_URL + '/api/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, system: systemPrompt, messages, stream: true })
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let fullText = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      const payload = line.slice(6).trim();
+      if (payload === '[DONE]') continue;
+      try {
+        const evt = JSON.parse(payload);
+        if (evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta') {
+          fullText += evt.delta.text;
+          onToken(fullText);
+        }
+      } catch (e) { /* skip non-JSON lines */ }
+    }
+  }
+  onDone(fullText);
+}
+
+// ═══ CREATE STREAMING BUBBLE ═══
+function createStreamBubble() {
+  const msgs = document.getElementById('messages');
+  const wrap = document.createElement('div'); wrap.className = 'msg assistant';
+  const av = document.createElement('div'); av.className = 'msg-avatar'; av.textContent = 'M';
+  const bub = document.createElement('div'); bub.className = 'msg-bubble';
+  bub.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+  wrap.appendChild(av); wrap.appendChild(bub);
+  msgs.appendChild(wrap);
+  msgs.scrollTop = msgs.scrollHeight;
+  return bub;
+}
+
+// ═══ PROCESS COMPLETED STREAM ═══
+async function processStreamResult(raw, bubble, extraLegs) {
+  const qp = parseQuoteSignal(raw);
+  const chips = parseSuggestions(raw);
+  const wantsBooking = raw.includes('[[OPEN_BOOKING]]');
+  const itineraryReady = raw.includes('[[ITINERARY_READY]]');
+  const infoSignal = parseClientInfo(raw);
+  const venueKeys = parseRecommendVenues(raw);
+  const bookVenueSignal = parseBookVenue(raw);
+
+  if (infoSignal) {
+    if (infoSignal.name) clientInfo.name = infoSignal.name;
+    if (infoSignal.email) clientInfo.email = infoSignal.email;
+    if (infoSignal.date) clientInfo.date = infoSignal.date;
+  }
+
+  const quote = qp ? buildQuote(qp) : null;
+  if (quote) pendingQuote = quote;
+  let confirmNum = null, commData = null, venueSent = null;
+
+  if (wantsBooking && clientInfo.email) {
+    try {
+      const bookingData = pendingLegs ? { legs: pendingLegs } : { quote: pendingQuote || quote };
+      confirmNum = await sendConfirmationEmails(clientInfo.email, clientInfo.name, bookingData, clientInfo.date);
+    } catch (emailErr) { console.error('Email send failed:', emailErr); }
+  }
+
+  if (bookVenueSignal && bookVenueSignal.venueKey) {
+    const venue = getVenueByKey(bookVenueSignal.venueKey);
+    if (venue) {
+      try {
+        const comm = await sendVenueReservationEmail(venue, { date: bookVenueSignal.date, time: bookVenueSignal.time, partySize: bookVenueSignal.partySize, estimatedSpend: bookVenueSignal.estimatedSpend || null, specialRequests: bookVenueSignal.specialRequests }, clientInfo);
+        commData = { venue, comm }; venueSent = venue;
+      } catch (err) { console.error('Venue email failed:', err); venueSent = venue; }
+    }
+  }
+
+  const clean = stripSignals(raw);
+  conversationHistory.push({ role: 'assistant', content: clean });
+
+  // Final render — replace streamed text with clean version + cards
+  bubble.innerHTML = renderMarkdown(clean);
+  if (quote) renderQuoteCard(quote, bubble);
+  const legs = (itineraryReady && (extraLegs || pendingLegs)) ? (extraLegs || pendingLegs) : null;
+  if (legs && legs.length) renderItineraryCard(legs, bubble);
+  if (venueKeys && venueKeys.length) renderVenueCards(venueKeys, bubble);
+  if (commData && commData.venue) renderCommissionCard(commData.venue, commData.comm, bubble);
+  if (venueSent) renderVenueBanner(venueSent, bubble);
+  if (chips && chips.length) renderSuggestionChips(chips, bubble);
+  if (confirmNum) renderEmailBanner(confirmNum, bubble);
+  document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+}
+
+// ═══ MAIN SEND MESSAGE (STREAMING) ═══
+async function sendMessage() {
+  const input = document.getElementById('userInput');
+  const text = input.value.trim();
+  if (!text || isThinking) return;
+  isThinking = true; input.value = ''; autoResize(input);
+  document.getElementById('sendBtn').disabled = true;
+  appendMessage('user', text);
+  conversationHistory.push({ role: 'user', content: text });
+
+  const bubble = createStreamBubble();
+  let firstToken = true;
+
+  try {
+    await streamFromWorker(
+      conversationHistory,
+      buildSystemPrompt(currentLang),
+      // onToken — live render
+      (fullText) => {
+        if (firstToken) { firstToken = false; }
+        const visible = stripSignals(fullText);
+        bubble.innerHTML = renderMarkdown(visible);
+        document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+      },
+      // onDone — parse signals, add cards
+      async (raw) => {
+        await processStreamResult(raw, bubble, null);
+      },
+      // onError
+      (err) => { throw err; }
+    );
+  } catch (err) {
+    bubble.innerHTML = renderMarkdown(
+      (({ es: 'Hubo un problema. Intente de nuevo.', en: 'Connection issue — please try again.', fr: 'Erreur de connexion.', de: 'Verbindungsfehler.', pt: 'Erro de conexão.', ja: '接続エラー。', zh: '连接错误。', ar: 'خطأ في الاتصال.', ru: 'Ошибка соединения.' })[currentLang] || 'Connection issue — please try again.')
+    );
+    console.error(err);
+  }
+  isThinking = false; document.getElementById('sendBtn').disabled = false; input.focus();
+}
+
+// ═══ FILE UPLOAD (STREAMING) ═══
+async function handleFileUpload(event) {
+  const file = event.target.files[0]; if (!file) return; event.target.value = '';
+  appendUploadProcessing(file.name);
+  try {
+    const rows = await parseSpreadsheet(file);
+    if (!rows.length) { appendMessage('assistant', 'The file appears empty. Please ensure it has From, To, Vehicle, Date columns.'); removeUploadProcessing(); return; }
+    const legs = buildItineraryLegs(rows);
+    if (!legs.length) { appendMessage('assistant', 'No valid trip legs found. Ensure your spreadsheet has From and To columns.'); removeUploadProcessing(); return; }
+    pendingLegs = legs;
+    removeUploadProcessing();
+    const grandTotal = legs.reduce((s, l) => s + l.total, 0);
+    const summary = legs.map(l => `Leg ${l.num}: ${l.date || 'TBD'} ${l.time || ''} | ${l.from}→${l.to} | ${l.vehicle} | Pax:${l.pax}${l.greeters ? ' | Greeter' : ''}${l.notes ? ' | ' + l.notes : ''} | $${l.total.toFixed(2)}`).join('\n');
+    const prompt = `[ITINERARY UPLOADED — ${legs.length} legs, grand total $${grandTotal.toFixed(2)}]\n\n${summary}\n\nReview this itinerary, flag any issues, note upsell opportunities, confirm it's ready to book, then ask for the client's name and email. Output [[ITINERARY_READY]] at the end.`;
+    conversationHistory.push({ role: 'user', content: `I've uploaded a ${legs.length}-leg itinerary.` });
+    appendMessage('user', `📋 Uploaded: **${file.name}** — ${legs.length} legs`);
+
+    const bubble = createStreamBubble();
+    let firstToken = true;
+
+    await streamFromWorker(
+      [...conversationHistory, { role: 'user', content: prompt }],
+      buildSystemPrompt(currentLang),
+      (fullText) => {
+        if (firstToken) { firstToken = false; }
+        const visible = stripSignals(fullText);
+        bubble.innerHTML = renderMarkdown(visible);
+        document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+      },
+      async (raw) => {
+        await processStreamResult(raw, bubble, legs);
+      },
+      (err) => { throw err; }
+    );
+  } catch (err) {
+    removeUploadProcessing();
+    appendMessage('assistant', 'There was a problem reading that file. Please try .xlsx or .csv format.');
+    console.error(err);
+  }
+}
+
+function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}}
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
+</script>
+</body>
+</html>
