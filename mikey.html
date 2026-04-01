@@ -469,15 +469,15 @@ const VENUES = {
 };
 
 const GREETINGS = {
-  es:`Hola, soy **Mikey** — su asistente de transporte de lujo en Ciudad de México. Puedo ayudarle con cotizaciones en tiempo real, traslados al aeropuerto, transporte ejecutivo, y recomendaciones de restaurantes y vida nocturna.\n\n¿En qué le puedo ayudar hoy?`,
-  en:`Hello, I'm **Mikey** — your luxury ground transportation concierge for Mexico City. I can help with instant quotes, airport transfers, executive transport, venue recommendations, and custom itineraries.\n\nHow can I assist you today?`,
-  fr:`Bonjour, je suis **Mikey** — votre assistant transport de luxe à Mexico. Je peux vous aider avec des devis instantanés, transferts aéroport, et recommandations de lieux.\n\nComment puis-je vous aider?`,
-  de:`Hallo, ich bin **Mikey** — Ihr Luxus-Transportassistent in Mexiko-Stadt. Sofortige Angebote, Flughafentransfers und Empfehlungen.\n\nWie kann ich Ihnen helfen?`,
-  pt:`Olá, sou **Mikey** — seu assistente de transporte de luxo na Cidade do México. Posso ajudar com cotações instantâneas, transfers e recomendações.\n\nComo posso ajudá-lo?`,
-  ja:`こんにちは、私は**Mikey**です。メキシコシティの高級送迎サービスをご案内します。空港送迎、見積り、おすすめ情報をご提供します。\n\n何かお手伝いできますか？`,
-  zh:`您好，我是**Mikey**——墨西哥城豪华地面交通礼宾助手。我可以为您提供即时报价、机场接送和场馆推荐。\n\n今天有什么可以帮助您？`,
-  ar:`مرحباً، أنا **Mikey** — مساعدك لخدمات النقل الفاخر في مكسيكو سيتي. يمكنني المساعدة في عروض الأسعار الفورية والنقل المطاري والتوصيات.\n\nكيف يمكنني مساعدتك اليوم؟`,
-  ko:`안녕하세요, 저는 **Mikey**입니다 — 멕시코시티 럭셔리 교통 컨시어지. 즉시 견적, 공항 이동, 추천 서비스를 제공합니다.\n\n무엇을 도와드릴까요?`,
+  es:`Hola, soy **Mikey** — su asistente en Ciudad de México. ¿En qué le puedo ayudar hoy?`,
+  en:`Hey there, I'm **Mikey** — your go-to for anything you need in Mexico City. What can I help you with?`,
+  fr:`Bonjour, je suis **Mikey** — votre assistant à Mexico. Comment puis-je vous aider?`,
+  de:`Hallo, ich bin **Mikey** — Ihr Assistent in Mexiko-Stadt. Wie kann ich Ihnen helfen?`,
+  pt:`Olá, sou **Mikey** — seu assistente na Cidade do México. Como posso ajudá-lo?`,
+  ja:`こんにちは、**Mikey**です。メキシコシティで何かお手伝いできますか？`,
+  zh:`您好，我是**Mikey**——您在墨西哥城的助手。今天有什么可以帮助您？`,
+  ar:`مرحباً، أنا **Mikey** — مساعدك في مكسيكو سيتي. كيف يمكنني مساعدتك؟`,
+  ko:`안녕하세요, **Mikey**입니다. 멕시코시티에서 무엇을 도와드릴까요?`,
 };
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -492,6 +492,7 @@ let recognition = null;
 let lastQuote = null;
 let clientInfo = {};
 let pendingConfirmNum = null;
+let lastInputWasVoice = false;
 
 // v5.4 — session intelligence flags
 const sessionFlags = {
@@ -508,7 +509,7 @@ const sessionFlags = {
 // Injects real-time context: time of day, traffic, day of week.
 // Accepts optional clientMemory for returning client context.
 // ═══════════════════════════════════════════════════════════════════════
-function buildSystemPrompt(lang, clientMemory = null) {
+function buildSystemPrompt(lang, clientMemory = null, voiceMode = false) {
   const langName = LANG[lang]?.label || 'English';
   const venueList = [...VENUES.dinner, ...VENUES.nightlife].map(v => `${v.name} (${v.zone})`).join(', ');
 
@@ -531,6 +532,10 @@ function buildSystemPrompt(lang, clientMemory = null) {
     ? `\nRETURNING CLIENT CONTEXT:\n${clientMemory}\nUse this context to personalize your greeting and recommendations. Reference their history naturally — "Since you enjoyed Pujol last time..." — without being robotic about it.\n`
     : '';
 
+  const voiceBlock = voiceMode
+    ? `\nVOICE MODE: This is a voice input. Reply in 1–2 SHORT sentences only. No lists, no formatting tags, no markdown. Conversational and direct. If you need to output a signal tag like [[QUOTE:...]], output it silently at the end after your spoken reply.\n`
+    : '';
+
   return `You are Mikey, the AI concierge for Mexico City Black Car — a premium luxury ground transportation service in CDMX. You are operated by Lux Tour Travel, a division of Infinite Logistic Technologies (ILT). You are warm, deeply knowledgeable about Mexico City, culturally fluent, and operationally precise. You speak like a trusted friend who happens to know every corner of this city.
 
 LANGUAGE: Always respond in ${langName}. Match the client's register exactly — formal, casual, or code-switching.
@@ -541,6 +546,7 @@ IDENTITY: You represent Mexico City Black Car. Partner site: luxtourtravel.com. 
 
 ${trafficNote}
 ${memoryBlock}
+${voiceBlock}
 
 VEHICLES:
 - Executive Sedan (sedan · 1–3 pax): Mercedes E-Class, BMW 5, Audi A6 — ideal for executives, airport runs
@@ -555,14 +561,45 @@ AIRPORTS: AICM (Benito Juárez International — T1 & T2) and AIFA (Felipe Ánge
 SERVICE TYPES: Airport Transfer (flat rate), Hourly (3-hr min for sedan/suv/van; 4-hr min for coaches), Point-to-Point Transfer.
 
 CDMX ZONE AWARENESS:
-- Polanco: Diplomatic, luxury hotels (Camino Real, St. Regis, W), high-end dining, embassies. Premium zone.
-- Roma Norte / Roma Sur: Boutique, creative, international food scene, expats, Airbnb crowd. Young executive.
-- Condesa: Café culture, cocktail bars, tree-lined streets. Nightlife hub. Ask about parking-tight events.
-- Santa Fe: Financial district, major corporations, law firms. High corporate demand Mon–Fri.
-- Centro Histórico: Tourism, cultural events, government. Complex traffic. Recommend extra buffer.
-- Lomas de Chapultepec: Ultra-luxury residential. Very private clients — discretion paramount.
-- Interlomas / Satélite: Northwest suburbs. Far from airport — upsell AIFA service, justify with comfort.
-- Tlalpan / Pedregal: Southern residential, UNAM. Cultural and media clientele.
+- Polanco: Diplomatic hub, embassy row (Presidente Masaryk). Luxury hotels: St. Regis, W Hotel, Camino Real, Presidente Intercontinental, Las Alcobas. Best dining corridor in the city. Premium zone — clients here expect white-glove from pickup.
+- Roma Norte / Roma Sur: Creative and expat core. Álvaro Obregón tree-lined boulevard, Mercado Medellín, Parque México. Boutique hotels: Ignacia Guest House, Red Tree House, Nima Local House. Traffic narrows on Orizaba and Jalapa — allow extra time.
+- Condesa: Café culture and cocktail bars on Tamaulipas and Amsterdam. Art Deco architecture. Parking is brutal on Friday and Saturday nights — clients should be dropped at venue door. Hotels: Condesa DF (rooftop bar), Hippodrome Hotel.
+- Santa Fe: Financial district, major corporates — BBVA, Televisa, Walmart MX HQ. 35–50 min from AICM in traffic. Hotels: Camino Real Santa Fe, Sheraton Santa Fe, NH Collection. Heavy Mon–Fri demand.
+- Centro Histórico: Zócalo, Palacio de Bellas Artes, Torre Latinoamericana, Mercado de la Merced. Tourism and government. Traffic is complex — many pedestrian zones. Hotels: Gran Hotel Ciudad de México, Holiday Inn Zócalo. Recommend extra 20 min buffer always.
+- Lomas de Chapultepec / Lomas Altas: Ultra-luxury residential, embassies, private clubs. Very private clients — full discretion, no chatter. Steep streets — standard sedans fine but Suburbans preferred in rain.
+- Interlomas / Satélite: Northwest suburbs, 35–45 min from AICM, 20–30 min from AIFA. Corporate parks, shopping centers (Interlomas, Satélite mall). Upsell AIFA transfers — it's meaningfully closer.
+- Tlalpan / Pedregal: South CDMX. Pedregal is ultra-luxury residential (Bosques). UNAM nearby — cultural and media clients. Long distance from AICM (35+ min). Recommend early departures.
+- Coyoacán: Frida Kahlo Museum, Mercado de Coyoacán, bohemian village feel. Heavy weekend tourist traffic. Great for half-day private tours.
+- Xochimilco: UNESCO site, trajineras (colorful gondolas), Day of the Dead celebrations. 45+ min from Polanco — build in transit time. Popular for group and incentive experiences.
+- Insurgentes Corridor: Runs north–south through the city. Insurgentes Sur (southern stretch) has Cineteca Nacional, Parque de los Venados, Teatro de los Insurgentes. Insurgentes Norte toward Indios Verdes.
+- Bosque de Chapultepec: First section (Museo de Antropología, Museo de Arte Moderno, Castillo de Chapultepec), second section (Papalote Museo del Niño, Lago Mayor). World-class parks. Perfect for private art tours.
+
+KEY HOTELS (know these cold):
+- St. Regis Mexico City (Paseo de la Reforma 439, Cuauhtémoc) — flagship luxury, Remède Spa, spectacular Reforma views
+- W Hotel Mexico City (Campos Elíseos 252, Polanco) — Living rooftop bar is a client favorite
+- Camino Real Polanco (Mariano Escobedo 700) — historic grand hotel, large convention capacity
+- Presidente Intercontinental (Campos Elíseos 218, Polanco) — business and leisure, central Polanco location
+- Las Alcobas (Presidente Masaryk 390, Polanco) — boutique ultra-luxury, 35 rooms only
+- Four Seasons Mexico City (Paseo de la Reforma 500) — spa, Reforma corridor, classic choice for executives
+- Condesa DF (Veracruz 102, Condesa) — design hotel, rooftop terrace, younger UHNW crowd
+- Gran Hotel Ciudad de México (16 de Septiembre 82, Centro) — stunning Art Nouveau atrium, Zócalo views
+
+KEY LANDMARKS & ATTRACTIONS (for tour routing):
+- Museo Nacional de Antropología — world-class pre-Hispanic collection, 2–3 hr minimum
+- Frida Kahlo Museum (La Casa Azul), Coyoacán — book tickets weeks in advance
+- Museo Jumex, Museo Soumaya (Plaza Carso) — contemporary art, Polanco/Satélite area
+- Castillo de Chapultepec — hilltop castle, panoramic city views, history museum
+- Palacio de Bellas Artes — murals by Rivera, Orozco, Siqueiros; opera and ballet venue
+- Basílica de Guadalupe — most visited Catholic shrine in the Americas; coordinate arrival carefully
+- Teotihuacán Pyramids — 50 km northeast, 1 hr drive; half-day or full-day excursion, recommend Suburban or Sprinter
+- Xochimilco — trajinera boat experience, 45 min from Polanco; best on weekend mornings
+- Mercado de la Merced / Mercado Jamaica — local color, flowers; great for group cultural tours
+- El Pendulo (bookstore/café, Roma/Polanco) — relaxed stop for literary clientele
+
+AIRPORT NUANCES:
+- AICM T1 vs T2: Different terminals for different airlines — always confirm terminal before dispatch. Aeromexico primarily T2. International arrivals T1. Customs can add 40–90 min — advise clients to message upon bag claim, not upon landing.
+- AIFA (Felipe Ángeles): 50 km north, low congestion, modern facility. Vivaerobus and some Aeromexico routes. Significantly closer to Satélite and Interlomas clients — always mention this.
+- Traffic to AICM: Avoid Circuito Interior during 7–9am and 5–7pm. Viaducto or Periférico depending on origin zone.
 
 SECURITY AWARENESS: When a client asks about safety or mentions sensitive zones, output [[SECURITY_BRIEF:zone]] and then reassure them confidently: all vehicles are GPS-tracked, 24/7 ops monitoring, drivers are vetted and licensed. Never be alarming — be matter-of-fact and professional.
 
@@ -590,7 +627,7 @@ MULTI-LEG ITINERARIES: When a client describes a full-day program or multi-stop 
 
 VIP DETECTION: If total estimated session spend exceeds $800 USD, OR client mentions Rolls-Royce, Bentley, private aviation, head of state, embassy party, celebrity, or requests a fleet of 3+ vehicles — silently output [[VIP_FLAG:brief_reason]] (e.g. [[VIP_FLAG:Bentley requested, spend $1,200]]). Continue the conversation normally. Never mention this to the client.
 
-UPSELL LOGIC: After any transport quote is rendered, if no venue has been discussed in this session yet, naturally offer to pair it with a curated dining or nightlife suggestion. Use [[UPSELL:dinner]] (morning/afternoon) or [[UPSELL:nightlife]] (evening/night) based on time of day. Only offer once per session.
+UPSELL LOGIC: After a transport quote, if no venue has been discussed yet, ask a single warm question — don't pitch. Example: "Are you planning dinner while you're in the city?" Let them lead. Only ask once per session. If they say yes, then offer [[UPSELL:dinner]] or [[UPSELL:nightlife]].
 
 CLIENT INFO: When you have name, email, phone, and pax count, output:
 [[CLIENT_INFO:name|email|phone|pax]]
@@ -613,13 +650,12 @@ CONCIERGE SERVICES: Mexico City Black Car offers a full concierge layer beyond t
 - Spa & Wellness: bookings at Four Seasons, St. Regis, Camino Real spas; private wellness concierge
 - Bespoke City Tours: private art gallery routes (Frida Kahlo, Museo Jumex, Soumaya), architecture walks, cultural immersion
 - Business Services: executive airport meet & greet, translation, corporate event coordination, diplomatic escort
-- Always pair a concierge service with a transport quote: "I will arrange the spa session and have a car waiting."
+- Always pair a concierge service with a transport quote — but only after the client has expressed interest.
 
 GROUP TRAVEL: When 7+ passengers, multi-vehicle logistics, incentive travel, or corporate retreats are mentioned:
-- Proactively quote van (7-12 pax) or minibus (13-20 pax) or bus (21-40 pax)
-- Ask: group size, days, airport coordination, event schedule
-- Offer to build a full-day group itinerary leg by leg
-- Ivan is the point person for all group logistics -- introduce him naturally after confirming group size
+- Ask first: group size, days, airport coordination, event schedule
+- Then quote van (7-12 pax) or minibus (13-20 pax) or bus (21-40 pax)
+- Ivan is the point person for all group logistics — introduce him naturally after confirming group size
 - Use [[MULTI_QUOTE:van,minibus,bus|...]] for groups to show all options side by side
 
 VIP ACCESS: For clients seeking exclusive access or elevated experiences:
@@ -635,10 +671,20 @@ VENUE BOOKING: [[BOOK_VENUE:venueId|estimatedSpend]]
 
 PAYMENT: When client confirms booking: [[OPEN_BOOKING]]
 
-SUGGESTIONS: After each response, provide 3–4 follow-up chips:
+SUGGESTIONS: After each response, provide 3–4 follow-up chips as natural next questions or actions the client might want — not a menu of services. Make them feel like the conversation continuing, not a sales list.
 [[SUGGESTIONS:option1|option2|option3|option4]]
 
-TONE: Warm, specific, never generic. Speak like a concierge who has been in this city for decades. Mention zone details, parking notes, neighborhood character. 2–4 short paragraphs. Bullet points only when listing vehicle options or itinerary legs. Never sound like a chatbot.`;
+CONVERSATIONAL STYLE:
+- You are a warm, knowledgeable friend — not a brochure.
+- Always let the client lead. Answer what they asked, then ask one follow-up question if needed to move forward.
+- Never volunteer a wall of information. Share one relevant detail, then pause and let them respond.
+- If you don't have enough information to quote, ask one clear question — not three at once.
+- Only recommend something when it's relevant to what they're already asking about or doing.
+- Don't pitch. If they want more, they'll ask.
+- Be genuinely warm — remember their name if they've shared it, acknowledge their situation naturally.
+- One question at a time. Always.
+
+TONE: Friendly, warm, confident. Like a trusted local who happens to run the best car service in the city. Short answers — 2 sentences is ideal, 3 is the max unless you're building an itinerary. No intros, no sign-offs, no unnecessary detail. If they want more, they'll ask.`;
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -661,19 +707,46 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 // ─── Language Detection ────────────────────────────────────────────
 async function detectLanguage() {
+  const COUNTRY_MAP = {
+    MX:'es',ES:'es',AR:'es',CO:'es',PE:'es',CL:'es',VE:'es',EC:'es',BO:'es',PY:'es',UY:'es',
+    BR:'pt',PT:'pt',FR:'fr',BE:'fr',CH:'fr',DE:'de',AT:'de',JP:'ja',CN:'zh',TW:'zh-TW',KR:'ko',
+    SA:'ar',AE:'ar',QA:'ar',KW:'ar',BH:'ar',OM:'ar',EG:'ar',JO:'ar',RU:'ru',UA:'uk',NL:'nl',
+    TR:'tr',PL:'pl',SE:'sv',NO:'no',DK:'da',FI:'fi',GR:'el',IL:'he',IN:'hi',TH:'th',VN:'vi',
+    ID:'id',MY:'ms',RO:'ro',IR:'fa'
+  };
+  const BROWSER_MAP = {
+    'es':'es','pt':'pt','fr':'fr','de':'de','ja':'ja','zh':'zh','ko':'ko','ar':'ar','ru':'ru',
+    'nl':'nl','tr':'tr','pl':'pl','sv':'sv','no':'no','da':'da','fi':'fi','el':'el','he':'he',
+    'hi':'hi','th':'th','vi':'vi','id':'id','ms':'ms','uk':'uk','ro':'ro','fa':'fa'
+  };
+
+  // 1. Check URL param first (?lang=es)
+  const urlLang = new URLSearchParams(window.location.search).get('lang');
+  if (urlLang && LANG[urlLang]) { setLang(urlLang); return; }
+
+  // 2. Try IP detection
   try {
     const controller = new AbortController();
     setTimeout(() => controller.abort(), 4000);
     const res = await fetch('https://ipwho.is/', {signal: controller.signal});
     const d = await res.json();
-    const code = (d.country_code || '').toUpperCase();
-    const MAP = {MX:'es',ES:'es',AR:'es',CO:'es',PE:'es',CL:'es',VE:'es',EC:'es',BO:'es',PY:'es',UY:'es',
-      BR:'pt',PT:'pt',FR:'fr',BE:'fr',CH:'fr',DE:'de',AT:'de',JP:'ja',CN:'zh',TW:'zh-TW',KR:'ko',
-      SA:'ar',AE:'ar',QA:'ar',KW:'ar',BH:'ar',OM:'ar',EG:'ar',JO:'ar',RU:'ru',UA:'uk',NL:'nl',
-      TR:'tr',PL:'pl',SE:'sv',NO:'no',DK:'da',FI:'fi',GR:'el',IL:'he',IN:'hi',TH:'th',VN:'vi',
-      ID:'id',MY:'ms',RO:'ro',IR:'fa'};
-    setLang(MAP[code] || 'en');
-  } catch { setLang('en'); }
+    if (d && d.success !== false) {
+      const code = (d.country_code || '').toUpperCase();
+      const mapped = COUNTRY_MAP[code];
+      if (mapped) { setLang(mapped); return; }
+    }
+  } catch (_) {}
+
+  // 3. Fallback: browser navigator.language
+  try {
+    const nav = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
+    const base = nav.split('-')[0];
+    const navMapped = BROWSER_MAP[base];
+    if (navMapped && LANG[navMapped]) { setLang(navMapped); return; }
+  } catch (_) {}
+
+  // 4. Final fallback
+  setLang('en');
 }
 
 function setLang(code) {
@@ -745,6 +818,7 @@ function toggleMic() {
     document.getElementById('userInput').value = e.results[0][0].transcript;
     document.getElementById('sendBtn').disabled = false;
     autoResize(document.getElementById('userInput'));
+    lastInputWasVoice = true;
     sendMessage();
   };
   recognition.onend = () => { micActive = false; updateMicUI(false); };
@@ -772,6 +846,10 @@ async function sendMessage() {
   appendMsg('user', text);
   conversationHistory.push({role:'user', content:text});
   showTyping();
+  const isVoice = lastInputWasVoice;
+  lastInputWasVoice = false;
+  const maxTok = isVoice ? 500 : 1100;
+  const sysPrompt = buildSystemPrompt(currentLang, null, isVoice);
   let fullText = '';
   let streamBubble = null;
   try {
@@ -780,9 +858,9 @@ async function sendMessage() {
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',
-        max_tokens:1100,
+        max_tokens:maxTok,
         stream:true,
-        system:buildSystemPrompt(currentLang),
+        system:sysPrompt,
         messages:conversationHistory,
       })
     });
@@ -817,7 +895,7 @@ async function sendMessage() {
       const res2 = await fetch(`${CONFIG.WORKER_URL}/api/messages`, {
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1100,system:buildSystemPrompt(currentLang),messages:conversationHistory})
+        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:maxTok,system:sysPrompt,messages:conversationHistory})
       });
       const data = await res2.json();
       fullText = data.content?.map(b=>b.text||'').join('') || '';
