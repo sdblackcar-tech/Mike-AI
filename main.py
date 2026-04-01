@@ -27,6 +27,10 @@ import json
 import random
 import stripe
 import anthropic
+from passlib.context import CryptContext
+from jose import JWTError, jwt
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from datetime import timedelta
 from datetime import datetime, timezone
 from typing import Optional, List
 from enum import Enum
@@ -60,9 +64,15 @@ STRIPE_WEBHOOK_SEC = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 JAMES_EMAIL        = os.getenv("JAMES_EMAIL", "james@luxtourtravel.com")
 OPS_EMAIL          = os.getenv("OPS_EMAIL", "ops@mexicocityblackcar.com")
 ANTHROPIC_API_KEY  = os.getenv("ANTHROPIC_API_KEY", "")
+JWT_SECRET         = os.getenv("JWT_SECRET", "ilt-change-this-secret")
+JWT_ALGORITHM      = "HS256"
+JWT_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 
 stripe.api_key     = STRIPE_SECRET
 anthropic_client   = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+
+pwd_ctx            = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme      = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
 
 # ─── DATABASE ──────────────────────────────────────────────────────────
 engine            = create_async_engine(DATABASE_URL, echo=False)
@@ -87,6 +97,8 @@ app.add_middleware(
         "https://www.luxtourtravel.com",
         "http://localhost:3000",
         "https://ops.mexicocityblackcar.com",
+        "https://driver.mexicocityblackcar.com",
+        "https://login.mexicocityblackcar.com",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -678,6 +690,10 @@ async def auto_dispatch_after_payment(conf_num: str, client_name: str):
             driver.is_available = False
             await db.commit()
             print(f"[DISPATCH] {driver.name} → {conf_num} · ETA {eta}min")
+
+# ═══════════════════════════════════════════════════════════════════════
+# RUN: uvicorn main:app --host 0.0.0.0 --port 8000
+# ═══════════════════════════════════════════════════════════════════════
 
 # ═══════════════════════════════════════════════════════════════════════
 # RUN: uvicorn main:app --host 0.0.0.0 --port 8000
