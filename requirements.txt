@@ -11,3 +11,5 @@ pydantic[email]
 aiosmtplib
 alembic
 anthropic
+python-jose[cryptography]
+passlib[bcrypt]
