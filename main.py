@@ -9,7 +9,7 @@
 #   uvicorn main:app --host 0.0.0.0 --port 8000
 #
 # ENV VARS (.env — never commit this file):
-#   DATABASE_URL=postgresql+asyncpg://user:pass@localhost/ilt_cdmx
+#   DATABASE_URL=postgresql://user:pass@localhost/ilt_cdmx
 #   REDIS_URL=redis://localhost:6379
 #   STRIPE_SECRET_KEY=sk_live_...
 #   STRIPE_WEBHOOK_SECRET=whsec_...
@@ -35,7 +35,7 @@ from fastapi import FastAPI, HTTPException, Request, BackgroundTasks, Depends, H
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy import Column, String, Float, Integer, Boolean, DateTime, Text, ForeignKey
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from sqlalchemy.future import select
 
@@ -50,7 +50,7 @@ except Exception as e:
 load_dotenv()
 
 # ─── CONFIG ────────────────────────────────────────────────────────────
-DATABASE_URL       = os.getenv("DATABASE_URL", "postgresql+asyncpg://postgres:password@localhost/ilt_cdmx")
+DATABASE_URL       = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost/ilt_cdmx")
 REDIS_URL          = os.getenv("REDIS_URL", "redis://localhost:6379")
 STRIPE_SECRET      = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SEC = os.getenv("STRIPE_WEBHOOK_SECRET", "")
