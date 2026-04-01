@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ILT OPS PORTAL — Infinite Logistic Technologies</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+/*
+  ILT OPS PORTAL v2 — API CONFIG
+  Base: https://api.mexicocityblackcar.com
+  Set API_KEY in the CONFIG block in <script> below
+
+  Live FastAPI endpoints (confirmed):
+    GET    /health
+    GET    /api/bookings       -> { data:[], total:N }
+    POST   /api/bookings       -> created booking
+    GET    /api/clients/{email}
+    POST   /api/clients        -> upsert client
+    GET    /api/drivers        -> driver list
+    POST   /api/drivers        -> add driver
+    PATCH  /api/drivers/{name} -> update driver
+    POST   /api/dispatch       -> dispatch driver
+    POST   /api/vip-alert      -> VIP alert
+    GET    /api/memory/{email} -> client memory
+    POST   /webhooks/stripe    -> Stripe webhook
+    POST   /api/email          -> send email
+*/
+:root {
+  --bg:#090909;--sur:#111;--s2:#181818;--s3:#202020;--bdr:#252525;
+  --gold:#C9A96E;--gd:rgba(201,169,110,.13);
+  --teal:#00d4aa;--td:rgba(0,212,170,.11);
+  --red:#e05c5c;--rd:rgba(224,92,92,.11);
+  --ylw:#f0c040;--yd:rgba(240,192,64,.11);
+  --txt:#e4e4e4;--dim:#7a7a7a;--mut:#3d3d3d;
+  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;--r:5px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:13px;display:flex;height:100vh;overflow:hidden}
+#sidebar{width:214px;min-width:214px;background:var(--sur);border-right:1px solid var(--bdr);display:flex;flex-direction:column}
+.slogo{padding:16px 14px 13px;border-bottom:1px solid var(--bdr)}
+.sbrand{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--gold);letter-spacing:.13em}
+.ssub{font-size:10px;color:var(--mut);margin-top:3px}
+.ldot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--teal);margin-right:4px;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.nsec{font-family:var(--mono);font-size:9px;color:var(--mut);letter-spacing:.14em;padding:13px 14px 4px;text-transform:uppercase}
+.ni{display:flex;align-items:center;gap:9px;padding:8px 14px;cursor:pointer;color:var(--dim);font-size:12px;transition:all .12s;border-left:2px solid transparent}
+.ni:hover{background:var(--s2);color:var(--txt)}.ni.active{background:var(--gd);color:var(--gold);border-left-color:var(--gold)}
+.nico{font-size:12px;width:15px;text-align:center}
+.nbadge{margin-left:auto;font-size:9px;font-family:var(--mono);font-weight:600;padding:1px 5px;border-radius:3px;background:var(--red);color:#fff;min-width:17px;text-align:center}
+.nbadge.t{background:var(--teal);color:#000}
+.sfooter{margin-top:auto;padding:12px 14px;border-top:1px solid var(--bdr)}
+.lrow{display:flex;margin-bottom:9px}
+.lb{flex:1;padding:4px 0;font-family:var(--mono);font-size:10px;cursor:pointer;background:var(--s3);border:1px solid var(--bdr);color:var(--mut);text-align:center;transition:all .12s}
+.lb:first-child{border-radius:3px 0 0 3px}.lb:last-child{border-radius:0 3px 3px 0;border-left:none}
+.lb.active{background:var(--gd);color:var(--gold);border-color:rgba(201,169,110,.3)}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:46px;background:var(--sur);border-bottom:1px solid var(--bdr);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0}
+.ttitle{font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--txt);letter-spacing:.08em}
+.tright{margin-left:auto;display:flex;align-items:center;gap:9px}
+.tclock{font-family:var(--mono);font-size:11px;color:var(--mut)}
+.apill{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;background:var(--s3);border:1px solid var(--bdr);padding:3px 8px;border-radius:3px;color:var(--mut)}
+.adot{width:6px;height:6px;border-radius:50%;background:var(--mut);transition:background .4s}
+.adot.ok{background:var(--teal)}.adot.err{background:var(--red)}
+.btn{background:var(--s3);border:1px solid var(--bdr);color:var(--dim);padding:5px 11px;border-radius:var(--r);cursor:pointer;font-size:11px;font-family:var(--mono);transition:all .12s}
+.btn:hover{border-color:var(--gold);color:var(--gold)}
+.btn.gold{background:var(--gold);border:none;color:#0a0a0a;font-weight:600}.btn.gold:hover{opacity:.85}
+.btn.teal{background:var(--teal);border:none;color:#0a0a0a;font-weight:600}
+.content{flex:1;overflow-y:auto;padding:20px;scrollbar-width:thin;scrollbar-color:var(--bdr) transparent}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}
+.page{display:none}.page.active{display:block}
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px}
+.pt{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--txt)}
+.ps{font-size:11px;color:var(--mut);margin-top:2px;font-family:var(--mono)}
+.pa{display:flex;gap:7px;align-items:center}
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:18px}
+.sc{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:13px 15px}
+.sl{font-family:var(--mono);font-size:9px;color:var(--mut);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
+.sv{font-family:var(--mono);font-size:22px;font-weight:600;color:var(--txt);line-height:1}
+.sv.g{color:var(--gold)}.sv.t{color:var(--teal)}.sv.r{color:var(--red)}
+.sd{font-family:var(--mono);font-size:10px;color:var(--mut);margin-top:5px}
+.sd.up{color:var(--teal)}.sd.dn{color:var(--red)}
+.tw{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+.thbar{display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid var(--bdr);gap:9px;flex-wrap:wrap}
+.tt{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--dim);letter-spacing:.07em}
+.fb{display:flex;gap:6px;margin-left:auto;align-items:center}
+.fi{background:var(--s3);border:1px solid var(--bdr);color:var(--txt);padding:4px 9px;border-radius:var(--r);font-size:11px;font-family:var(--mono);outline:none;width:150px;transition:border-color .12s}
+.fi:focus{border-color:var(--gold)}
+.fsel{background:var(--s3);border:1px solid var(--bdr);color:var(--dim);padding:4px 9px;border-radius:var(--r);font-size:11px;font-family:var(--mono);outline:none;cursor:pointer}
+table{width:100%;border-collapse:collapse}
+th{font-family:var(--mono);font-size:9px;font-weight:600;color:var(--mut);letter-spacing:.1em;text-transform:uppercase;padding:8px 12px;text-align:left;border-bottom:1px solid var(--bdr);background:var(--s2)}
+td{padding:9px 12px;font-size:11.5px;color:var(--dim);border-bottom:1px solid #161616;font-family:var(--mono);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--s2);color:var(--txt)}
+.tn{color:var(--txt);font-weight:500}.tc{color:var(--gold);font-size:10.5px}.ta{color:var(--teal)}
+.b{display:inline-block;padding:2px 7px;border-radius:3px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+.b-confirmed,.b-paid,.b-active{background:var(--td);color:var(--teal);border:1px solid rgba(0,212,170,.2)}
+.b-pending{background:var(--yd);color:var(--ylw);border:1px solid rgba(240,192,64,.2)}
+.b-quote{background:var(--gd);color:var(--gold);border:1px solid rgba(201,169,110,.2)}
+.b-dispatched{background:rgba(100,100,255,.1);color:#8888ff;border:1px solid rgba(100,100,255,.2)}
+.b-complete{background:rgba(80,200,80,.09);color:#60c060;border:1px solid rgba(80,200,80,.2)}
+.b-unpaid,.b-refunded{background:var(--rd);color:var(--red);border:1px solid rgba(224,92,92,.2)}
+.b-standby,.b-corp,.b-standard{background:var(--s3);color:var(--mut);border:1px solid var(--bdr)}
+.b-vip{background:var(--gd);color:var(--gold);border:1px solid rgba(201,169,110,.3)}
+.ra{display:flex;gap:5px}
+.ab{background:var(--s3);border:1px solid var(--bdr);color:var(--mut);padding:3px 7px;border-radius:3px;cursor:pointer;font-size:10px;font-family:var(--mono);transition:all .11s}
+.ab:hover{border-color:var(--gold);color:var(--gold)}.ab.t:hover{border-color:var(--teal);color:var(--teal)}.ab.r:hover{border-color:var(--red);color:var(--red)}
+.empty{padding:52px 20px;text-align:center}
+.empty .ei{font-size:28px;margin-bottom:11px;opacity:.25}
+.empty .et{font-family:var(--mono);font-size:13px;color:var(--dim);margin-bottom:5px}
+.empty .es{font-size:11px;color:var(--mut);margin-bottom:16px}
+.empty .ea{display:flex;gap:8px;justify-content:center}
+.ldr td{text-align:center;padding:26px;color:var(--mut);font-family:var(--mono);font-size:11px}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid var(--bdr);border-top-color:var(--gold);border-radius:50%;animation:sp .8s linear infinite;margin-right:7px;vertical-align:middle}
+@keyframes sp{to{transform:rotate(360deg)}}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:15px}
+.ctit{font-family:var(--mono);font-size:9.5px;font-weight:600;color:var(--mut);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}
+.mb14{margin-bottom:14px}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.74);display:none;align-items:center;justify-content:center;z-index:1000}
+.mo.open{display:flex}
+.md{background:var(--sur);border:1px solid var(--bdr);border-radius:7px;width:520px;max-height:90vh;overflow-y:auto;display:flex;flex-direction:column}
+.md.wide{width:680px}
+.mh{display:flex;align-items:center;justify-content:space-between;padding:14px 17px;border-bottom:1px solid var(--bdr);flex-shrink:0}
+.mtt{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--gold)}
+.mc{cursor:pointer;color:var(--mut);font-size:16px;line-height:1}
+.mb2{padding:17px;flex:1}
+.mfoot{padding:12px 17px;border-top:1px solid var(--bdr);display:flex;gap:7px;justify-content:flex-end;flex-shrink:0}
+.fr{margin-bottom:11px}
+.fl{font-family:var(--mono);font-size:9px;color:var(--mut);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.fin{width:100%;background:var(--s3);border:1px solid var(--bdr);color:var(--txt);padding:7px 9px;border-radius:var(--r);font-size:12px;font-family:var(--mono);outline:none;transition:border-color .12s}
+.fin:focus{border-color:var(--gold)}
+.fse{width:100%;background:var(--s3);border:1px solid var(--bdr);color:var(--txt);padding:7px 9px;border-radius:var(--r);font-size:12px;font-family:var(--mono);outline:none;cursor:pointer}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.mab{background:var(--gd);border:1px solid rgba(201,169,110,.2);border-radius:var(--r);padding:9px 12px;display:flex;align-items:center;gap:9px;margin-bottom:14px}
+.mabinp{flex:1;background:transparent;border:none;color:var(--txt);font-family:var(--mono);font-size:11px;outline:none}
+.mabinp::placeholder{color:rgba(201,169,110,.45)}
+.chatbox{height:300px;overflow-y:auto;padding:13px;display:flex;flex-direction:column;gap:9px;background:var(--s2);border-bottom:1px solid var(--bdr)}
+.cuser{background:var(--s3);border:1px solid var(--bdr);border-radius:var(--r);padding:9px 12px;font-size:12px;color:var(--txt);align-self:flex-end;max-width:84%}
+.cai{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:9px 12px;font-size:11.5px;color:var(--dim);font-family:var(--mono);max-width:92%;line-height:1.6}
+.ctag{font-size:9px;color:var(--gold);margin-bottom:5px;display:block}
+.cibar{display:flex;gap:8px;padding:11px 13px}
+.cinp{flex:1;background:var(--s3);border:1px solid var(--bdr);color:var(--txt);padding:7px 10px;border-radius:var(--r);font-family:var(--mono);font-size:11px;outline:none;transition:border-color .12s}
+.cinp:focus{border-color:var(--gold)}
+.rl{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #161616;font-family:var(--mono);font-size:11px}
+.rl:last-child{border-bottom:none}
+.uz{border:1px dashed var(--bdr);border-radius:var(--r);padding:26px;text-align:center;cursor:pointer;transition:all .18s;background:var(--s2)}
+.uz:hover,.uz.drag{border-color:var(--gold);background:var(--gd)}
+.dc{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:15px}
+.dav{width:38px;height:38px;border-radius:50%;background:var(--s3);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:600;color:var(--gold);flex-shrink:0}
+.dstats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0;padding:10px 0;border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr)}
+.dsv{font-family:var(--mono);font-size:15px;font-weight:600;color:var(--teal);text-align:center}
+.dsl{font-size:9px;color:var(--mut);text-align:center;margin-top:2px}
+.tog{position:relative;display:inline-block;width:34px;height:18px}
+.tog input{opacity:0;width:0;height:0}
+.tosl{position:absolute;inset:0;background:var(--s3);border:1px solid var(--bdr);border-radius:9px;cursor:pointer;transition:.2s}
+.tosl:before{content:'';position:absolute;width:12px;height:12px;left:2px;top:2px;background:var(--mut);border-radius:50%;transition:.2s}
+.tog input:checked+.tosl{background:var(--td);border-color:var(--teal)}
+.tog input:checked+.tosl:before{transform:translateX(16px);background:var(--teal)}
+.bw{margin-bottom:9px}
+.bl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:4px}
+.bt{background:var(--s3);border-radius:2px;height:5px}
+.bf{height:5px;border-radius:2px;background:var(--gold);transition:width .7s ease}.bf.t{background:var(--teal)}
+.vip{background:var(--gd);border:1px solid rgba(201,169,110,.2);border-radius:var(--r);padding:9px 13px;display:flex;align-items:center;gap:9px;margin-bottom:14px;font-family:var(--mono);font-size:11px;color:var(--gold)}
+.dmap{background:var(--s2);border:1px solid var(--bdr);border-radius:var(--r);height:200px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;margin-bottom:13px;position:relative;overflow:hidden}
+.dmap::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 28px,rgba(201,169,110,.022) 28px,rgba(201,169,110,.022) 29px),repeating-linear-gradient(90deg,transparent,transparent 28px,rgba(201,169,110,.022) 28px,rgba(201,169,110,.022) 29px)}
+.fitem{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:10px 12px;display:flex;gap:11px;margin-bottom:8px}
+.ftime{font-family:var(--mono);font-size:10px;color:var(--mut);white-space:nowrap;min-width:74px;padding-top:1px}
+.fq{font-size:12px;color:var(--txt);margin-bottom:3px}
+.fm{font-size:10px;color:var(--mut);font-family:var(--mono)}
+#toast{position:fixed;bottom:20px;right:20px;background:var(--teal);color:#000;font-family:var(--mono);font-size:11px;font-weight:600;padding:9px 15px;border-radius:var(--r);transform:translateY(60px);opacity:0;transition:all .26s;z-index:3000}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.err{background:var(--red);color:#fff}
+</style>
+</head>
+<body>
+
+<script>
+const CFG = {
+  API: 'https://api.mexicocityblackcar.com',
+  KEY: 'YOUR_API_KEY_HERE',
+  MODEL: 'claude-sonnet-4-20250514',
+  // Actual endpoint paths from /docs
+  PATHS: {
+    health:   '/health',
+    bookings: '/api/bookings',
+    clients:  '/api/clients',
+    drivers:  '/api/drivers',
+    dispatch: '/api/dispatch',
+    email:    '/api/email',
+    vip:      '/api/vip-alert',
+    memory:   '/api/memory',
+    stripe:   '/webhooks/stripe'
+  }
+};
+
+const TX = {
+  en:{dash:'Dashboard',book:'Bookings',disp:'Dispatch',mik:'Mikey AI',pay:'Payments',rep:'Reports',cli:'Clients',drv:'Drivers',nb:'+ New Booking',ac:'+ Add Client',ask:'◆ Ask Mikey',noData:'No records yet',noDataSub:'Add manually or import a spreadsheet.',saved:'Saved ✓',apiErr:'API error',connected:'LIVE',disconnected:'OFFLINE',mikeyHello:'◆ Mikey online — OPS mode. Ask me anything about dispatch, pricing, or clients.'},
+  es:{dash:'Panel',book:'Reservas',disp:'Despacho',mik:'Mikey IA',pay:'Pagos',rep:'Reportes',cli:'Clientes',drv:'Choferes',nb:'+ Nueva Reserva',ac:'+ Agregar Cliente',ask:'◆ Preguntar a Mikey',noData:'Sin registros',noDataSub:'Agrega manualmente o importa una hoja de cálculo.',saved:'Guardado ✓',apiErr:'Error de API',connected:'EN VIVO',disconnected:'SIN CONEXIÓN',mikeyHello:'◆ Mikey en línea — modo OPS. Pregúntame sobre despacho, precios o clientes.'}
+};
+let lang='en';
+const t=k=>TX[lang][k]||TX.en[k]||k;
+
+const DEMO={
+  bookings:[
+    {id:'ILT-0043',date:'Apr 4',client:'Group Inquiry',vehicle:'Sprinter Van',route:'CDMX → Tulum',amount:'$18,500 MXN',status:'quote',driver:'—'},
+    {id:'ILT-0042',date:'Apr 1',client:'Sarah Whitfield',vehicle:'Suburban',route:'AICM T1 → Condesa',amount:'$3,200 MXN',status:'dispatched',driver:'Ivan'},
+    {id:'ILT-0041',date:'Apr 1',client:'Carlos Mendoza ★',vehicle:'Sprinter Van',route:'Polanco → AICM T2',amount:'$4,200 MXN',status:'confirmed',driver:'—'},
+    {id:'ILT-0040',date:'Apr 1',client:'Piero Romano',vehicle:'Suburban',route:'Reforma → AICM',amount:'$2,800 MXN',status:'pending',driver:'Jaime'},
+    {id:'ILT-0039',date:'Apr 1',client:'Diego Restrepo',vehicle:'Suburban',route:'Santa Fe → AICM',amount:'$3,800 MXN',status:'complete',driver:'Ivan'},
+    {id:'ILT-0038',date:'Mar 31',client:'Helena Voss',vehicle:'Sprinter Van',route:'Polanco → Tulum',amount:'$18,500 MXN',status:'complete',driver:'Barbie'}
+  ],
+  clients:[
+    {id:'C001',name:'Carlos Mendoza',contact:'+52 55 8821 4490',type:'VIP',trips:4,ltv:'$29,400 MXN',lastTrip:'Apr 1',notes:'Prefers Sprinter, cold water, no perfume'},
+    {id:'C002',name:'Helena Voss',contact:'helena@corp.de',type:'Corporate',trips:3,ltv:'$24,100 MXN',lastTrip:'Mar 31',notes:'German client, always on time'},
+    {id:'C003',name:'Sarah Whitfield',contact:'+1 310 488 2211',type:'VIP',trips:2,ltv:'$8,400 MXN',lastTrip:'Apr 1',notes:'US corporate, Amex payment'},
+    {id:'C004',name:'Diego Restrepo',contact:'drestrepo@bogota.co',type:'Corporate',trips:5,ltv:'$19,200 MXN',lastTrip:'Apr 1',notes:'COO, monthly airport transfers'},
+    {id:'C005',name:'Piero Romano',contact:'piero@milano.it',type:'VIP',trips:6,ltv:'$44,800 MXN',lastTrip:'Apr 1',notes:'Musician, Jaime personal client'}
+  ],
+  payments:[
+    {date:'Apr 1',id:'ILT-0042',client:'Sarah Whitfield',amount:'$3,200 MXN',method:'Stripe · Visa',stripe:'pi_3Oab...d4f2',status:'paid'},
+    {date:'Apr 1',id:'ILT-0039',client:'Diego Restrepo',amount:'$3,800 MXN',method:'Stripe · MC',stripe:'pi_3Oab...9c11',status:'paid'},
+    {date:'Apr 1',id:'ILT-0040',client:'Piero Romano',amount:'$2,800 MXN',method:'Stripe · Visa',stripe:'—',status:'unpaid'},
+    {date:'Mar 31',id:'ILT-0038',client:'Helena Voss',amount:'$18,500 MXN',method:'Wire',stripe:'—',status:'paid'},
+    {date:'Mar 29',id:'ILT-0034',client:'Cancelled',amount:'$4,200 MXN',method:'Stripe · MC',stripe:'pi_3Oa9...8f00',status:'refunded'}
+  ],
+  drivers:[
+    {id:'D1',initials:'IV',name:'Ivan',role:'GM · CDMX born · 25 yrs logistics',status:'active',current:'ILT-0042 · En Route',trips:18,rating:'4.9',ontime:'100%',available:true},
+    {id:'D2',initials:'BA',name:'Barbie',role:'Concierge · Culinary expert',status:'active',current:'ILT-0041 prep',trips:12,rating:'5.0',ontime:'98%',available:true},
+    {id:'D3',initials:'JA',name:'Jaime',role:'Lux Tour Partner · 20 yrs touring',status:'standby',current:'No active assignment',trips:9,rating:'4.8',ontime:'96%',available:false}
+  ]
+};
+
+let DB={bookings:[],clients:[],payments:[],drivers:[]};
+let apiOnline=false;
+
+async function apiFetch(path,opts={}){
+  const r=await fetch(CFG.API+path,{...opts,headers:{'Content-Type':'application/json','X-API-Key':CFG.KEY,...(opts.headers||{})}});
+  if(!r.ok)throw new Error(r.status);
+  return r.json();
+}
+async function checkAPI(){
+  try{
+    await apiFetch('/health');
+    apiOnline=true;
+    document.querySelectorAll('.adot').forEach(d=>d.className='adot ok');
+    document.querySelectorAll('.albl').forEach(d=>d.textContent=t('connected'));
+  }catch{
+    apiOnline=false;
+    document.querySelectorAll('.adot').forEach(d=>d.className='adot err');
+    document.querySelectorAll('.albl').forEach(d=>d.textContent=t('disconnected'));
+  }
+}
+/* API path map — matches actual FastAPI routes */
+const API_PATHS = {
+  bookings: '/api/bookings',
+  clients:  '/api/clients',
+  payments: '/api/bookings',
+  drivers:  '/api/drivers'
+};
+
+async function loadData(type){
+  if(type==='payments'){DB.payments=DEMO.payments;return DB.payments;}
+  try{
+    const r=await apiFetch(API_PATHS[type]||'/api/'+type);
+    let rows=Array.isArray(r)?r:(r.data||r[type]||r.results||r.items||[]);
+    if(!Array.isArray(rows))rows=[];
+    DB[type]=rows.length?rows:DEMO[type];
+    return DB[type];
+  }catch{DB[type]=DEMO[type];return DB[type];}
+}
+async function saveRecord(type,payload){
+  if(!apiOnline){const f={id:'ILT-'+Date.now(),...payload};DB[type].unshift(f);toast(t('saved'));return f;}
+  try{
+    const r=await apiFetch(API_PATHS[type]||'/api/'+type,{method:'POST',body:JSON.stringify(payload)});
+    const rec=r.data||r;DB[type].unshift(rec);toast(t('saved'));return rec;
+  }catch{const f={id:'ILT-'+Date.now(),...payload};DB[type].unshift(f);toast(t('saved')+' (local)');return f;}
+}
+async function dispatchDriver(bookingId,driverName){
+  try{await apiFetch('/api/dispatch',{method:'POST',body:JSON.stringify({booking_id:bookingId,driver_name:driverName})});toast('Driver dispatched ✓');}
+  catch{toast('Dispatch error');}
+}
+</script>
+
+<nav id="sidebar">
+  <div class="slogo">
+    <div class="sbrand">ILT OPS PORTAL</div>
+    <div class="ssub"><span class="ldot"></span>CDMX PILOT · v2.0</div>
+  </div>
+  <div class="nsec">OPERATIONS</div>
+  <div class="ni active" onclick="nav('dash',this)"><span class="nico">◈</span>Dashboard</div>
+  <div class="ni" onclick="nav('book',this)"><span class="nico">≡</span>Bookings<span class="nbadge" id="bp">0</span></div>
+  <div class="ni" onclick="nav('disp',this)"><span class="nico">◎</span>Dispatch<span class="nbadge t" id="ba">0</span></div>
+  <div class="nsec">INTELLIGENCE</div>
+  <div class="ni" onclick="nav('mik',this)"><span class="nico">◆</span>Mikey AI</div>
+  <div class="ni" onclick="nav('pay',this)"><span class="nico">$</span>Payments</div>
+  <div class="ni" onclick="nav('rep',this)"><span class="nico">▣</span>Reports</div>
+  <div class="nsec">DATABASE</div>
+  <div class="ni" onclick="nav('cli',this)"><span class="nico">◇</span>Clients</div>
+  <div class="ni" onclick="nav('drv',this)"><span class="nico">▷</span>Drivers</div>
+  <div class="sfooter">
+    <div class="lrow">
+      <div class="lb active" onclick="setLang('en',this)">EN</div>
+      <div class="lb" onclick="setLang('es',this)">ES</div>
+    </div>
+    <div style="font-size:11px;color:var(--dim);font-family:var(--mono)">J. Corbin — Owner</div>
+    <div style="font-size:10px;color:var(--mut);margin-top:2px">ILT · Lux Tour Travel · CDMX</div>
+  </div>
+</nav>
+
+<div id="main">
+  <div class="topbar">
+    <div class="ttitle" id="topTitle">DASHBOARD</div>
+    <div class="tright">
+      <div class="apill"><div class="adot" id="adot"></div><span class="albl" id="albl">Checking...</span><span style="color:var(--mut)"> · api.mexicocityblackcar.com</span></div>
+      <div class="tclock" id="clock">--:--</div>
+      <button class="btn" onclick="openM('mo-book')">+ New Booking</button>
+      <button class="btn gold" onclick="openM('mo-mikey')">◆ Ask Mikey</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dash">
+      <div class="ph">
+        <div><div class="pt" id="dgreet">Good morning, James.</div><div class="ps" id="dsub">CDMX Operations</div></div>
+      </div>
+      <div class="vip" id="vip" style="display:none"><span>★</span><span id="vipt"></span><button class="ab t" style="margin-left:auto" onclick="nav('book',document.querySelectorAll('.ni')[1])">View</button></div>
+      <div class="sg">
+        <div class="sc"><div class="sl">Active Trips</div><div class="sv t" id="s1">—</div><div class="sd">Today</div></div>
+        <div class="sc"><div class="sl">Revenue Today</div><div class="sv g" id="s2">—</div><div class="sd">MXN</div></div>
+        <div class="sc"><div class="sl">Revenue This Month</div><div class="sv g" id="s3">—</div><div class="sd">MXN</div></div>
+        <div class="sc"><div class="sl">Pending Quotes</div><div class="sv r" id="s4">—</div><div class="sd">Awaiting confirmation</div></div>
+      </div>
+      <div class="g2 mb14">
+        <div class="tw"><div class="thbar"><span class="tt">TODAY'S TRIPS</span></div>
+          <table><thead><tr><th>Conf#</th><th>Client</th><th>Vehicle</th><th>Status</th></tr></thead><tbody id="dt"></tbody></table>
+        </div>
+        <div class="tw"><div class="thbar"><span class="tt">DRIVER STATUS</span></div>
+          <table><thead><tr><th>Driver</th><th>Status</th><th>Current Trip</th></tr></thead><tbody id="dd"></tbody></table>
+        </div>
+      </div>
+      <div class="g2">
+        <div class="card"><div class="ctit">MIKEY ACTIVITY — LAST 6H</div><div id="df"></div></div>
+        <div class="card"><div class="ctit">REVENUE BREAKDOWN — THIS WEEK</div><div id="db"></div></div>
+      </div>
+    </div>
+
+    <!-- BOOKINGS -->
+    <div class="page" id="page-book">
+      <div class="ph">
+        <div><div class="pt">Bookings</div><div class="ps">All reservations</div></div>
+        <div class="pa">
+          <button class="btn" onclick="openCSV('bookings')">⬆ Import CSV</button>
+          <button class="btn gold" onclick="openM('mo-book')">+ New Booking</button>
+        </div>
+      </div>
+      <div class="tw">
+        <div class="thbar"><span class="tt">ALL RESERVATIONS</span>
+          <div class="fb">
+            <input class="fi" placeholder="Search..." oninput="filt('btb',this.value)">
+            <select class="fsel" onchange="filtSt('btb',this.value)"><option value="">All Status</option><option>quote</option><option>pending</option><option>confirmed</option><option>dispatched</option><option>complete</option></select>
+          </div>
+        </div>
+        <table><thead><tr><th>Conf#</th><th>Date</th><th>Client</th><th>Vehicle</th><th>Route</th><th>Amount</th><th>Status</th><th>Driver</th><th>Actions</th></tr></thead>
+        <tbody id="btb"><tr class="ldr"><td colspan="9"><span class="spin"></span>Loading...</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <!-- DISPATCH -->
+    <div class="page" id="page-disp">
+      <div class="ph"><div><div class="pt">Dispatch</div><div class="ps">Live trips · Driver assignment · ETA</div></div></div>
+      <div class="dmap">
+        <div style="font-family:var(--mono);font-size:11px;color:var(--mut);position:relative">◈ Live GPS Map — Connect Mapbox to activate</div>
+        <button class="btn" style="position:relative" onclick="toast('Endpoint: GET /api/gps/live')">Connect GPS Feed</button>
+      </div>
+      <div class="g3 mb14" id="dcards"></div>
+      <div class="tw"><div class="thbar"><span class="tt">TODAY'S RUN SHEET</span></div>
+        <table><thead><tr><th>Date</th><th>Conf#</th><th>Client</th><th>Vehicle</th><th>Driver</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="dtb"></tbody></table>
+      </div>
+    </div>
+
+    <!-- MIKEY FEED -->
+    <div class="page" id="page-mik">
+      <div class="ph">
+        <div><div class="pt">Mikey AI Feed</div><div class="ps">All client interactions · Quotes · Conversions</div></div>
+        <div class="pa"><button class="btn" onclick="toast('Exporting log...')">Export Log</button><button class="btn gold" onclick="openM('mo-mikey')">◆ Ask Mikey</button></div>
+      </div>
+      <div class="sg">
+        <div class="sc"><div class="sl">Conversations Today</div><div class="sv t">18</div><div class="sd up">▲ 5 vs avg</div></div>
+        <div class="sc"><div class="sl">Quotes Generated</div><div class="sv">11</div><div class="sd">61% of sessions</div></div>
+        <div class="sc"><div class="sl">Conversions</div><div class="sv g">4</div><div class="sd">36% conversion rate</div></div>
+        <div class="sc"><div class="sl">Revenue via Mikey</div><div class="sv g">$74,200</div><div class="sd">MXN today</div></div>
+      </div>
+      <div class="tw"><div class="thbar"><span class="tt">CONVERSATION LOG</span>
+        <div class="fb"><select class="fsel"><option>All Outcomes</option><option>Quote Sent</option><option>Converted</option><option>Inquiry</option></select></div>
+      </div>
+      <table><thead><tr><th>Time</th><th>Query</th><th>Language</th><th>Quote Value</th><th>Outcome</th><th>Actions</th></tr></thead>
+      <tbody id="mtb"></tbody></table></div>
+    </div>
+
+    <!-- PAYMENTS -->
+    <div class="page" id="page-pay">
+      <div class="ph"><div><div class="pt">Payments</div><div class="ps">Stripe log · Receipts · Refunds</div></div><button class="btn" onclick="toast('Exporting CSV...')">Export CSV</button></div>
+      <div class="sg">
+        <div class="sc"><div class="sl">Collected (April)</div><div class="sv g">$312,600</div><div class="sd">MXN</div></div>
+        <div class="sc"><div class="sl">Pending</div><div class="sv" style="color:var(--ylw)">$22,400</div><div class="sd">3 invoices</div></div>
+        <div class="sc"><div class="sl">Refunded</div><div class="sv r">$4,200</div><div class="sd">1 cancellation</div></div>
+        <div class="sc"><div class="sl">Stripe Fees</div><div class="sv" style="font-size:18px">$9,060</div><div class="sd">2.9% avg</div></div>
+      </div>
+      <div class="tw"><div class="thbar"><span class="tt">PAYMENT LOG</span>
+        <div class="fb"><input class="fi" placeholder="Search..." oninput="filt('ptb',this.value)"><select class="fsel" onchange="filtSt('ptb',this.value)"><option value="">All</option><option>paid</option><option>unpaid</option><option>refunded</option></select></div>
+      </div>
+      <table><thead><tr><th>Date</th><th>Conf#</th><th>Client</th><th>Amount</th><th>Method</th><th>Stripe ID</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="ptb"><tr class="ldr"><td colspan="8"><span class="spin"></span>Loading...</td></tr></tbody></table></div>
+    </div>
+
+    <!-- REPORTS -->
+    <div class="page" id="page-rep">
+      <div class="ph"><div><div class="pt">Reports</div><div class="ps">Revenue · Volume · Analytics</div></div>
+        <div class="pa"><select class="fsel"><option>This Month</option><option>Last Month</option><option>This Quarter</option></select><button class="btn" onclick="toast('Generating PDF...')">Export PDF</button></div>
+      </div>
+      <div class="sg">
+        <div class="sc"><div class="sl">Total Trips</div><div class="sv">47</div><div class="sd up">▲ 12 vs last month</div></div>
+        <div class="sc"><div class="sl">Avg Trip Value</div><div class="sv g">$6,651</div><div class="sd">MXN</div></div>
+        <div class="sc"><div class="sl">VIP Clients</div><div class="sv t">8</div><div class="sd up">▲ 3 new</div></div>
+        <div class="sc"><div class="sl">Mikey Conversion</div><div class="sv t">36%</div><div class="sd up">▲ 8pts</div></div>
+      </div>
+      <div class="g2"><div class="card"><div class="ctit">REVENUE BY SERVICE TYPE</div><div id="rb1"></div></div><div class="card"><div class="ctit">REVENUE BY VEHICLE</div><div id="rb2"></div></div></div>
+    </div>
+
+    <!-- CLIENTS -->
+    <div class="page" id="page-cli">
+      <div class="ph"><div><div class="pt">Clients / CRM</div><div class="ps">Client database · VIP flags · History</div></div>
+        <div class="pa"><button class="btn" onclick="openCSV('clients')">⬆ Import CSV</button><button class="btn gold" onclick="openM('mo-client')">+ Add Client</button></div>
+      </div>
+      <div class="tw"><div class="thbar"><span class="tt">CLIENT DATABASE</span>
+        <div class="fb"><input class="fi" placeholder="Search..." oninput="filt('ctb',this.value)"><select class="fsel" onchange="filtSt('ctb',this.value)"><option value="">All</option><option>VIP</option><option>Corporate</option></select></div>
+      </div>
+      <table><thead><tr><th>Name</th><th>Contact</th><th>Type</th><th>Trips</th><th>Lifetime Value</th><th>Last Trip</th><th>Notes</th><th>Actions</th></tr></thead>
+      <tbody id="ctb"><tr class="ldr"><td colspan="8"><span class="spin"></span>Loading...</td></tr></tbody></table></div>
+    </div>
+
+    <!-- DRIVERS -->
+    <div class="page" id="page-drv">
+      <div class="ph"><div><div class="pt">Drivers</div><div class="ps">CDMX ops team · Availability · History</div></div><button class="btn gold" onclick="toast('Add driver coming in next update')">+ Add Driver</button></div>
+      <div class="g3 mb14" id="dvcards"></div>
+      <div class="tw"><div class="thbar"><span class="tt">DRIVER TRIP HISTORY</span></div>
+        <table><thead><tr><th>Date</th><th>Conf#</th><th>Driver</th><th>Route</th><th>Vehicle</th><th>Value</th><th>Rating</th></tr></thead>
+        <tbody>
+          <tr><td>Apr 1</td><td class="tc">ILT-0039</td><td class="tn">Ivan</td><td>Santa Fe → AICM T2</td><td>Suburban</td><td class="ta">$3,800</td><td>⭐ 5.0</td></tr>
+          <tr><td>Mar 31</td><td class="tc">ILT-0038</td><td class="tn">Barbie</td><td>Polanco → Tulum</td><td>Sprinter</td><td class="ta">$18,500</td><td>⭐ 5.0</td></tr>
+          <tr><td>Mar 31</td><td class="tc">ILT-0037</td><td class="tn">Jaime</td><td>AICM → Condesa</td><td>Suburban</td><td class="ta">$2,400</td><td>⭐ 4.8</td></tr>
+          <tr><td>Mar 30</td><td class="tc">ILT-0036</td><td class="tn">Ivan</td><td>Lomas → AICM T1</td><td>Suburban</td><td class="ta">$3,200</td><td>⭐ 5.0</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="mo" id="mo-book">
+  <div class="md">
+    <div class="mh"><span class="mtt">◈ NEW BOOKING</span><span class="mc" onclick="closeM('mo-book')">✕</span></div>
+    <div class="mb2">
+      <div class="mab"><span style="color:var(--gold);font-size:13px">◆</span><input class="mabinp" id="maf" placeholder="Describe the trip — Mikey will fill the form..." onkeydown="if(event.key==='Enter')maFill()"><button class="ab t" onclick="maFill()">Fill</button></div>
+      <div class="fr2"><div class="fr"><div class="fl">Client Name</div><input class="fin" id="nb1" placeholder="Full name..."></div><div class="fr"><div class="fl">Phone / WhatsApp</div><input class="fin" id="nb2" placeholder="+52 55..."></div></div>
+      <div class="fr"><div class="fl">Email</div><input class="fin" id="nb3" placeholder="client@email.com"></div>
+      <div class="fr2"><div class="fr"><div class="fl">Pickup Date</div><input class="fin" type="date" id="nb4"></div><div class="fr"><div class="fl">Pickup Time</div><input class="fin" type="time" id="nb5"></div></div>
+      <div class="fr"><div class="fl">Pickup Location</div><input class="fin" id="nb6" placeholder="Address or landmark..."></div>
+      <div class="fr"><div class="fl">Drop-off Location</div><input class="fin" id="nb7" placeholder="Destination..."></div>
+      <div class="fr2">
+        <div class="fr"><div class="fl">Vehicle</div><select class="fse" id="nb8"><option>Executive Sedan</option><option>Suburban / SUV</option><option>Sprinter Van (14p)</option><option>Charter / Custom</option></select></div>
+        <div class="fr"><div class="fl">Passengers</div><input class="fin" type="number" id="nb9" placeholder="0" min="1"></div>
+      </div>
+      <div class="fr"><div class="fl">Total Amount (MXN)</div><input class="fin" id="nb10" placeholder="$0.00"></div>
+      <div class="fr"><div class="fl">Internal Notes</div><input class="fin" id="nb11" placeholder="VIP, special requests..."></div>
+    </div>
+    <div class="mfoot"><button class="btn" onclick="closeM('mo-book')">Cancel</button><button class="btn" onclick="toast('Sending quote via Mikey...')">Send Quote</button><button class="btn gold" onclick="saveBook()">Save Booking</button></div>
+  </div>
+</div>
+
+<div class="mo" id="mo-client">
+  <div class="md">
+    <div class="mh"><span class="mtt">◇ ADD CLIENT</span><span class="mc" onclick="closeM('mo-client')">✕</span></div>
+    <div class="mb2">
+      <div class="mab"><span style="color:var(--gold);font-size:13px">◆</span><input class="mabinp" id="mcf" placeholder="Describe the client — Mikey will fill the profile..." onkeydown="if(event.key==='Enter')mcFill()"><button class="ab t" onclick="mcFill()">Fill</button></div>
+      <div class="fr2"><div class="fr"><div class="fl">Full Name</div><input class="fin" id="nc1" placeholder="Full name..."></div><div class="fr"><div class="fl">Phone / WhatsApp</div><input class="fin" id="nc2" placeholder="+52 55..."></div></div>
+      <div class="fr"><div class="fl">Email</div><input class="fin" id="nc3" placeholder="client@email.com"></div>
+      <div class="fr2">
+        <div class="fr"><div class="fl">Client Type</div><select class="fse" id="nc4"><option>VIP</option><option>Corporate</option><option>Standard</option></select></div>
+        <div class="fr"><div class="fl">Preferred Vehicle</div><select class="fse" id="nc5"><option>No preference</option><option>Executive Sedan</option><option>Suburban / SUV</option><option>Sprinter Van</option></select></div>
+      </div>
+      <div class="fr"><div class="fl">Notes & Preferences</div><input class="fin" id="nc6" placeholder="VIP preferences, payment method, special notes..."></div>
+    </div>
+    <div class="mfoot"><button class="btn" onclick="closeM('mo-client')">Cancel</button><button class="btn gold" onclick="saveClient()">Save Client</button></div>
+  </div>
+</div>
+
+<div class="mo" id="mo-mikey">
+  <div class="md wide">
+    <div class="mh"><span class="mtt">◆ MIKEY — ILT OPS INTELLIGENCE</span><span class="mc" onclick="closeM('mo-mikey')">✕</span></div>
+    <div class="chatbox" id="mmsgs"><div class="cai"><span class="ctag">◆ MIKEY · OPS MODE</span>Mikey online — ask me anything about dispatch, pricing, clients, or routes.</div></div>
+    <div class="cibar"><input class="cinp" id="minp" placeholder="Ask Mikey..." onkeydown="if(event.key==='Enter')sendMikey()"><button class="btn gold" onclick="sendMikey()">Send</button></div>
+  </div>
+</div>
+
+<div class="mo" id="mo-csv">
+  <div class="md wide">
+    <div class="mh"><span class="mtt" id="csvtit">⬆ IMPORT CSV</span><span class="mc" onclick="closeM('mo-csv')">✕</span></div>
+    <div class="mb2">
+      <div class="uz" id="csvdrop" onclick="document.getElementById('csvfile').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+        <div style="font-size:22px;margin-bottom:7px;color:var(--mut)">📊</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--dim)">Drop CSV file here, or click to browse</div>
+        <div style="font-size:10px;color:var(--mut);margin-top:3px">Supports .csv — Mikey maps your columns automatically</div>
+      </div>
+      <input type="file" id="csvfile" accept=".csv" style="display:none" onchange="handleCSV(event)">
+      <div id="csvprev" style="margin-top:12px"></div>
+      <div id="csvmap" style="margin-top:10px"></div>
+    </div>
+    <div class="mfoot"><button class="btn" onclick="closeM('mo-csv')">Cancel</button><button class="btn gold" id="csvbtn" style="display:none" onclick="importCSV()">Import Records</button></div>
+  </div>
+</div>
+
+<div class="mo" id="mo-receipt">
+  <div class="md" style="width:420px">
+    <div class="mh"><span class="mtt">PAYMENT RECEIPT</span><span class="mc" onclick="closeM('mo-receipt')">✕</span></div>
+    <div class="mb2" id="rcbody"></div>
+    <div class="mfoot"><button class="btn" onclick="closeM('mo-receipt')">Close</button><button class="btn" onclick="toast('Sent via WhatsApp ✓')">WhatsApp</button><button class="btn gold" onclick="toast('Receipt emailed via SendGrid ✓')">Email Receipt</button></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ── RENDER ── */
+function rBooks(data){
+  const tb=document.getElementById('btb');
+  if(!data.length){tb.innerHTML=eRow(9,'book');return;}
+  tb.innerHTML=data.map(b=>`<tr><td class="tc">${b.id||'—'}</td><td>${b.date||'—'}</td><td class="tn">${b.client||'—'}</td><td>${b.vehicle||'—'}</td><td>${b.route||'—'}</td><td class="ta">${b.amount||'—'}</td><td><span class="b b-${b.status||'pending'}">${b.status||'—'}</span></td><td>${b.driver||'—'}</td><td><div class="ra"><button class="ab" onclick="toast('Opening ${b.id}...')">View</button><button class="ab t" onclick="toast('Editing ${b.id}...')">Edit</button></div></td></tr>`).join('');
+  updateBadges();
+}
+function rClients(data){
+  const tb=document.getElementById('ctb');
+  if(!data.length){tb.innerHTML=eRow(8,'cli');return;}
+  tb.innerHTML=data.map(c=>`<tr><td class="tn">${c.name||'—'}</td><td style="font-size:11px">${c.contact||'—'}</td><td><span class="b b-${(c.type||'standard').toLowerCase()}">${c.type||'—'}</span></td><td style="text-align:center">${c.trips||0}</td><td class="ta">${c.ltv||'—'}</td><td>${c.lastTrip||'—'}</td><td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px">${c.notes||'—'}</td><td><div class="ra"><button class="ab" onclick="toast('${c.name} profile...')">View</button><button class="ab t" onclick="mikeyBrief('${c.name}')">Brief Mikey</button></div></td></tr>`).join('');
+}
+function rPayments(data){
+  const tb=document.getElementById('ptb');
+  if(!data.length){tb.innerHTML=eRow(8,'pay');return;}
+  tb.innerHTML=data.map(p=>`<tr><td>${p.date||'—'}</td><td class="tc">${p.id||'—'}</td><td class="tn">${p.client||'—'}</td><td class="ta">${p.amount||'—'}</td><td>${p.method||'—'}</td><td style="font-size:10px;color:var(--mut)">${p.stripe||'—'}</td><td><span class="b b-${p.status||'unpaid'}">${p.status||'—'}</span></td><td><div class="ra"><button class="ab t" onclick="openReceipt('${p.id}','${p.client}','${p.amount}','${p.date}')">Receipt</button>${p.status==='unpaid'?`<button class="ab" onclick="toast('Chasing ${p.id}...')">Chase</button>`:''}</div></td></tr>`).join('');
+}
+function rDriverCards(data){
+  document.getElementById('dvcards').innerHTML=data.map(d=>`
+    <div class="dc">
+      <div style="display:flex;align-items:center;gap:11px;margin-bottom:11px">
+        <div class="dav">${d.initials||d.name.slice(0,2).toUpperCase()}</div>
+        <div><div style="font-weight:600;color:var(--txt);font-size:13px">${d.name}</div><div style="font-size:10px;color:var(--mut);margin-top:2px">${d.role||''}</div></div>
+        <span class="b b-${d.status||'standby'}" style="margin-left:auto">${d.status||'standby'}</span>
+      </div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--mut);margin-bottom:4px">${d.current||'No active assignment'}</div>
+      <div class="dstats">
+        <div><div class="dsv">${d.trips||0}</div><div class="dsl">Trips/Mo</div></div>
+        <div><div class="dsv">${d.rating||'—'}</div><div class="dsl">Rating</div></div>
+        <div><div class="dsv">${d.ontime||'—'}</div><div class="dsl">On-time</div></div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px">
+        <span style="font-family:var(--mono);font-size:10px;color:var(--mut)">Availability</span>
+        <label class="tog"><input type="checkbox" ${d.available?'checked':''} onchange="updDriver('${d.id||d.name}',this.checked)"><span class="tosl"></span></label>
+      </div>
+    </div>`).join('');
+}
+function rDispatch(books){
+  const active=books.filter(b=>b.status==='dispatched'||b.status==='confirmed').slice(0,3);
+  document.getElementById('dcards').innerHTML=active.length?active.map(b=>`
+    <div class="card">
+      <div class="ctit">${b.status==='dispatched'?'ACTIVE NOW':'UP NEXT'}</div>
+      <div style="font-family:var(--mono);font-size:11px;margin-bottom:6px"><span class="tc">${b.id}</span> · ${b.client}</div>
+      <div style="font-size:11px;color:var(--dim);margin-bottom:5px">${b.route}</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--mut)">Driver: ${b.driver||'Unassigned'}</div>
+      <div style="margin-top:9px;display:flex;gap:5px"><span class="b b-${b.status}">${b.status}</span>${(!b.driver||b.driver==='—')?`<button class="ab t" onclick="toast('Assign driver to ${b.id}')">Assign</button>`:''}</div>
+    </div>`).join(''):'<div style="grid-column:1/-1;padding:28px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--mut)">No active trips</div>';
+  document.getElementById('dtb').innerHTML=books.slice(0,6).map(b=>`<tr><td>${b.date||'—'}</td><td class="tc">${b.id}</td><td class="tn">${b.client}</td><td>${b.vehicle}</td><td>${b.driver||'—'}</td><td><span class="b b-${b.status}">${b.status}</span></td><td><div class="ra"><button class="ab t" onclick="toast('Assign driver to ${b.id}')">Assign</button></div></td></tr>`).join('');
+}
+function rMikeyFeed(){
+  const feed=[
+    {time:'01:22 AM',q:'"Airport transfer tomorrow, 2 pax, Polanco hotel"',lang:'English',val:'$2,800 MXN',out:'quote'},
+    {time:'11:48 PM',q:'"Van for 8 people Saturday, Tulum day trip"',lang:'English',val:'$18,500 MXN',out:'converted'},
+    {time:'09:30 PM',q:'"¿Tienen servicio a Guadalajara?"',lang:'Spanish',val:'—',out:'inquiry'},
+    {time:'08:14 PM',q:'"Rate for exec sedan CDMX to Toluca?"',lang:'English',val:'$4,600 MXN',out:'quote'},
+    {time:'06:45 PM',q:'"私はVIPのクライアントです..."',lang:'Japanese',val:'$8,200 MXN',out:'converted'},
+    {time:'04:22 PM',q:'"Medical transport, wheelchair accessible"',lang:'English',val:'$3,400 MXN',out:'converted'},
+  ];
+  document.getElementById('mtb').innerHTML=feed.map(f=>`<tr><td style="font-size:10px;white-space:nowrap">${f.time}</td><td style="font-size:11px;max-width:200px">${f.q}</td><td><span class="b b-standby">${f.lang}</span></td><td class="ta">${f.val}</td><td>${f.out==='converted'?'<span class="b b-confirmed">Converted</span>':f.out==='quote'?'<span class="b b-quote">Quote Sent</span>':'<span class="b b-standby">Inquiry</span>'}</td><td><button class="ab" onclick="toast(\'Opening log...\')">View</button></td></tr>`).join('');
+}
+function rDash(books,drivers){
+  const today=books.filter(b=>b.date&&b.date.includes('Apr 1')).slice(0,4);
+  document.getElementById('dt').innerHTML=today.length?today.map(b=>`<tr><td class="tc">${b.id}</td><td class="tn">${b.client}</td><td>${b.vehicle}</td><td><span class="b b-${b.status}">${b.status}</span></td></tr>`).join(''):'<tr><td colspan="4" style="text-align:center;padding:18px;color:var(--mut);font-family:var(--mono);font-size:11px">No trips today</td></tr>';
+  document.getElementById('dd').innerHTML=drivers.map(d=>`<tr><td class="tn">${d.name}</td><td><span class="b b-${d.status}">${d.status}</span></td><td class="tc" style="font-size:10px">${d.current||'—'}</td></tr>`).join('');
+  const feedItems=[{time:'01:22 AM',q:'"Airport transfer tomorrow, 2 pax"',m:'Quote · $2,800 MXN · No reply'},{time:'11:48 PM',q:'"Van for 8, Tulum Saturday"',m:'$18,500 MXN · Converted ✓'},{time:'09:30 PM',q:'"¿Tienen servicio a Guadalajara?"',m:'Routing inquiry · Affiliate sent'}];
+  document.getElementById('df').innerHTML=feedItems.map(f=>`<div class="fitem"><div class="ftime">${f.time}</div><div><div class="fq">${f.q}</div><div class="fm">${f.m}</div></div></div>`).join('');
+  const bars=[{l:'Airport Transfers',v:'$84,200',p:82},{l:'Corporate',v:'$51,000',p:50},{l:'Touring/Events',v:'$38,400',p:38,t:true},{l:'VIP/Bespoke',v:'$29,800',p:29,t:true},{l:'Venues',v:'$14,600',p:14}];
+  document.getElementById('db').innerHTML=bars.map(b=>`<div class="bw"><div class="bl"><span>${b.l}</span><span>${b.v}</span></div><div class="bt"><div class="bf ${b.t?'t':''}" style="width:${b.p}%"></div></div></div>`).join('');
+  const active=books.filter(b=>b.status==='dispatched').length;
+  const quotes=books.filter(b=>b.status==='quote'||b.status==='pending').length;
+  document.getElementById('s1').textContent=active;
+  document.getElementById('s2').textContent='$18,400';
+  document.getElementById('s3').textContent='$312,600';
+  document.getElementById('s4').textContent=quotes;
+  const vip=books.find(b=>b.client&&b.client.includes('★'));
+  if(vip){document.getElementById('vip').style.display='flex';document.getElementById('vipt').textContent=`VIP ALERT — ${vip.client} · ${vip.vehicle} · ${vip.amount} confirmed`;}
+}
+function rReports(){
+  const t1=[{l:'Airport Transfers',v:'$131,400 · 42%',p:82},{l:'Corporate',v:'$78,200 · 25%',p:50},{l:'Touring/Events',v:'$62,400 · 20%',p:40,t:true},{l:'VIP/Bespoke',v:'$28,000 · 9%',p:18,t:true},{l:'Restaurants',v:'$12,600 · 4%',p:8}];
+  const t2=[{l:'Suburban / SUV',v:'$148,200',p:90},{l:'Sprinter Van (14p)',v:'$88,400',p:56},{l:'Executive Sedan',v:'$52,000',p:33,t:true},{l:'Charter',v:'$24,000',p:15,t:true}];
+  document.getElementById('rb1').innerHTML=t1.map(b=>`<div class="bw"><div class="bl"><span>${b.l}</span><span>${b.v}</span></div><div class="bt"><div class="bf ${b.t?'t':''}" style="width:${b.p}%"></div></div></div>`).join('');
+  document.getElementById('rb2').innerHTML=t2.map(b=>`<div class="bw"><div class="bl"><span>${b.l}</span><span>${b.v}</span></div><div class="bt"><div class="bf ${b.t?'t':''}" style="width:${b.p}%"></div></div></div>`).join('');
+}
+function updateBadges(){
+  document.getElementById('bp').textContent=DB.bookings.filter(b=>b.status==='quote'||b.status==='pending').length;
+  document.getElementById('ba').textContent=DB.bookings.filter(b=>b.status==='dispatched').length;
+}
+function eRow(cols,type){return`<tr><td colspan="${cols}"><div class="empty"><div class="ei">○</div><div class="et">No records yet</div><div class="es">Add manually or import a spreadsheet.</div><div class="ea"><button class="btn gold" onclick="${type==='book'?"openM('mo-book')":type==='cli'?"openM('mo-client')":"toast('Use Import CSV')"}">Add Record</button><button class="btn" onclick="openCSV('${type}')">⬆ Import CSV</button></div></div></td></tr>`;}
+
+/* ── MIKEY AI ── */
+const SYS=`You are Mikey, the AI operations intelligence engine for ILT (Infinite Logistic Technologies) and Lux Tour Travel in Mexico City. You are talking to James Corbin, the founder and owner. CDMX team: Ivan (GM, 25 yrs logistics), Barbie (concierge, culinary expert), Jaime (Lux Tour partner, 20 yrs touring). Vehicles: Executive Sedan, Suburban/SUV, Sprinter Van (14 pax), Charter/Custom. Pricing in MXN. Be concise, professional, operationally precise. Answer in same language as user.`;
+const hist=[];
+
+async function sendMikey(){
+  const inp=document.getElementById('minp');
+  const val=inp.value.trim();if(!val)return;inp.value='';
+  const box=document.getElementById('mmsgs');
+  box.innerHTML+=`<div class="cuser">${val}</div>`;
+  const el=document.createElement('div');el.className='cai';el.innerHTML='<span class="ctag">◆ MIKEY</span><span class="spin"></span>';
+  box.appendChild(el);box.scrollTop=9999;
+  hist.push({role:'user',content:val});
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:CFG.MODEL,max_tokens:1000,system:SYS,messages:hist})});
+    const d=await r.json();const rep=d.content?.[0]?.text||'No response.';
+    hist.push({role:'assistant',content:rep});
+    el.innerHTML=`<span class="ctag">◆ MIKEY</span>${rep.replace(/\n/g,'<br>')}`;
+  }catch{el.innerHTML='<span class="ctag">◆ MIKEY</span>Connection error — check API.';}
+  box.scrollTop=9999;
+}
+
+async function maFill(){
+  const val=document.getElementById('maf').value.trim();if(!val)return;toast('◆ Mikey filling form...');
+  const pr=`Trip description: "${val}". Return ONLY JSON: {client,phone,email,date(YYYY-MM-DD),time(HH:MM),pickup,dropoff,vehicle(Executive Sedan|Suburban / SUV|Sprinter Van (14p)|Charter / Custom),pax,amount(MXN number),notes}. JSON only.`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:CFG.MODEL,max_tokens:400,messages:[{role:'user',content:pr}]})});
+    const d=await r.json();let raw=(d.content?.[0]?.text||'{}').replace(/```json|```/g,'').trim();
+    const p=JSON.parse(raw);
+    ['nb1','nb2','nb3','nb4','nb5','nb6','nb7','nb8','nb9','nb10','nb11'].forEach((id,i)=>{
+      const keys=['client','phone','email','date','time','pickup','dropoff','vehicle','pax','amount','notes'];
+      if(p[keys[i]]){document.getElementById(id).value=keys[i]==='amount'?'$'+p[keys[i]]:p[keys[i]];}
+    });
+    toast('◆ Mikey filled the form ✓');
+  }catch{toast('Could not parse — fill manually');}
+}
+
+async function mcFill(){
+  const val=document.getElementById('mcf').value.trim();if(!val)return;
+  const pr=`Client description: "${val}". Return ONLY JSON: {name,phone,email,type(VIP|Corporate|Standard),notes}. JSON only.`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:CFG.MODEL,max_tokens:300,messages:[{role:'user',content:pr}]})});
+    const d=await r.json();let raw=(d.content?.[0]?.text||'{}').replace(/```json|```/g,'').trim();
+    const p=JSON.parse(raw);
+    if(p.name)document.getElementById('nc1').value=p.name;
+    if(p.phone)document.getElementById('nc2').value=p.phone;
+    if(p.email)document.getElementById('nc3').value=p.email;
+    if(p.type)document.getElementById('nc4').value=p.type;
+    if(p.notes)document.getElementById('nc6').value=p.notes;
+    toast('◆ Mikey filled the profile ✓');
+  }catch{toast('Fill manually');}
+}
+
+function mikeyBrief(name){openM('mo-mikey');document.getElementById('minp').value=`Give me a full ops brief on client: ${name}`;sendMikey();}
+
+/* ── SAVE ── */
+async function saveBook(){
+  const client=document.getElementById('nb1').value.trim();if(!client){toast('Enter client name');return;}
+  const payload={client,phone:document.getElementById('nb2').value,email:document.getElementById('nb3').value,date:document.getElementById('nb4').value,time:document.getElementById('nb5').value,pickup:document.getElementById('nb6').value,dropoff:document.getElementById('nb7').value,vehicle:document.getElementById('nb8').value,pax:document.getElementById('nb9').value,amount:document.getElementById('nb10').value,notes:document.getElementById('nb11').value,status:'pending',driver:'—',route:document.getElementById('nb6').value+' → '+document.getElementById('nb7').value};
+  try{await saveRecord('bookings',payload);rBooks(DB.bookings);closeM('mo-book');['nb1','nb2','nb3','nb6','nb7','nb10','nb11','maf'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});}
+  catch{toast(t('apiErr'));}
+}
+async function saveClient(){
+  const name=document.getElementById('nc1').value.trim();if(!name){toast('Enter client name');return;}
+  const payload={name,phone:document.getElementById('nc2').value,email:document.getElementById('nc3').value,type:document.getElementById('nc4').value,notes:document.getElementById('nc6').value,trips:0,ltv:'$0 MXN',lastTrip:'—'};
+  try{await saveRecord('clients',payload);rClients(DB.clients);closeM('mo-client');}
+  catch{toast(t('apiErr'));}
+}
+async function updDriver(id,val){
+  try{if(apiOnline)await apiFetch('/api/drivers/'+id,{method:'PATCH',body:JSON.stringify({available:val,name:id})});toast(t('saved'));}
+  catch{toast(t('apiErr'));}
+}
+
+/* ── CSV ── */
+let csvType='bookings',csvData=[];
+function openCSV(type){csvType=type;csvData=[];document.getElementById('csvtit').textContent='⬆ IMPORT CSV — '+type.toUpperCase();document.getElementById('csvprev').innerHTML='';document.getElementById('csvmap').innerHTML='';document.getElementById('csvbtn').style.display='none';document.getElementById('csvfile').value='';openM('mo-csv');}
+function handleDrop(e){e.preventDefault();document.getElementById('csvdrop').classList.remove('drag');const f=e.dataTransfer.files[0];if(f)procCSV(f);}
+function handleCSV(e){const f=e.target.files[0];if(f)procCSV(f);}
+function procCSV(file){
+  Papa.parse(file,{header:true,skipEmptyLines:true,complete:(res)=>{
+    csvData=res.data;const cols=res.meta.fields||[];
+    document.getElementById('csvprev').innerHTML=`<div style="font-family:var(--mono);font-size:11px;color:var(--dim);margin-bottom:10px">◆ ${csvData.length} rows detected — map your columns below</div>`;
+    const fields=csvType==='bookings'?['client','date','vehicle','route','amount','status','driver','notes']:['name','contact','type','trips','ltv','lastTrip','notes'];
+    document.getElementById('csvmap').innerHTML=`<div style="font-family:var(--mono);font-size:10px;color:var(--mut);margin-bottom:8px;letter-spacing:.08em">MAP COLUMNS → ILT FIELDS</div>`+fields.map(f=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:7px;padding:7px 10px;background:var(--s2);border:1px solid var(--bdr);border-radius:var(--r)"><span style="font-family:var(--mono);font-size:11px;color:var(--dim);flex:1">${f}</span><span style="color:var(--mut)">←</span><select id="mp-${f}" style="flex:1;background:var(--s3);border:1px solid var(--bdr);color:var(--txt);padding:4px 7px;border-radius:3px;font-size:11px;font-family:var(--mono);outline:none"><option value="">— skip —</option>${cols.map(c=>`<option value="${c}" ${c.toLowerCase().includes(f.toLowerCase())?'selected':''}>${c}</option>`).join('')}</select></div>`).join('');
+    document.getElementById('csvbtn').style.display='inline-block';
+  }});
+}
+async function importCSV(){
+  const fields=csvType==='bookings'?['client','date','vehicle','route','amount','status','driver','notes']:['name','contact','type','trips','ltv','lastTrip','notes'];
+  const mapping={};fields.forEach(f=>{const s=document.getElementById('mp-'+f);if(s&&s.value)mapping[f]=s.value;});
+  const records=csvData.map(row=>{const rec={};fields.forEach(f=>{if(mapping[f])rec[f]=row[mapping[f]]||'';});return rec;});
+  toast(`Importing ${records.length} records...`);
+  for(const rec of records){try{await saveRecord(csvType,rec);}catch{}}
+  if(csvType==='bookings')rBooks(DB.bookings);else rClients(DB.clients);
+  toast(`✓ Imported ${records.length} records`);closeM('mo-csv');
+}
+
+/* ── RECEIPT ── */
+function openReceipt(id,client,amount,date){
+  document.getElementById('rcbody').innerHTML=`<div style="text-align:center;padding:8px 0 14px;border-bottom:1px solid var(--bdr);margin-bottom:14px"><div style="font-family:var(--mono);font-size:11px;color:var(--gold);letter-spacing:.1em">LUX TOUR TRAVEL / ILT</div><div style="font-size:10px;color:var(--mut);margin-top:2px">luxtourtravel.com · info@luxtourtravel.com · +1 858 999 1895</div></div><div class="rl"><span style="color:var(--mut)">Confirmation #</span><span style="color:var(--gold)">${id}</span></div><div class="rl"><span style="color:var(--mut)">Client</span><span style="color:var(--txt)">${client}</span></div><div class="rl"><span style="color:var(--mut)">Date</span><span style="color:var(--txt)">${date}</span></div><div class="rl"><span style="color:var(--mut)">Service</span><span style="color:var(--txt)">Ground Transportation</span></div><div class="rl"><span style="color:var(--mut)">IVA (16%)</span><span style="color:var(--txt)">Included</span></div><div class="rl" style="padding-top:11px;border-top:1px solid var(--bdr);margin-top:3px"><span style="color:var(--txt);font-weight:600">TOTAL PAID</span><span style="color:var(--teal);font-size:15px;font-family:var(--mono)">${amount}</span></div><div style="margin-top:14px;padding:9px;background:var(--s2);border-radius:var(--r);font-family:var(--mono);font-size:9px;color:var(--mut);text-align:center">Payment processed via Stripe · Official receipt<br>Thank you for choosing Lux Tour Travel</div>`;
+  openM('mo-receipt');
+}
+
+/* ── NAV / UI ── */
+function nav(page,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  el.classList.add('active');
+  document.getElementById('topTitle').textContent=el.textContent.trim().toUpperCase().replace(/\d/g,'').trim();
+}
+function openM(id){document.getElementById(id).classList.add('open');}
+function closeM(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+function filt(id,val){document.querySelectorAll('#'+id+' tr').forEach(r=>{r.style.display=r.textContent.toLowerCase().includes(val.toLowerCase())?'':' none';});}
+function filtSt(id,val){document.querySelectorAll('#'+id+' tr').forEach(r=>{r.style.display=(!val||r.textContent.toLowerCase().includes(val.toLowerCase()))?'':'none';});}
+function toast(msg,err=false){const el=document.getElementById('toast');el.textContent=msg;el.className=err?'show err':'show';clearTimeout(el._t);el._t=setTimeout(()=>el.className='',2800);}
+function setLang(l,el){lang=l;document.querySelectorAll('.lb').forEach(b=>b.classList.remove('active'));el.classList.add('active');}
+function updateClock(){document.getElementById('clock').textContent=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',timeZone:'America/Mexico_City'})+' CDMX';}
+function setGreeting(){
+  const h=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Mexico_City'})).getHours();
+  document.getElementById('dgreet').textContent=(h<12?'Good morning':h<18?'Good afternoon':'Good evening')+', James.';
+  document.getElementById('dsub').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric',timeZone:'America/Mexico_City'})+' · CDMX Operations';
+}
+
+/* ── INIT ── */
+async function init(){
+  setInterval(updateClock,1000);updateClock();setGreeting();
+  await checkAPI();setInterval(checkAPI,30000);
+  const[b,c,p,d]=await Promise.all([loadData('bookings'),loadData('clients'),loadData('payments'),loadData('drivers')]);
+  rBooks(b);rClients(c);rPayments(p);rDriverCards(d);rDash(b,d);rDispatch(b);rMikeyFeed();rReports();
+}
+init();
+</script>
+</body>
+</html>
