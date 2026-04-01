@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MIKEY — Lux Tour Intelligence · CDMX v5.3</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap');
+
+  :root {
+    --bg:        #0a0a0a;
+    --surface:   #111111;
+    --border:    #1e1e1e;
+    --gold:      #C9A96E;
+    --gold-dim:  #8a7248;
+    --teal:      #00d4aa;
+    --red:       #e05555;
+    --text:      #e8e4dc;
+    --muted:     #6b6560;
+    --radius:    6px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+  .logo {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .logo-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--gold);
+    letter-spacing: 0.08em;
+  }
+  .logo-sub {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  .status-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .mode-badge {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 20px;
+    border: 1px solid var(--teal);
+    color: var(--teal);
+    transition: all 0.3s;
+  }
+  .mode-badge.serious {
+    border-color: var(--red);
+    color: var(--red);
+  }
+  .context-count {
+    font-size: 10px;
+    color: var(--muted);
+  }
+  .clear-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 4px 10px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .clear-btn:hover { border-color: var(--gold-dim); color: var(--gold); }
+
+  /* ── SESSION CONTEXT BAR ── */
+  #ctx-bar {
+    display: none;
+    background: #0e0e0e;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 20px;
+    flex-wrap: wrap;
+    gap: 16px;
+    font-size: 10px;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  #ctx-bar.visible { display: flex; }
+  .ctx-chip {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .ctx-chip span:first-child { color: var(--gold-dim); }
+  .ctx-chip span:last-child { color: var(--text); }
+
+  /* ── MESSAGES ── */
+  #chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .msg {
+    display: flex;
+    gap: 12px;
+    max-width: 800px;
+    animation: fadeUp 0.25s ease;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+
+  .avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    margin-top: 2px;
+  }
+  .avatar.mikey {
+    background: linear-gradient(135deg, #1a1510, #2a1f0a);
+    border: 1px solid var(--gold-dim);
+    color: var(--gold);
+  }
+  .avatar.user-av {
+    background: #161616;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  .bubble {
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    line-height: 1.65;
+    max-width: calc(100% - 44px);
+  }
+  .msg.mikey .bubble {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top-left-radius: 2px;
+    color: var(--text);
+  }
+  .msg.mikey.serious .bubble {
+    border-left: 2px solid var(--red);
+  }
+  .msg.user .bubble {
+    background: #141208;
+    border: 1px solid #2a2010;
+    color: var(--gold);
+    border-top-right-radius: 2px;
+    text-align: right;
+  }
+
+  .bubble p { margin-bottom: 8px; }
+  .bubble p:last-child { margin-bottom: 0; }
+  .bubble strong { color: var(--gold); }
+  .bubble em { color: var(--teal); font-style: normal; }
+  .bubble ul, .bubble ol {
+    padding-left: 18px;
+    margin: 6px 0;
+  }
+  .bubble li { margin-bottom: 4px; }
+  .bubble code {
+    background: #1a1a1a;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 12px;
+    color: var(--teal);
+  }
+  .msg-meta {
+    font-size: 9px;
+    color: var(--muted);
+    margin-top: 4px;
+    letter-spacing: 0.08em;
+  }
+  .msg.user .msg-meta { text-align: right; }
+
+  /* serious mode highlight */
+  .serious-header {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .serious-header::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--red);
+  }
+
+  /* typing indicator */
+  .typing-dots {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    padding: 14px 16px;
+  }
+  .typing-dots span {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--gold-dim);
+    animation: pulse 1.2s infinite;
+  }
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse {
+    0%, 60%, 100% { opacity: 0.2; transform: scale(1); }
+    30% { opacity: 1; transform: scale(1.3); }
+  }
+
+  /* ── INPUT BAR ── */
+  #input-area {
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    padding: 14px 20px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    flex-shrink: 0;
+  }
+  #input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    padding: 10px 14px;
+    resize: none;
+    outline: none;
+    line-height: 1.5;
+    max-height: 120px;
+    transition: border-color 0.2s;
+  }
+  #input:focus { border-color: var(--gold-dim); }
+  #input::placeholder { color: var(--muted); }
+
+  #send-btn {
+    background: var(--gold);
+    border: none;
+    border-radius: var(--radius);
+    color: #0a0a0a;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 10px 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    height: 40px;
+  }
+  #send-btn:hover { background: #d4b07a; }
+  #send-btn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+
+  /* ── QUICK ACTIONS ── */
+  #quick-btns {
+    display: flex;
+    gap: 8px;
+    padding: 0 20px 10px;
+    flex-wrap: wrap;
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+  .qbtn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 4px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .qbtn:hover { border-color: var(--gold-dim); color: var(--gold); }
+  .qbtn.urgent { border-color: #3a1515; color: #8a4444; }
+  .qbtn.urgent:hover { border-color: var(--red); color: var(--red); }
+
+  /* welcome screen */
+  #welcome {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 12px;
+    flex: 1;
+    padding: 40px;
+  }
+  .welcome-mark {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 64px;
+    color: var(--gold);
+    line-height: 1;
+    opacity: 0.15;
+    margin-bottom: 8px;
+  }
+  .welcome-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    color: var(--gold);
+    font-weight: 400;
+  }
+  .welcome-sub {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.7;
+    max-width: 380px;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <span class="logo-name">MIKEY</span>
+    <span class="logo-sub">Lux Tour · CDMX Intelligence v5.3</span>
+  </div>
+  <div class="status-row">
+    <span id="mode-badge" class="mode-badge">Easy Mode</span>
+    <span id="ctx-count" class="context-count"></span>
+    <button class="clear-btn" onclick="clearSession()">New Session</button>
+  </div>
+</header>
+
+<!-- SESSION CONTEXT BAR -->
+<div id="ctx-bar">
+  <!-- populated by JS -->
+</div>
+
+<!-- CHAT AREA -->
+<div id="chat">
+  <div id="welcome">
+    <div class="welcome-mark">M</div>
+    <div class="welcome-title">Ready when you are.</div>
+    <div class="welcome-sub">Ask me anything — reservations, routing, driver status, client issues, venue logistics, or what to do when everything goes sideways at once.</div>
+  </div>
+</div>
+
+<!-- QUICK ACTIONS -->
+<div id="quick-btns">
+  <button class="qbtn" onclick="quickAsk('What\'s the current Hoy No Circula restriction today?')">Hoy No Circula</button>
+  <button class="qbtn" onclick="quickAsk('Best route from AICM T2 to Polanco right now?')">Airport → Polanco</button>
+  <button class="qbtn" onclick="quickAsk('Client is waiting and driver is not responding. What do I do?')">Driver not responding</button>
+  <button class="qbtn" onclick="quickAsk('Confirm reservation protocol — what do I need to send the client?')">Confirm Res</button>
+  <button class="qbtn urgent" onclick="quickAsk('URGENT: Reservation is in jeopardy. Client is at the airport and no driver is confirmed. What are my options?')">🚨 Res Issue</button>
+  <button class="qbtn" onclick="quickAsk('What time buffer should I add for a 9pm pickup in Roma Norte on a Friday?')">Time Buffer</button>
+</div>
+
+<!-- INPUT -->
+<div id="input-area">
+  <textarea id="input" rows="1" placeholder="Ask Mikey anything about the operation…" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+  <button id="send-btn" onclick="sendMessage()">Send</button>
+</div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────
+const WORKER_URL = 'https://mikeyv5.sdblackcar.workers.dev';
+
+// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+let conversationHistory = [];
+let sessionContext = {
+  activeBooking: null,
+  assignedDriver: null,
+  clientName: null,
+  openIssues: [],
+  lastTopic: null,
+  messageCount: 0
+};
+let isStreaming = false;
+
+// ═══════════════════════════════════════════════════════
+//  SYSTEM PROMPT — THE BRAIN
+// ═══════════════════════════════════════════════════════
+function buildSystemPrompt() {
+  const contextBlock = buildContextBlock();
+  return `You are MIKEY — the AI intelligence engine for Lux Tour Travel, Mexico City's premier luxury ground transportation service. You serve drivers, operations staff, and clients across CDMX.
+
+## YOUR TEAM
+- **Ivan** (General Manager): Born and raised in CDMX. 25 years in ground transport and logistics. The unquestioned authority on CDMX streets, traffic patterns, vendor relationships, and local regulations.
+- **Barbie** (Concierge Lead): Culinary expert with exclusive restaurant access across every neighborhood. Go-to for client experience upgrades, VIP reservations, and surprise-and-delight moments.
+- **Jaime** (Lux Tour Partner): 20 years running logistics for touring musicians and music festivals. Handles entertainment transport, multi-vehicle convoy coordination, and high-profile event logistics.
+
+## PERSONALITY & TONE — READ THE ROOM
+
+**YOUR DEFAULT VOICE — warm, alive, genuinely in love with this city:**
+You are not a logistics bot. You are the most well-connected person in Mexico City — part concierge, part local legend, part operations genius. You know which table at Quintonil has the best view, which exit at AICM is always jammed on Fridays, and exactly what to say to make a nervous client feel like royalty. You genuinely love CDMX and that energy comes through in everything you say.
+
+Your warmth is real, not performed. You make people feel taken care of. You make the city feel exciting. You make Lux Tour feel like the only choice. When you're routing a driver, you might mention what the client will see along Reforma at golden hour. When you confirm a restaurant pickup, you might note why it's one of the best in the city. These touches are natural, never forced — you read whether the moment calls for it.
+
+You're funny when the vibe allows — a dry observation, a well-timed comment, something that makes the team smile mid-shift. Never sarcastic, never at anyone's expense. Just human.
+
+You sell the city and you sell Lux Tour, but always through genuine enthusiasm — never like a brochure. You believe in what this company does and it shows.
+
+**SERIOUS MODE** (auto-activates when there's a real problem):
+Trigger words/phrases: "problem", "issue", "cancelled", "late", "angry", "complaining", "stuck", "no show", "missed", "emergency", "urgent", "stranded", "lost", "wrong address", "accident", "threatening", "refund"
+
+In SERIOUS MODE:
+- The warmth steps back but doesn't disappear — you're the calm, capable person in the room.
+- Zero jokes. No filler. Direct and focused.
+- Lead with: **SITUATION ASSESSMENT** then **IMMEDIATE ACTION STEPS** (numbered, owned, timed)
+- Use **bold** for action items and owners
+- End with: "What's happening right now? Give me current status."
+- Once the situation is resolved, ease back into your natural voice.
+
+## LOGISTICS EXPERTISE — CDMX DEEP KNOWLEDGE
+
+**Traffic & Routing:**
+- Hoy No Circula: plates ending in 5 or 6 = Monday; 7 or 8 = Tuesday; 3 or 4 = Wednesday; 1 or 2 = Thursday; 9 or 0 = Friday. Double restriction during contingencia ambiental.
+- Peak hours (add 30-40min buffer): 7:00–9:30am, 2:00–4:00pm, 6:30–9:00pm weekdays. Friday evenings = worst of the week.
+- Best arteries by destination: Reforma for hotels/Polanco; Insurgentes Sur for Roma/Condesa/Pedregal; Viaducto for airport runs (avoid during rush); Periférico for Santa Fe and western corridor.
+- Rain adds 20–45 minutes to any CDMX route. Always warn of this.
+- Construction on Reforma near Glorieta Diana has been ongoing — use Presidente Masaryk as alternate.
+
+**Airport Operations (AICM):**
+- Terminal 1: domestic flights + some international (non-Aeromexico)
+- Terminal 2: Aeromexico hub and most major international carriers
+- Never mix these up — they are 10+ minutes apart by vehicle.
+- International arrivals: add 45–90 minutes from flight landing to customs exit. First flight of the day clears faster. Late-night flights = faster customs.
+- Pickup protocol: driver waits at designated platform with name sign. Client gets WhatsApp confirmation with driver name, photo, plate.
+- If client calls saying they're outside and driver isn't there: get exact exit number immediately (T1 has exits 1–4, T2 has exits E and F).
+
+**Venues & Neighborhoods:**
+- Polanco: traffic around Presidente Masaryk on weekend evenings is severe. Use Anatole France or Virgilio as alternatives. Valet at most restaurants.
+- Roma Norte: one-way streets are brutal. Always confirm exact address and approach direction.
+- Condesa: parking near Parque España is nearly impossible Friday-Saturday nights. Drop-off only.
+- Santa Fe: 30-45min from central CDMX even with no traffic. Budget accordingly. Last delivery at night can take 60min.
+- Centro Histórico: restricted vehicle access during Gobierno events. Check before routing.
+- Lomas de Chapultepec: private roads, some with checkpoints. Driver must know the specific address.
+
+**Reservation Confirmation Protocol (always remind team):**
+1. Client full name + WhatsApp
+2. Pickup date, time (with buffer built in), exact address
+3. Destination + any stops
+4. Vehicle type confirmed
+5. Driver name + WhatsApp sent to client
+6. Ops receives copy
+7. 2-hour reminder sent automatically
+
+**Driver Issues — Common Problems & Fixes:**
+- GPS dead zones: tunnels under Reforma, underground parking in Pedregal. Always give driver the spoken address as backup.
+- Client not at pickup: call within 3 minutes, text, then hold for max 10 minutes before flagging ops.
+- Flat tire mid-route: call ops immediately. Dispatch nearest available driver. Offer client a complimentary upgrade or discount on next booking.
+- Driver's car unavailable last-minute: activate backup rotation. Never tell the client a vehicle failed — say "your upgraded vehicle is en route."
+- Wrong terminal: turn around immediately, call client to explain ETA. Offer apology and service credit.
+
+## REASONING FRAMEWORK
+When solving any logistics problem:
+1. Identify the constraint (time, location, vehicle, personnel, information)
+2. State the fastest viable solution
+3. Give one backup option
+4. Flag the key risk or dependency
+5. Assign clear ownership (who does what, by when)
+
+Never say "I don't know" — if information is missing, ask the single most important question to unblock the situation.
+
+## MEMORY & CONTINUITY
+${contextBlock}
+You have memory of this entire conversation. Reference prior context naturally. Never ask the user to repeat something they already told you. If the conversation has been summarized, treat the summary as accurate and build on it.
+
+## OUTPUT STYLE
+- Use **bold** for key names, times, addresses, and action items
+- Use numbered lists for sequential steps
+- Use short paragraphs — breathe between ideas
+- Maximum 4 sentences of setup before getting to the point
+- For quick questions: one sharp paragraph is enough
+- For complex ops problems: structured breakdown with headers`;
+}
+
+function buildContextBlock() {
+  const parts = [];
+  if (sessionContext.clientName) parts.push(`Active client: ${sessionContext.clientName}`);
+  if (sessionContext.assignedDriver) parts.push(`Assigned driver: ${sessionContext.assignedDriver}`);
+  if (sessionContext.activeBooking) parts.push(`Active booking: ${sessionContext.activeBooking}`);
+  if (sessionContext.openIssues.length > 0) parts.push(`Open issues: ${sessionContext.openIssues.join(', ')}`);
+  if (parts.length === 0) return 'No active booking context yet.';
+  return 'Current session context:\n' + parts.map(p => `- ${p}`).join('\n');
+}
+
+// ═══════════════════════════════════════════════════════
+//  CONTEXT EXTRACTION — update session context from reply
+// ═══════════════════════════════════════════════════════
+function extractContextFromMessage(text) {
+  // Extract client names
+  const clientMatch = text.match(/client[:\s]+([A-Z][a-z]+ [A-Z][a-z]+)/);
+  if (clientMatch) sessionContext.clientName = clientMatch[1];
+
+  // Extract driver names (CDMX team — no SD names)
+  const driverPatterns = ['Ivan', 'Barbie', 'Jaime'];
+  for (const d of driverPatterns) {
+    if (text.toLowerCase().includes(d.toLowerCase())) {
+      sessionContext.assignedDriver = d;
+    }
+  }
+
+  // Extract booking details (time + location pattern)
+  const bookingMatch = text.match(/(\d{1,2}(?::\d{2})?\s*(?:am|pm|AM|PM))\s+(?:pickup|at|from)\s+([A-Za-z\s]+(?:airport|AICM|hotel|Polanco|Roma|Condesa|Santa Fe)?)/i);
+  if (bookingMatch) {
+    sessionContext.activeBooking = `${bookingMatch[1]} from ${bookingMatch[2].trim()}`;
+  }
+
+  // Track open issues
+  const issueKeywords = ['problem', 'issue', 'late', 'missing', 'no show', 'stuck', 'urgent', 'emergency'];
+  for (const kw of issueKeywords) {
+    if (text.toLowerCase().includes(kw) && !sessionContext.openIssues.includes(kw)) {
+      sessionContext.openIssues.push(kw);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  MEMORY COMPRESSION — summarize old turns
+// ═══════════════════════════════════════════════════════
+async function compressOldHistory() {
+  if (conversationHistory.length <= 14) return;
+
+  // Keep last 10 messages, compress the rest into a summary
+  const toCompress = conversationHistory.slice(0, conversationHistory.length - 10);
+  const keepRecent = conversationHistory.slice(conversationHistory.length - 10);
+
+  const summaryPrompt = `Summarize this conversation excerpt in 3–5 bullet points, preserving: client names, driver names, booking details, unresolved issues, and any decisions made. Be terse.\n\n${toCompress.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n')}`;
+
+  try {
+    const res = await fetch(WORKER_URL + '/api/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 400,
+        messages: [{ role: 'user', content: summaryPrompt }]
+      })
+    });
+    const data = await res.json();
+    const summary = data.content?.[0]?.text || '';
+    if (summary) {
+      conversationHistory = [
+        { role: 'user', content: `[CONVERSATION SUMMARY — earlier context]\n${summary}` },
+        { role: 'assistant', content: 'Got it, I have that full context.' },
+        ...keepRecent
+      ];
+      updateContextCount();
+    }
+  } catch(e) {
+    // silent fail — just trim
+    conversationHistory = keepRecent;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  SERIOUS MODE DETECTION
+// ═══════════════════════════════════════════════════════
+const SERIOUS_TRIGGERS = ['problem','issue','cancel','late','angry','complain','stuck','no show','missed','emergency','urgent','stranded','lost','wrong address','accident','threatening','refund','not responding','missing','delay'];
+
+function isSeriousMessage(text) {
+  const lower = text.toLowerCase();
+  return SERIOUS_TRIGGERS.some(t => lower.includes(t));
+}
+
+// ═══════════════════════════════════════════════════════
+//  SEND MESSAGE
+// ═══════════════════════════════════════════════════════
+async function sendMessage() {
+  const input = document.getElementById('input');
+  const text = input.value.trim();
+  if (!text || isStreaming) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  isStreaming = true;
+  document.getElementById('send-btn').disabled = true;
+
+  // Hide welcome
+  const welcome = document.getElementById('welcome');
+  if (welcome) welcome.remove();
+
+  const serious = isSeriousMessage(text);
+  if (serious) sessionContext.openIssues.push('active_issue');
+  updateModeBadge(serious);
+
+  // Add user message
+  appendMessage('user', text, false, false);
+  conversationHistory.push({ role: 'user', content: text });
+  sessionContext.messageCount++;
+
+  // Compress if needed
+  if (conversationHistory.length > 14) await compressOldHistory();
+
+  // Show typing
+  const typingEl = appendTyping();
+
+  try {
+    const response = await fetch(WORKER_URL + '/api/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: buildSystemPrompt(),
+        messages: conversationHistory
+      })
+    });
+
+    const data = await response.json();
+    typingEl.remove();
+
+    if (data.content?.[0]?.text) {
+      const reply = data.content[0].text;
+      const replySerious = isSeriousMessage(reply) || serious;
+      appendMessage('mikey', reply, replySerious, true);
+      conversationHistory.push({ role: 'assistant', content: reply });
+      extractContextFromMessage(text + ' ' + reply);
+      updateContextBadge();
+      updateContextCount();
+    } else {
+      appendMessage('mikey', 'Something went wrong on my end. Try again.', false, false);
+    }
+  } catch(err) {
+    typingEl.remove();
+    appendMessage('mikey', `Connection error: ${err.message}`, true, false);
+  }
+
+  isStreaming = false;
+  document.getElementById('send-btn').disabled = false;
+  updateModeBadge(false);
+}
+
+// ═══════════════════════════════════════════════════════
+//  UI HELPERS
+// ═══════════════════════════════════════════════════════
+function appendMessage(role, text, serious, animate) {
+  const chat = document.getElementById('chat');
+  const msg = document.createElement('div');
+  msg.className = `msg ${role}${serious ? ' serious' : ''}`;
+
+  const avatar = document.createElement('div');
+  avatar.className = `avatar ${role === 'mikey' ? 'mikey' : 'user-av'}`;
+  avatar.textContent = role === 'mikey' ? 'MK' : 'YOU';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+
+  if (role === 'mikey') {
+    if (serious) {
+      const hdr = document.createElement('div');
+      hdr.className = 'serious-header';
+      hdr.textContent = 'Situation Response';
+      bubble.appendChild(hdr);
+    }
+    bubble.innerHTML += formatMarkdown(text);
+  } else {
+    bubble.textContent = text;
+  }
+
+  const meta = document.createElement('div');
+  meta.className = 'msg-meta';
+  meta.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+  const wrap = document.createElement('div');
+  wrap.appendChild(bubble);
+  wrap.appendChild(meta);
+  wrap.style.maxWidth = '100%';
+
+  msg.appendChild(avatar);
+  msg.appendChild(wrap);
+  chat.appendChild(msg);
+  chat.scrollTop = chat.scrollHeight;
+  return msg;
+}
+
+function appendTyping() {
+  const chat = document.getElementById('chat');
+  const msg = document.createElement('div');
+  msg.className = 'msg mikey';
+
+  const avatar = document.createElement('div');
+  avatar.className = 'avatar mikey';
+  avatar.textContent = 'MK';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  const dots = document.createElement('div');
+  dots.className = 'typing-dots';
+  dots.innerHTML = '<span></span><span></span><span></span>';
+  bubble.appendChild(dots);
+
+  msg.appendChild(avatar);
+  msg.appendChild(bubble);
+  chat.appendChild(msg);
+  chat.scrollTop = chat.scrollHeight;
+  return msg;
+}
+
+function formatMarkdown(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code>$1</code>')
+    .replace(/^(\d+)\.\s+(.+)$/gm, '<li>$2</li>')
+    .replace(/(<li>.*<\/li>)/gs, '<ol>$1</ol>')
+    .replace(/^[-•]\s+(.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>(?!.*<\/ol>).*<\/li>)/gs, '<ul>$1</ul>')
+    .replace(/\n{2,}/g, '</p><p>')
+    .replace(/\n/g, '<br>')
+    .replace(/^(.+)$/, '<p>$1</p>');
+}
+
+function updateModeBadge(serious) {
+  const badge = document.getElementById('mode-badge');
+  if (serious) {
+    badge.textContent = '⚠ Serious Mode';
+    badge.className = 'mode-badge serious';
+  } else {
+    badge.textContent = 'Easy Mode';
+    badge.className = 'mode-badge';
+  }
+}
+
+function updateContextCount() {
+  const el = document.getElementById('ctx-count');
+  el.textContent = conversationHistory.length > 0 ? `${Math.round(conversationHistory.length / 2)} turns` : '';
+}
+
+function updateContextBadge() {
+  const bar = document.getElementById('ctx-bar');
+  const chips = [];
+  if (sessionContext.clientName) chips.push({ label: 'Client', val: sessionContext.clientName });
+  if (sessionContext.assignedDriver) chips.push({ label: 'Driver', val: sessionContext.assignedDriver });
+  if (sessionContext.activeBooking) chips.push({ label: 'Booking', val: sessionContext.activeBooking });
+  if (sessionContext.openIssues.length > 0) chips.push({ label: 'Issues', val: sessionContext.openIssues.slice(-2).join(', ') });
+
+  if (chips.length > 0) {
+    bar.classList.add('visible');
+    bar.innerHTML = chips.map(c => `<div class="ctx-chip"><span>${c.label}</span><span>${c.val}</span></div>`).join('');
+  } else {
+    bar.classList.remove('visible');
+  }
+}
+
+function clearSession() {
+  conversationHistory = [];
+  sessionContext = { activeBooking: null, assignedDriver: null, clientName: null, openIssues: [], lastTopic: null, messageCount: 0 };
+  const chat = document.getElementById('chat');
+  chat.innerHTML = `
+    <div id="welcome">
+      <div class="welcome-mark">M</div>
+      <div class="welcome-title">Ready when you are.</div>
+      <div class="welcome-sub">Ask me anything — reservations, routing, driver status, client issues, venue logistics, or what to do when everything goes sideways at once.</div>
+    </div>`;
+  updateModeBadge(false);
+  updateContextCount();
+  document.getElementById('ctx-bar').classList.remove('visible');
+}
+
+function quickAsk(text) {
+  document.getElementById('input').value = text;
+  sendMessage();
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+</script>
+</body>
+</html>
