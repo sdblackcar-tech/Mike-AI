@@ -19,12 +19,14 @@
 #   O365_SMTP_PORT=587
 #   O365_SMTP_USER=ops@mexicocityblackcar.com
 #   O365_SMTP_PASSWORD=your-app-password
+#   ANTHROPIC_API_KEY=sk-ant-...
 # ═══════════════════════════════════════════════════════════════════════
 
 import os
 import json
 import random
 import stripe
+import anthropic
 from datetime import datetime, timezone
 from typing import Optional, List
 from enum import Enum
@@ -57,8 +59,10 @@ STRIPE_SECRET      = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SEC = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 JAMES_EMAIL        = os.getenv("JAMES_EMAIL", "james@luxtourtravel.com")
 OPS_EMAIL          = os.getenv("OPS_EMAIL", "ops@mexicocityblackcar.com")
+ANTHROPIC_API_KEY  = os.getenv("ANTHROPIC_API_KEY", "")
 
-stripe.api_key = STRIPE_SECRET
+stripe.api_key     = STRIPE_SECRET
+anthropic_client   = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
 # ─── DATABASE ──────────────────────────────────────────────────────────
 engine            = create_async_engine(DATABASE_URL, echo=False)
@@ -78,11 +82,11 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-    "https://www.mexicocityblackcar.com",
-    "https://mexicocityblackcar.com",
-    "https://www.luxtourtravel.com",
-    "http://localhost:3000",
-    "https://ops.mexicocityblackcar.com",       
+        "https://www.mexicocityblackcar.com",
+        "https://mexicocityblackcar.com",
+        "https://www.luxtourtravel.com",
+        "http://localhost:3000",
+        "https://ops.mexicocityblackcar.com",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -302,6 +306,10 @@ class VIPAlert(BaseModel):
     session_total: Optional[float]
     market:        str = "cdmx"
 
+class ChatRequest(BaseModel):
+    messages: List[dict]
+    system:   Optional[str] = ""
+
 
 # ═══════════════════════════════════════════════════════════════════════
 # STARTUP / SHUTDOWN
@@ -332,6 +340,26 @@ async def get_db() -> AsyncSession:
 @app.get("/health")
 async def health():
     return {"status": "ok", "service": "ILT Mikey CDMX API", "version": "1.0.0"}
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# MIKEY CHAT — Proxy to Anthropic (key stays server-side)
+# ═══════════════════════════════════════════════════════════════════════
+
+@app.post("/api/chat")
+async def mikey_chat(data: ChatRequest):
+    if not ANTHROPIC_API_KEY:
+        raise HTTPException(status_code=500, detail="Anthropic API key not configured")
+    try:
+        response = anthropic_client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1000,
+            system=data.system or "You are Mikey, the AI operations intelligence engine for ILT and Lux Tour Travel in Mexico City. Be concise, professional, and operationally precise.",
+            messages=data.messages
+        )
+        return {"content": response.content[0].text}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -650,6 +678,10 @@ async def auto_dispatch_after_payment(conf_num: str, client_name: str):
             driver.is_available = False
             await db.commit()
             print(f"[DISPATCH] {driver.name} → {conf_num} · ETA {eta}min")
+
+# ═══════════════════════════════════════════════════════════════════════
+# RUN: uvicorn main:app --host 0.0.0.0 --port 8000
+# ═══════════════════════════════════════════════════════════════════════
 
 # ═══════════════════════════════════════════════════════════════════════
 # RUN: uvicorn main:app --host 0.0.0.0 --port 8000
