@@ -35,11 +35,11 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body { background: var(--bg); color: var(--cream); font-family: var(--ms); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; cursor: none; }
- 
+
 /* CURSOR */
 #cursor { width: 8px; height: 8px; background: var(--gold); border-radius: 50%; position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999; transition: transform .15s ease; transform: translate(-50%,-50%); }
 #cursor-ring { width: 28px; height: 28px; border: 1px solid rgba(201,169,110,0.4); border-radius: 50%; position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9998; transition: transform .35s ease; transform: translate(-50%,-50%); }
- 
+
 /* NAV */
 nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 56px; height: 72px; background: rgba(9,9,9,0.92); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border2); }
 .nav-logo { font-family: var(--cg); font-size: 18px; font-weight: 400; letter-spacing: .04em; color: var(--cream); text-decoration: none; }
@@ -53,7 +53,7 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; a
 .nav-mob { display: none; flex-direction: column; position: fixed; top: 72px; left: 0; right: 0; background: var(--deep); border-bottom: 1px solid var(--border); padding: 0; z-index: 99; max-height: 0; overflow: hidden; transition: max-height .3s ease, padding .3s; }
 .nav-mob.open { max-height: 400px; padding: 20px 24px 28px; gap: 20px; display: flex; }
 .nav-mob a { font-size: 13px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--mist); text-decoration: none; }
- 
+
 /* PAGE HERO */
 .page-hero { padding: 160px 56px 80px; border-bottom: 1px solid var(--border2); position: relative; overflow: hidden; }
 .hero-bg-text { position: absolute; right: -20px; top: 50%; transform: translateY(-50%); font-family: var(--cg); font-size: clamp(120px,18vw,220px); font-weight: 300; color: rgba(201,169,110,0.04); pointer-events: none; line-height: 1; white-space: nowrap; }
@@ -62,7 +62,7 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; a
 .page-hero h1 { font-family: var(--cg); font-size: clamp(48px,6vw,84px); font-weight: 300; line-height: 1.05; color: var(--cream); letter-spacing: -.01em; margin-bottom: 24px; }
 .page-hero h1 em { font-style: italic; color: var(--gold); }
 .hero-sub { font-size: 15px; color: var(--mist); max-width: 540px; font-weight: 300; line-height: 1.7; margin-bottom: 40px; }
- 
+
 /* LANGUAGE BAR */
 .lang-bar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .lang-label { font-size: 10px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--soft); }
@@ -73,24 +73,24 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; a
 .lang-select:focus { border-color: var(--gold); }
 .lang-select option { background: #1a1a1a; color: var(--cream); }
 .lang-select optgroup { background: #111; color: var(--gold); font-size: 10px; }
- 
+
 /* WEEK BANNER */
 .week-banner { background: var(--card2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 14px 56px; }
 .week-inner { max-width: var(--mw); margin: 0 auto; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
 .week-tag { font-size: 9px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--bg); background: var(--gold); padding: 4px 10px; border-radius: 2px; white-space: nowrap; flex-shrink: 0; }
 .week-text { font-size: 12px; color: var(--mist); font-weight: 300; }
 .week-text strong { color: var(--cream); font-weight: 500; }
- 
+
 /* SECTION */
 section { padding: 80px 56px; }
- 
+
 /* TOPIC FILTERS */
 .topic-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 56px; align-items: center; }
 .topic-label { font-size: 10px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--soft); margin-right: 6px; }
 .topic-btn { padding: 8px 18px; border: 1px solid var(--border); border-radius: 2px; background: none; color: var(--mist); font-family: var(--ms); font-size: 11px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; transition: all .2s; }
 .topic-btn:hover { border-color: var(--gold-dim); color: var(--cream); }
 .topic-btn.active { background: var(--gold); border-color: var(--gold); color: var(--bg); }
- 
+
 /* FEATURED */
 .featured-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; display: grid; grid-template-columns: 1fr 1fr; margin-bottom: 56px; min-height: 460px; transition: border-color .3s; }
 .featured-card:hover { border-color: var(--gold-dim); }
@@ -107,7 +107,7 @@ section { padding: 80px 56px; }
 .gen-btn:disabled { opacity: .5; cursor: not-allowed; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { animation: spin 1s linear infinite; }
- 
+
 /* POST GRID */
 .post-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; }
 .post-card { background: var(--card); border: 1px solid var(--border2); border-radius: var(--r); overflow: hidden; transition: border-color .25s, transform .25s; cursor: pointer; }
@@ -121,7 +121,7 @@ section { padding: 80px 56px; }
 .read-btn { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); background: none; border: none; cursor: pointer; padding: 0; transition: gap .2s; font-family: var(--ms); }
 .read-btn:hover { gap: 14px; }
 .read-btn svg { width: 12px; height: 12px; }
- 
+
 /* MODAL */
 .modal-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(9,9,9,0.97); backdrop-filter: blur(24px); display: flex; align-items: flex-start; justify-content: center; padding: 40px 24px; overflow-y: auto; opacity: 0; pointer-events: none; transition: opacity .3s; }
 .modal-overlay.open { opacity: 1; pointer-events: all; }
@@ -148,22 +148,22 @@ section { padding: 80px 56px; }
 .loader-ring { width: 44px; height: 44px; border: 1px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 1s linear infinite; }
 .loader-text { font-size: 12px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--mist); }
 .loader-sub { font-size: 11px; color: var(--soft); font-weight: 300; margin-top: -16px; }
- 
+
 /* SEO */
 .seo-hidden { position: absolute; left: -9999px; font-size: 1px; color: transparent; pointer-events: none; }
- 
+
 /* FOOTER */
 footer { background: var(--deep); border-top: 1px solid var(--border); padding: 40px 56px 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
 .fcopy { font-size: 10px; color: var(--soft); }
 .flinks { display: flex; gap: 24px; flex-wrap: wrap; }
 .flinks a { font-size: 10px; color: var(--mist); text-decoration: none; transition: color .2s; }
 .flinks a:hover { color: var(--cream); }
- 
+
 /* ANIMATIONS */
 .fade-up { opacity: 0; transform: translateY(24px); animation: fadeUp .7s ease forwards; }
 .d1{animation-delay:.1s}.d2{animation-delay:.2s}.d3{animation-delay:.3s}.d4{animation-delay:.4s}
 @keyframes fadeUp { to { opacity:1; transform:translateY(0); } }
- 
+
 /* RESPONSIVE */
 @media(max-width:1000px){
   .featured-card{grid-template-columns:1fr;}
@@ -182,12 +182,12 @@ footer { background: var(--deep); border-top: 1px solid var(--border); padding: 
 </style>
 </head>
 <body>
- 
+
 <div id="cursor"></div>
 <div id="cursor-ring"></div>
- 
+
 <div class="seo-hidden" aria-hidden="true">Mexico City luxury car service CDMX black car Benito Juarez airport transfer AICM private driver Polanco hotel transfer Santa Fe corporate car luxury SUV Mexico City Lomas de Chapultepec Condesa private transfer Roma Norte car service Pedregal chauffeur Mexico City VIP transportation Forbes luxury travel Mexico Mikey AI concierge ILT logistics Mexico City</div>
- 
+
 <!-- NAV -->
 <nav id="nav">
   <a class="nav-logo" href="index.html">Mexico City Black Car</a>
@@ -211,7 +211,7 @@ footer { background: var(--deep); border-top: 1px solid var(--border); padding: 
   <a href="terms.html">Terms</a>
   <a href="mikey.html" style="color:var(--gold)">Talk to Mikey →</a>
 </div>
- 
+
 <!-- PAGE HERO -->
 <div class="page-hero">
   <div class="hero-bg-text" aria-hidden="true">JOURNAL</div>
@@ -278,7 +278,7 @@ footer { background: var(--deep); border-top: 1px solid var(--border); padding: 
     </div>
   </div>
 </div>
- 
+
 <!-- WEEK BANNER -->
 <div class="week-banner">
   <div class="week-inner">
@@ -286,11 +286,11 @@ footer { background: var(--deep); border-top: 1px solid var(--border); padding: 
     <div class="week-text" id="weekTheme">Loading this week's spotlight…</div>
   </div>
 </div>
- 
+
 <!-- MAIN -->
 <section>
   <div class="mw">
- 
+
     <div class="topic-row">
       <span class="topic-label">Topics</span>
       <button class="topic-btn active" data-topic="all" onclick="filterTopic(this)">All</button>
@@ -301,7 +301,7 @@ footer { background: var(--deep); border-top: 1px solid var(--border); padding: 
       <button class="topic-btn" data-topic="hidden" onclick="filterTopic(this)">Hidden Gems</button>
       <button class="topic-btn" data-topic="weekly" onclick="filterTopic(this)">Weekly Spotlight</button>
     </div>
- 
+
     <!-- FEATURED -->
     <div class="featured-card" id="featuredCard" data-topic="weekly">
       <div class="featured-img">
@@ -339,10 +339,10 @@ footer { background: var(--deep); border-top: 1px solid var(--border); padding: 
         </button>
       </div>
     </div>
- 
+
     <!-- POST GRID -->
     <div class="post-grid" id="postGrid">
- 
+
       <div class="post-card" data-topic="airport">
         <div class="post-thumb">
           <svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg">
@@ -359,7 +359,7 @@ footer { background: var(--deep); border-top: 1px solid var(--border); padding: 
           <button class="read-btn" onclick="openPost('airport','AICM T1 vs T2 — What Your Chauffeur Knows You Don\'t','Airport & Transfers','The two terminals have completely different pickup flows, wait times, and customs exit patterns. Knowing which one to use and when is the difference between a seamless arrival and 40 minutes of avoidable stress.')">Read the Guide <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
         </div>
       </div>
- 
+
       <div class="post-card" data-topic="hotels">
         <div class="post-thumb">
           <svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg">
@@ -376,7 +376,7 @@ footer { background: var(--deep); border-top: 1px solid var(--border); padding: 
           <button class="read-btn" onclick="openPost('hotels','Polanco\'s Five Hotels — Ranked by the Arrival Experience','Luxury Hotels','Not all five-star check-ins are equal. From the Four Seasons motor court protocol to the St. Regis butler sequence, the arrival experience sets the tone for everything.')">Read the Guide <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
         </div>
       </div>
- 
+
       <div class="post-card" data-topic="dining">
         <div class="post-thumb">
           <svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg">
@@ -394,7 +394,7 @@ footer { background: var(--deep); border-top: 1px solid var(--border); padding: 
           <button class="read-btn" onclick="openPost('dining','Getting a Table at Pujol — Without the Waiting List','Dining & Nightlife','Latin America\'s most celebrated restaurant books out months in advance. But there are three legitimate ways in that most travelers don\'t know about.')">Read the Guide <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
         </div>
       </div>
- 
+
       <div class="post-card" data-topic="corporate">
         <div class="post-thumb">
           <svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg">
@@ -410,7 +410,7 @@ footer { background: var(--deep); border-top: 1px solid var(--border); padding: 
           <button class="read-btn" onclick="openPost('corporate','Santa Fe to Polanco in Under 28 Minutes — The Route','Corporate Travel','Mexico City\'s corporate district to the hotel corridor is one of the most time-sensitive transfers. Here\'s the exact route, timing windows, and driver protocol our team uses for C-suite road shows.')">Read the Guide <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
         </div>
       </div>
- 
+
       <div class="post-card" data-topic="hidden">
         <div class="post-thumb">
           <svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg">
@@ -425,7 +425,7 @@ footer { background: var(--deep); border-top: 1px solid var(--border); padding: 
           <button class="read-btn" onclick="openPost('hidden','San Ángel on a Tuesday Morning — A Different City','Hidden Gems','Most visitors see San Ángel only on Saturdays for the Bazar. But Tuesday mornings reveal a completely different side — open studios, empty cobblestones, and a café no guidebook has found yet.')">Read the Guide <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
         </div>
       </div>
- 
+
       <div class="post-card" data-topic="hidden">
         <div class="post-thumb">
           <svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg">
@@ -442,11 +442,11 @@ footer { background: var(--deep); border-top: 1px solid var(--border); padding: 
           <button class="read-btn" onclick="openPost('hidden','Chimalistac — The Neighborhood Even Chilangos Forget','Hidden Gems','Wedged between San Ángel and Pedregal, Chimalistac is a village-within-the-city. Colonial architecture, a private art foundation, and one of CDMX\'s quietest lunch terraces await.')">Read the Guide <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
         </div>
       </div>
- 
+
     </div>
   </div>
 </section>
- 
+
 <footer>
   <span class="fcopy">© 2026 Infinite Logistic Technologies · Mexico City Black Car · All rights reserved</span>
   <div class="flinks">
@@ -456,7 +456,7 @@ footer { background: var(--deep); border-top: 1px solid var(--border); padding: 
     <a href="mikey.html">Talk to Mikey</a>
   </div>
 </footer>
- 
+
 <!-- MODAL -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModalClick(event)">
   <div class="modal-box" id="modalBox">
@@ -466,12 +466,12 @@ footer { background: var(--deep); border-top: 1px solid var(--border); padding: 
     <div id="modalContent"></div>
   </div>
 </div>
- 
+
 <script>
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let currentLang = 'English';
 let langAutoDetected = false;
- 
+
 // ─── COUNTRY → LANGUAGE MAP ───────────────────────────────────────────────────
 const countryToLang = {
   MX:'Spanish',GT:'Spanish',SV:'Spanish',HN:'Spanish',NI:'Spanish',CR:'Spanish',
@@ -514,7 +514,7 @@ const countryToLang = {
   ET:'Amharic',
   ZA:'Afrikaans',
 };
- 
+
 // ─── IP GEOLOCATION ───────────────────────────────────────────────────────────
 async function detectLanguage() {
   try {
@@ -537,7 +537,7 @@ async function detectLanguage() {
     // Silent fail — stay English
   }
 }
- 
+
 function onLangChange(val) {
   currentLang = val;
   if (langAutoDetected) {
@@ -545,7 +545,7 @@ function onLangChange(val) {
     langAutoDetected = false;
   }
 }
- 
+
 // ─── CURSOR ───────────────────────────────────────────────────────────────────
 const cursor = document.getElementById('cursor');
 const ring = document.getElementById('cursor-ring');
@@ -553,7 +553,7 @@ document.addEventListener('mousemove', e => {
   cursor.style.left = e.clientX+'px'; cursor.style.top = e.clientY+'px';
   ring.style.left = e.clientX+'px'; ring.style.top = e.clientY+'px';
 });
- 
+
 // ─── WEEK BANNER ──────────────────────────────────────────────────────────────
 const weekSpotlights = [
   'CDMX\'s emerging art corridor — from Doctores to the Tepito Creative District',
@@ -573,7 +573,7 @@ const d = new Date();
 const weekNum = Math.ceil(((d - new Date(d.getFullYear(),0,1))/86400000 + new Date(d.getFullYear(),0,1).getDay()+1)/7);
 const spotlight = weekSpotlights[weekNum % weekSpotlights.length];
 document.getElementById('weekTheme').innerHTML = `<strong>Week ${weekNum}, ${d.getFullYear()}:</strong> ${spotlight}`;
- 
+
 // ─── TOPIC FILTER ─────────────────────────────────────────────────────────────
 function filterTopic(btn) {
   document.querySelectorAll('.topic-btn').forEach(b => b.classList.remove('active'));
@@ -583,11 +583,11 @@ function filterTopic(btn) {
     card.style.display = (topic==='all' || card.dataset.topic===topic) ? '' : 'none';
   });
 }
- 
+
 // ─── WORKER API CALL ──────────────────────────────────────────────────────────
 async function callMikey(system, user) {
   try {
-    const res = await fetch('https://mexicocityblackcar.sdblackcar.workers.dev/api/messages', {
+    const res = await fetch('https://mikeyv5.sdblackcar.workers.dev/api/messages', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
@@ -608,7 +608,7 @@ async function callMikey(system, user) {
     return '';
   }
 }
- 
+
 // ─── FORMAT ARTICLE ───────────────────────────────────────────────────────────
 function formatArticle(text) {
   return text
@@ -621,21 +621,21 @@ function formatArticle(text) {
     .map(p=>(p.startsWith('<h3')||p.startsWith('<div'))?p:`<p>${p.replace(/\n/g,' ')}</p>`)
     .join('\n');
 }
- 
+
 // ─── SYSTEM PROMPT ────────────────────────────────────────────────────────────
 function mikeySystem() {
   return `You are Mikey — the AI concierge for Mexico City Black Car, a luxury ground transportation brand powered by Infinite Logistic Technologies (ILT). You write insider travel journal articles for an international luxury audience.
- 
+
 Writing style:
 - Deeply specific: real streets, real venue names, real neighborhoods, real timing
 - Apolitical: zero government commentary, elections, protests, or controversy
 - SEO-smart but natural: weave in "Mexico City luxury car service", "private driver CDMX", "luxury travel Mexico City" where they fit organically
 - Warm, literary, authoritative — like a trusted friend who has lived in CDMX for 20 years
 - Written entirely in ${currentLang}
- 
+
 Format: Use ### for section headings. Include one pull-quote in double quotes on its own line. Respond ONLY with the article body — no title, no byline, no preamble.`;
 }
- 
+
 // ─── GENERATE FEATURED ────────────────────────────────────────────────────────
 async function generateFeatured() {
   const btn = document.getElementById('featBtn');
@@ -660,7 +660,7 @@ async function generateFeatured() {
     desc.textContent = 'Unable to generate post. Please try again.';
   }
 }
- 
+
 // ─── OPEN POST ────────────────────────────────────────────────────────────────
 async function openPost(topic, title, category, teaser) {
   document.getElementById('modalContent').innerHTML = `
@@ -685,7 +685,7 @@ async function openPost(topic, title, category, teaser) {
       </div>`;
   }
 }
- 
+
 // ─── SHOW MODAL ───────────────────────────────────────────────────────────────
 function showModal(category, title, byline, bodyText) {
   const date = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
@@ -703,11 +703,11 @@ function showModal(category, title, byline, bodyText) {
     </div>
     <div class="modal-content">${formatArticle(bodyText)}</div>`;
 }
- 
+
 function closeModalClick(e) { if(e.target===document.getElementById('modalOverlay')) closeModal(); }
 function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); document.body.style.overflow = ''; }
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
- 
+
 // ─── SCROLL REVEAL ────────────────────────────────────────────────────────────
 const obs = new IntersectionObserver(entries => {
   entries.forEach(e => { if(e.isIntersecting){ e.target.style.opacity='1'; e.target.style.transform='translateY(0)'; }});
@@ -717,7 +717,7 @@ document.querySelectorAll('.post-card, .featured-card').forEach(el => {
   el.style.transition='opacity .6s ease, transform .6s ease';
   obs.observe(el);
 });
- 
+
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 detectLanguage();
 </script>
