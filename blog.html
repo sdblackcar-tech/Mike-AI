@@ -35,11 +35,11 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body { background: var(--bg); color: var(--cream); font-family: var(--ms); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; cursor: none; }
-
+ 
 /* CURSOR */
 #cursor { width: 8px; height: 8px; background: var(--gold); border-radius: 50%; position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999; transition: transform .15s ease; transform: translate(-50%,-50%); }
 #cursor-ring { width: 28px; height: 28px; border: 1px solid rgba(201,169,110,0.4); border-radius: 50%; position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9998; transition: transform .35s ease; transform: translate(-50%,-50%); }
-
+ 
 /* NAV */
 nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 56px; height: 72px; background: rgba(9,9,9,0.92); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border2); }
 .nav-logo { font-family: var(--cg); font-size: 18px; font-weight: 400; letter-spacing: .04em; color: var(--cream); text-decoration: none; }
@@ -53,7 +53,7 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; a
 .nav-mob { display: none; flex-direction: column; position: fixed; top: 72px; left: 0; right: 0; background: var(--deep); border-bottom: 1px solid var(--border); padding: 0; z-index: 99; max-height: 0; overflow: hidden; transition: max-height .3s ease, padding .3s; }
 .nav-mob.open { max-height: 400px; padding: 20px 24px 28px; gap: 20px; display: flex; }
 .nav-mob a { font-size: 13px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--mist); text-decoration: none; }
-
+ 
 /* PAGE HERO */
 .page-hero { padding: 160px 56px 80px; border-bottom: 1px solid var(--border2); position: relative; overflow: hidden; }
 .hero-bg-text { position: absolute; right: -20px; top: 50%; transform: translateY(-50%); font-family: var(--cg); font-size: clamp(120px,18vw,220px); font-weight: 300; color: rgba(201,169,110,0.04); pointer-events: none; line-height: 1; white-space: nowrap; }
@@ -62,28 +62,35 @@ nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; a
 .page-hero h1 { font-family: var(--cg); font-size: clamp(48px,6vw,84px); font-weight: 300; line-height: 1.05; color: var(--cream); letter-spacing: -.01em; margin-bottom: 24px; }
 .page-hero h1 em { font-style: italic; color: var(--gold); }
 .hero-sub { font-size: 15px; color: var(--mist); max-width: 540px; font-weight: 300; line-height: 1.7; margin-bottom: 40px; }
-.lang-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+ 
+/* LANGUAGE BAR */
+.lang-bar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .lang-label { font-size: 10px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--soft); }
-.lang-select { background: var(--card); border: 1px solid var(--border); color: var(--cream); padding: 8px 32px 8px 16px; font-family: var(--ms); font-size: 12px; font-weight: 500; letter-spacing: .08em; border-radius: var(--r); cursor: none; outline: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C9A96E' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+.lang-detect-badge { display: none; align-items: center; gap: 7px; font-size: 10px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--teal); padding: 5px 12px; border: 1px solid rgba(0,212,170,0.25); border-radius: 2px; background: rgba(0,212,170,0.05); }
+.lang-detect-badge.visible { display: flex; }
+.lang-select-wrap { position: relative; display: inline-block; }
+.lang-select { background: var(--card); border: 1px solid var(--border); color: var(--cream); padding: 9px 36px 9px 16px; font-family: var(--ms); font-size: 12px; font-weight: 500; letter-spacing: .08em; border-radius: var(--r); cursor: pointer; outline: none; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C9A96E' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; transition: border-color .2s; min-width: 200px; }
 .lang-select:focus { border-color: var(--gold); }
-
+.lang-select option { background: #1a1a1a; color: var(--cream); }
+.lang-select optgroup { background: #111; color: var(--gold); font-size: 10px; }
+ 
 /* WEEK BANNER */
 .week-banner { background: var(--card2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 14px 56px; }
 .week-inner { max-width: var(--mw); margin: 0 auto; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
 .week-tag { font-size: 9px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--bg); background: var(--gold); padding: 4px 10px; border-radius: 2px; white-space: nowrap; flex-shrink: 0; }
 .week-text { font-size: 12px; color: var(--mist); font-weight: 300; }
 .week-text strong { color: var(--cream); font-weight: 500; }
-
+ 
 /* SECTION */
 section { padding: 80px 56px; }
-
+ 
 /* TOPIC FILTERS */
 .topic-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 56px; align-items: center; }
 .topic-label { font-size: 10px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--soft); margin-right: 6px; }
-.topic-btn { padding: 8px 18px; border: 1px solid var(--border); border-radius: 2px; background: none; color: var(--mist); font-family: var(--ms); font-size: 11px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; cursor: none; transition: all .2s; }
+.topic-btn { padding: 8px 18px; border: 1px solid var(--border); border-radius: 2px; background: none; color: var(--mist); font-family: var(--ms); font-size: 11px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; transition: all .2s; }
 .topic-btn:hover { border-color: var(--gold-dim); color: var(--cream); }
 .topic-btn.active { background: var(--gold); border-color: var(--gold); color: var(--bg); }
-
+ 
 /* FEATURED */
 .featured-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; display: grid; grid-template-columns: 1fr 1fr; margin-bottom: 56px; min-height: 460px; transition: border-color .3s; }
 .featured-card:hover { border-color: var(--gold-dim); }
@@ -95,15 +102,15 @@ section { padding: 80px 56px; }
 .featured-body h2 { font-family: var(--cg); font-size: clamp(28px,3vw,42px); font-weight: 300; line-height: 1.1; color: var(--cream); letter-spacing: -.01em; margin-bottom: 16px; }
 .featured-body h2 em { font-style: italic; color: var(--gold); }
 .featured-body p { font-size: 14px; color: var(--mist); font-weight: 300; line-height: 1.75; margin-bottom: 32px; }
-.gen-btn { display: inline-flex; align-items: center; gap: 10px; padding: 13px 28px; background: var(--gold); border: none; border-radius: var(--r); color: var(--bg); font-family: var(--ms); font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; cursor: none; transition: opacity .2s, transform .2s; width: fit-content; }
+.gen-btn { display: inline-flex; align-items: center; gap: 10px; padding: 13px 28px; background: var(--gold); border: none; border-radius: var(--r); color: var(--bg); font-family: var(--ms); font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; transition: opacity .2s, transform .2s; width: fit-content; }
 .gen-btn:hover { opacity: .88; transform: translateY(-1px); }
-.gen-btn:disabled { opacity: .5; }
+.gen-btn:disabled { opacity: .5; cursor: not-allowed; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { animation: spin 1s linear infinite; }
-
+ 
 /* POST GRID */
 .post-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; }
-.post-card { background: var(--card); border: 1px solid var(--border2); border-radius: var(--r); overflow: hidden; transition: border-color .25s, transform .25s; cursor: none; }
+.post-card { background: var(--card); border: 1px solid var(--border2); border-radius: var(--r); overflow: hidden; transition: border-color .25s, transform .25s; cursor: pointer; }
 .post-card:hover { border-color: var(--border); transform: translateY(-3px); }
 .post-thumb { height: 180px; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .post-body { padding: 28px 28px 32px; }
@@ -111,16 +118,16 @@ section { padding: 80px 56px; }
 .post-card h3 { font-family: var(--cg); font-size: 22px; font-weight: 400; line-height: 1.2; color: var(--cream); letter-spacing: -.01em; margin-bottom: 10px; }
 .post-card h3 em { font-style: italic; }
 .post-card p { font-size: 13px; color: var(--mist); font-weight: 300; line-height: 1.65; margin-bottom: 24px; }
-.read-btn { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); background: none; border: none; cursor: none; padding: 0; transition: gap .2s; font-family: var(--ms); }
+.read-btn { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); background: none; border: none; cursor: pointer; padding: 0; transition: gap .2s; font-family: var(--ms); }
 .read-btn:hover { gap: 14px; }
 .read-btn svg { width: 12px; height: 12px; }
-
+ 
 /* MODAL */
 .modal-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(9,9,9,0.97); backdrop-filter: blur(24px); display: flex; align-items: flex-start; justify-content: center; padding: 40px 24px; overflow-y: auto; opacity: 0; pointer-events: none; transition: opacity .3s; }
 .modal-overlay.open { opacity: 1; pointer-events: all; }
 .modal-box { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); max-width: 780px; width: 100%; padding: 60px 64px; position: relative; transform: translateY(20px); transition: transform .3s; }
 .modal-overlay.open .modal-box { transform: translateY(0); }
-.modal-close { position: absolute; top: 24px; right: 24px; background: none; border: 1px solid var(--border); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: none; color: var(--mist); transition: all .2s; }
+.modal-close { position: absolute; top: 24px; right: 24px; background: none; border: 1px solid var(--border); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--mist); transition: all .2s; }
 .modal-close:hover { border-color: var(--gold); color: var(--gold); }
 .modal-close svg { width: 14px; height: 14px; }
 .modal-cat { font-size: 9px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; }
@@ -141,22 +148,22 @@ section { padding: 80px 56px; }
 .loader-ring { width: 44px; height: 44px; border: 1px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 1s linear infinite; }
 .loader-text { font-size: 12px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase; color: var(--mist); }
 .loader-sub { font-size: 11px; color: var(--soft); font-weight: 300; margin-top: -16px; }
-
-/* SEO hidden */
+ 
+/* SEO */
 .seo-hidden { position: absolute; left: -9999px; font-size: 1px; color: transparent; pointer-events: none; }
-
+ 
 /* FOOTER */
 footer { background: var(--deep); border-top: 1px solid var(--border); padding: 40px 56px 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
 .fcopy { font-size: 10px; color: var(--soft); }
 .flinks { display: flex; gap: 24px; flex-wrap: wrap; }
 .flinks a { font-size: 10px; color: var(--mist); text-decoration: none; transition: color .2s; }
 .flinks a:hover { color: var(--cream); }
-
+ 
 /* ANIMATIONS */
 .fade-up { opacity: 0; transform: translateY(24px); animation: fadeUp .7s ease forwards; }
 .d1{animation-delay:.1s}.d2{animation-delay:.2s}.d3{animation-delay:.3s}.d4{animation-delay:.4s}
 @keyframes fadeUp { to { opacity:1; transform:translateY(0); } }
-
+ 
 /* RESPONSIVE */
 @media(max-width:1000px){
   .featured-card{grid-template-columns:1fr;}
@@ -175,13 +182,12 @@ footer { background: var(--deep); border-top: 1px solid var(--border); padding: 
 </style>
 </head>
 <body>
-
+ 
 <div id="cursor"></div>
 <div id="cursor-ring"></div>
-
-<!-- SEO KEYWORDS FOR CRAWLERS -->
+ 
 <div class="seo-hidden" aria-hidden="true">Mexico City luxury car service CDMX black car Benito Juarez airport transfer AICM private driver Polanco hotel transfer Santa Fe corporate car luxury SUV Mexico City Lomas de Chapultepec Condesa private transfer Roma Norte car service Pedregal chauffeur Mexico City VIP transportation Forbes luxury travel Mexico Mikey AI concierge ILT logistics Mexico City</div>
-
+ 
 <!-- NAV -->
 <nav id="nav">
   <a class="nav-logo" href="index.html">Mexico City Black Car</a>
@@ -205,7 +211,7 @@ footer { background: var(--deep); border-top: 1px solid var(--border); padding: 
   <a href="terms.html">Terms</a>
   <a href="mikey.html" style="color:var(--gold)">Talk to Mikey →</a>
 </div>
-
+ 
 <!-- PAGE HERO -->
 <div class="page-hero">
   <div class="hero-bg-text" aria-hidden="true">JOURNAL</div>
@@ -215,30 +221,64 @@ footer { background: var(--deep); border-top: 1px solid var(--border); padding: 
     <p class="hero-sub fade-up d3">Insider guides, hidden neighborhoods, airport intelligence, and luxury travel secrets — written fresh by Mikey in any language you choose.</p>
     <div class="lang-bar fade-up d4">
       <span class="lang-label">Read in</span>
-      <select class="lang-select" id="langSelect" onchange="currentLang=this.value">
-        <option value="English">English</option>
-        <option value="Spanish">Español</option>
-        <option value="French">Français</option>
-        <option value="German">Deutsch</option>
-        <option value="Italian">Italiano</option>
-        <option value="Portuguese">Português</option>
-        <option value="Japanese">日本語</option>
-        <option value="Korean">한국어</option>
-        <option value="Mandarin Chinese">中文</option>
-        <option value="Arabic">العربية</option>
-        <option value="Russian">Русский</option>
-        <option value="Dutch">Nederlands</option>
-        <option value="Hebrew">עברית</option>
-        <option value="Hindi">हिन्दी</option>
-        <option value="Turkish">Türkçe</option>
-        <option value="Polish">Polski</option>
-        <option value="Ukrainian">Українська</option>
-        <option value="Swedish">Svenska</option>
-      </select>
+      <div class="lang-select-wrap">
+        <select class="lang-select" id="langSelect" onchange="onLangChange(this.value)">
+          <optgroup label="Americas">
+            <option value="English">🇺🇸 English</option>
+            <option value="Spanish">🇲🇽 Español</option>
+            <option value="Portuguese">🇧🇷 Português</option>
+            <option value="French">🇨🇦 Français</option>
+          </optgroup>
+          <optgroup label="Europe">
+            <option value="German">🇩🇪 Deutsch</option>
+            <option value="Italian">🇮🇹 Italiano</option>
+            <option value="Dutch">🇳🇱 Nederlands</option>
+            <option value="Polish">🇵🇱 Polski</option>
+            <option value="Swedish">🇸🇪 Svenska</option>
+            <option value="Norwegian">🇳🇴 Norsk</option>
+            <option value="Danish">🇩🇰 Dansk</option>
+            <option value="Finnish">🇫🇮 Suomi</option>
+            <option value="Greek">🇬🇷 Ελληνικά</option>
+            <option value="Czech">🇨🇿 Čeština</option>
+            <option value="Romanian">🇷🇴 Română</option>
+            <option value="Hungarian">🇭🇺 Magyar</option>
+            <option value="Ukrainian">🇺🇦 Українська</option>
+            <option value="Russian">🇷🇺 Русский</option>
+          </optgroup>
+          <optgroup label="Middle East">
+            <option value="Arabic">🇸🇦 العربية</option>
+            <option value="Hebrew">🇮🇱 עברית</option>
+            <option value="Turkish">🇹🇷 Türkçe</option>
+            <option value="Persian">🇮🇷 فارسی</option>
+          </optgroup>
+          <optgroup label="Asia">
+            <option value="Mandarin Chinese">🇨🇳 中文 (普通话)</option>
+            <option value="Cantonese Chinese">🇭🇰 中文 (廣東話)</option>
+            <option value="Japanese">🇯🇵 日本語</option>
+            <option value="Korean">🇰🇷 한국어</option>
+            <option value="Hindi">🇮🇳 हिन्दी</option>
+            <option value="Bengali">🇧🇩 বাংলা</option>
+            <option value="Thai">🇹🇭 ภาษาไทย</option>
+            <option value="Vietnamese">🇻🇳 Tiếng Việt</option>
+            <option value="Indonesian">🇮🇩 Bahasa Indonesia</option>
+            <option value="Malay">🇲🇾 Bahasa Melayu</option>
+            <option value="Tagalog">🇵🇭 Filipino</option>
+          </optgroup>
+          <optgroup label="Africa">
+            <option value="Swahili">🇰🇪 Kiswahili</option>
+            <option value="Amharic">🇪🇹 አማርኛ</option>
+            <option value="Afrikaans">🇿🇦 Afrikaans</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="lang-detect-badge" id="detectBadge">
+        <svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4.5"/><circle cx="6" cy="6" r="1.5" fill="currentColor" stroke="none"/></svg>
+        <span id="detectText">Auto-detected</span>
+      </div>
     </div>
   </div>
 </div>
-
+ 
 <!-- WEEK BANNER -->
 <div class="week-banner">
   <div class="week-inner">
@@ -246,12 +286,11 @@ footer { background: var(--deep); border-top: 1px solid var(--border); padding: 
     <div class="week-text" id="weekTheme">Loading this week's spotlight…</div>
   </div>
 </div>
-
+ 
 <!-- MAIN -->
 <section>
   <div class="mw">
-
-    <!-- TOPIC FILTERS -->
+ 
     <div class="topic-row">
       <span class="topic-label">Topics</span>
       <button class="topic-btn active" data-topic="all" onclick="filterTopic(this)">All</button>
@@ -262,36 +301,25 @@ footer { background: var(--deep); border-top: 1px solid var(--border); padding: 
       <button class="topic-btn" data-topic="hidden" onclick="filterTopic(this)">Hidden Gems</button>
       <button class="topic-btn" data-topic="weekly" onclick="filterTopic(this)">Weekly Spotlight</button>
     </div>
-
-    <!-- FEATURED POST -->
+ 
+    <!-- FEATURED -->
     <div class="featured-card" id="featuredCard" data-topic="weekly">
       <div class="featured-img">
         <div class="featured-img-inner">
           <svg viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;position:absolute;inset:0;">
-            <defs>
-              <linearGradient id="cg" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#0c0c14"/>
-                <stop offset="100%" style="stop-color:#14100c"/>
-              </linearGradient>
-            </defs>
+            <defs><linearGradient id="cg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#0c0c14"/><stop offset="100%" style="stop-color:#14100c"/></linearGradient></defs>
             <rect fill="url(#cg)" width="500" height="400"/>
             <g stroke="rgba(201,169,110,0.07)" stroke-width="1" fill="none">
-              <line x1="0" y1="80" x2="500" y2="80"/><line x1="0" y1="160" x2="500" y2="160"/>
-              <line x1="0" y1="240" x2="500" y2="240"/><line x1="0" y1="320" x2="500" y2="320"/>
-              <line x1="100" y1="0" x2="100" y2="400"/><line x1="200" y1="0" x2="200" y2="400"/>
-              <line x1="300" y1="0" x2="300" y2="400"/><line x1="400" y1="0" x2="400" y2="400"/>
+              <line x1="0" y1="80" x2="500" y2="80"/><line x1="0" y1="160" x2="500" y2="160"/><line x1="0" y1="240" x2="500" y2="240"/><line x1="0" y1="320" x2="500" y2="320"/>
+              <line x1="100" y1="0" x2="100" y2="400"/><line x1="200" y1="0" x2="200" y2="400"/><line x1="300" y1="0" x2="300" y2="400"/><line x1="400" y1="0" x2="400" y2="400"/>
             </g>
             <g fill="rgba(201,169,110,0.06)">
-              <rect x="30" y="180" width="38" height="220"/><rect x="78" y="140" width="28" height="260"/>
-              <rect x="116" y="200" width="48" height="200"/><rect x="174" y="120" width="33" height="280"/>
-              <rect x="217" y="160" width="44" height="240"/><rect x="271" y="100" width="38" height="300"/>
-              <rect x="319" y="150" width="52" height="250"/><rect x="381" y="130" width="33" height="270"/>
-              <rect x="424" y="190" width="38" height="210"/>
+              <rect x="30" y="180" width="38" height="220"/><rect x="78" y="140" width="28" height="260"/><rect x="116" y="200" width="48" height="200"/>
+              <rect x="174" y="120" width="33" height="280"/><rect x="217" y="160" width="44" height="240"/><rect x="271" y="100" width="38" height="300"/>
+              <rect x="319" y="150" width="52" height="250"/><rect x="381" y="130" width="33" height="270"/><rect x="424" y="190" width="38" height="210"/>
             </g>
-            <!-- Angel silhouette -->
             <g fill="rgba(201,169,110,0.18)">
-              <rect x="239" y="85" width="22" height="115"/>
-              <ellipse cx="250" cy="82" rx="13" ry="7"/>
+              <rect x="239" y="85" width="22" height="115"/><ellipse cx="250" cy="82" rx="13" ry="7"/>
               <polygon points="250,46 245,78 255,78"/>
               <path d="M242,62 C223,53 205,67 210,76 C219,71 238,69 242,67Z"/>
               <path d="M258,62 C277,53 295,67 290,76 C281,71 262,69 258,67Z"/>
@@ -311,45 +339,32 @@ footer { background: var(--deep); border-top: 1px solid var(--border); padding: 
         </button>
       </div>
     </div>
-
+ 
     <!-- POST GRID -->
     <div class="post-grid" id="postGrid">
-
+ 
       <div class="post-card" data-topic="airport">
         <div class="post-thumb">
           <svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg">
             <rect fill="#0c0c12" width="300" height="180"/>
-            <g stroke="rgba(201,169,110,0.1)" stroke-width="1" stroke-dasharray="18,10" fill="none">
-              <line x1="0" y1="90" x2="300" y2="90"/><line x1="150" y1="0" x2="150" y2="180"/>
-            </g>
-            <g stroke="rgba(201,169,110,0.05)" stroke-width="1" fill="none">
-              <line x1="0" y1="45" x2="300" y2="45"/><line x1="0" y1="135" x2="300" y2="135"/>
-              <line x1="75" y1="0" x2="75" y2="180"/><line x1="225" y1="0" x2="225" y2="180"/>
-            </g>
-            <g transform="translate(118,62)" fill="rgba(201,169,110,0.2)">
-              <path d="M30,4 L4,20 L10,20 L6,32 L10,32 L16,20 L26,20 L30,24 L34,24 L34,22 L38,22 L38,12 L34,12 L34,10 L30,10 L24,16 L14,16 L10,4 L6,4 L10,14 L4,14Z" transform="scale(1.2)"/>
-            </g>
+            <g stroke="rgba(201,169,110,0.1)" stroke-width="1" stroke-dasharray="18,10" fill="none"><line x1="0" y1="90" x2="300" y2="90"/><line x1="150" y1="0" x2="150" y2="180"/></g>
+            <g stroke="rgba(201,169,110,0.05)" stroke-width="1" fill="none"><line x1="0" y1="45" x2="300" y2="45"/><line x1="0" y1="135" x2="300" y2="135"/><line x1="75" y1="0" x2="75" y2="180"/><line x1="225" y1="0" x2="225" y2="180"/></g>
+            <g transform="translate(118,62)" fill="rgba(201,169,110,0.2)"><path d="M30,4 L4,20 L10,20 L6,32 L10,32 L16,20 L26,20 L30,24 L34,24 L34,22 L38,22 L38,12 L34,12 L34,10 L30,10 L24,16 L14,16 L10,4 L6,4 L10,14 L4,14Z" transform="scale(1.2)"/></g>
           </svg>
         </div>
         <div class="post-body">
           <div class="post-cat">Airport & Transfers</div>
           <h3>AICM T1 vs T2 — What Your<br/><em>Chauffeur Knows</em> You Don't</h3>
           <p>The two terminals have completely different pickup flows and customs exit timings. Knowing which one — and the exact bay — is the difference between a seamless arrival and 40 minutes of unnecessary stress.</p>
-          <button class="read-btn" onclick="openPost('airport','AICM T1 vs T2 — What Your Chauffeur Knows You Don\'t','Airport & Transfers','The two terminals have completely different pickup flows, wait times, and customs exit patterns. Knowing which one to use and when is the difference between a seamless arrival and 40 minutes of avoidable stress.')">
-            Read the Guide <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-          </button>
+          <button class="read-btn" onclick="openPost('airport','AICM T1 vs T2 — What Your Chauffeur Knows You Don\'t','Airport & Transfers','The two terminals have completely different pickup flows, wait times, and customs exit patterns. Knowing which one to use and when is the difference between a seamless arrival and 40 minutes of avoidable stress.')">Read the Guide <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
         </div>
       </div>
-
+ 
       <div class="post-card" data-topic="hotels">
         <div class="post-thumb">
           <svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg">
             <rect fill="#0c100e" width="300" height="180"/>
-            <g stroke="rgba(201,169,110,0.07)" stroke-width="1" fill="none">
-              <rect x="55" y="15" width="190" height="150"/>
-              <line x1="55" y1="55" x2="245" y2="55"/><line x1="55" y1="95" x2="245" y2="95"/><line x1="55" y1="130" x2="245" y2="130"/>
-              <line x1="102" y1="15" x2="102" y2="165"/><line x1="150" y1="15" x2="150" y2="165"/><line x1="198" y1="15" x2="198" y2="165"/>
-            </g>
+            <g stroke="rgba(201,169,110,0.07)" stroke-width="1" fill="none"><rect x="55" y="15" width="190" height="150"/><line x1="55" y1="55" x2="245" y2="55"/><line x1="55" y1="95" x2="245" y2="95"/><line x1="55" y1="130" x2="245" y2="130"/><line x1="102" y1="15" x2="102" y2="165"/><line x1="150" y1="15" x2="150" y2="165"/><line x1="198" y1="15" x2="198" y2="165"/></g>
             <rect x="118" y="140" width="64" height="25" fill="rgba(201,169,110,0.08)"/>
             <circle cx="150" cy="6" r="4" fill="rgba(201,169,110,0.35)"/>
           </svg>
@@ -358,12 +373,10 @@ footer { background: var(--deep); border-top: 1px solid var(--border); padding: 
           <div class="post-cat">Luxury Hotels</div>
           <h3>Polanco's Five Hotels —<br/><em>Ranked by</em> the Arrival Experience</h3>
           <p>From the Four Seasons motor court protocol to the St. Regis butler sequence, not all five-star check-ins are created equal. Mikey ranks them with the honesty only an insider can offer.</p>
-          <button class="read-btn" onclick="openPost('hotels','Polanco\'s Five Hotels — Ranked by the Arrival Experience','Luxury Hotels','Not all five-star check-ins are equal. From the Four Seasons motor court protocol to the St. Regis butler sequence, the arrival experience sets the tone for everything.')">
-            Read the Guide <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-          </button>
+          <button class="read-btn" onclick="openPost('hotels','Polanco\'s Five Hotels — Ranked by the Arrival Experience','Luxury Hotels','Not all five-star check-ins are equal. From the Four Seasons motor court protocol to the St. Regis butler sequence, the arrival experience sets the tone for everything.')">Read the Guide <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
         </div>
       </div>
-
+ 
       <div class="post-card" data-topic="dining">
         <div class="post-thumb">
           <svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg">
@@ -371,34 +384,22 @@ footer { background: var(--deep); border-top: 1px solid var(--border); padding: 
             <circle cx="150" cy="90" r="65" fill="none" stroke="rgba(201,169,110,0.08)" stroke-width="1"/>
             <circle cx="150" cy="90" r="44" fill="none" stroke="rgba(201,169,110,0.05)" stroke-width="1"/>
             <circle cx="150" cy="90" r="6" fill="rgba(201,169,110,0.22)"/>
-            <g stroke="rgba(201,169,110,0.16)" stroke-width="1.5" stroke-linecap="round" fill="none">
-              <line x1="118" y1="52" x2="118" y2="128"/>
-              <path d="M113,52 C113,68 123,68 123,52"/>
-              <line x1="182" y1="52" x2="182" y2="76"/>
-              <line x1="182" y1="76" x2="177" y2="82"/><line x1="182" y1="76" x2="187" y2="82"/>
-              <line x1="182" y1="82" x2="182" y2="128"/>
-            </g>
+            <g stroke="rgba(201,169,110,0.16)" stroke-width="1.5" stroke-linecap="round" fill="none"><line x1="118" y1="52" x2="118" y2="128"/><path d="M113,52 C113,68 123,68 123,52"/><line x1="182" y1="52" x2="182" y2="76"/><line x1="182" y1="76" x2="177" y2="82"/><line x1="182" y1="76" x2="187" y2="82"/><line x1="182" y1="82" x2="182" y2="128"/></g>
           </svg>
         </div>
         <div class="post-body">
           <div class="post-cat">Dining & Nightlife</div>
           <h3>Getting a Table at Pujol —<br/><em>Without</em> the Waiting List</h3>
           <p>Latin America's most celebrated restaurant books out months in advance. But there are three legitimate entry points most travelers never discover. Mikey outlines all of them, honestly.</p>
-          <button class="read-btn" onclick="openPost('dining','Getting a Table at Pujol — Without the Waiting List','Dining & Nightlife','Latin America\'s most celebrated restaurant books out months in advance. But there are three legitimate ways in that most travelers don\'t know about.')">
-            Read the Guide <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-          </button>
+          <button class="read-btn" onclick="openPost('dining','Getting a Table at Pujol — Without the Waiting List','Dining & Nightlife','Latin America\'s most celebrated restaurant books out months in advance. But there are three legitimate ways in that most travelers don\'t know about.')">Read the Guide <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
         </div>
       </div>
-
+ 
       <div class="post-card" data-topic="corporate">
         <div class="post-thumb">
           <svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg">
             <rect fill="#0a0c10" width="300" height="180"/>
-            <g fill="rgba(201,169,110,0.07)">
-              <rect x="35" y="55" width="28" height="125"/><rect x="73" y="35" width="28" height="145"/>
-              <rect x="121" y="65" width="38" height="115"/><rect x="169" y="25" width="28" height="155"/>
-              <rect x="207" y="45" width="33" height="135"/><rect x="250" y="60" width="28" height="120"/>
-            </g>
+            <g fill="rgba(201,169,110,0.07)"><rect x="35" y="55" width="28" height="125"/><rect x="73" y="35" width="28" height="145"/><rect x="121" y="65" width="38" height="115"/><rect x="169" y="25" width="28" height="155"/><rect x="207" y="45" width="33" height="135"/><rect x="250" y="60" width="28" height="120"/></g>
             <line x1="0" y1="179" x2="300" y2="179" stroke="rgba(201,169,110,0.1)" stroke-width="1"/>
           </svg>
         </div>
@@ -406,42 +407,30 @@ footer { background: var(--deep); border-top: 1px solid var(--border); padding: 
           <div class="post-cat">Corporate Travel</div>
           <h3>Santa Fe to Polanco in<br/><em>Under 28 Minutes</em> — The Route</h3>
           <p>Mexico City's corporate district to the hotel corridor is one of the most time-sensitive transfers in the city. The exact route, timing windows, and driver protocol for C-suite road shows.</p>
-          <button class="read-btn" onclick="openPost('corporate','Santa Fe to Polanco in Under 28 Minutes — The Route','Corporate Travel','Mexico City\'s corporate district to the hotel corridor is one of the most time-sensitive transfers. Here\'s the exact route, timing windows, and driver protocol our team uses for C-suite road shows.')">
-            Read the Guide <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-          </button>
+          <button class="read-btn" onclick="openPost('corporate','Santa Fe to Polanco in Under 28 Minutes — The Route','Corporate Travel','Mexico City\'s corporate district to the hotel corridor is one of the most time-sensitive transfers. Here\'s the exact route, timing windows, and driver protocol our team uses for C-suite road shows.')">Read the Guide <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
         </div>
       </div>
-
+ 
       <div class="post-card" data-topic="hidden">
         <div class="post-thumb">
           <svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg">
             <rect fill="#0e0c10" width="300" height="180"/>
-            <g transform="translate(150,90)" stroke="rgba(201,169,110,0.14)" stroke-width="1" fill="none">
-              <circle cx="0" cy="0" r="60"/><circle cx="0" cy="0" r="40"/>
-              <line x1="0" y1="-70" x2="0" y2="70"/><line x1="-70" y1="0" x2="70" y2="0"/>
-              <polygon points="0,-54 -5,-34 5,-34" fill="rgba(201,169,110,0.22)" stroke="none"/>
-              <polygon points="0,54 -5,34 5,34" fill="rgba(201,169,110,0.1)" stroke="none"/>
-            </g>
+            <g transform="translate(150,90)" stroke="rgba(201,169,110,0.14)" stroke-width="1" fill="none"><circle cx="0" cy="0" r="60"/><circle cx="0" cy="0" r="40"/><line x1="0" y1="-70" x2="0" y2="70"/><line x1="-70" y1="0" x2="70" y2="0"/><polygon points="0,-54 -5,-34 5,-34" fill="rgba(201,169,110,0.22)" stroke="none"/><polygon points="0,54 -5,34 5,34" fill="rgba(201,169,110,0.1)" stroke="none"/></g>
           </svg>
         </div>
         <div class="post-body">
           <div class="post-cat">Hidden Gems</div>
           <h3>San Ángel on a<br/><em>Tuesday Morning</em> — A Different City</h3>
           <p>Most visitors see San Ángel on Saturdays for the Bazar. Tuesday mornings offer the same cobblestone magic with none of the crowds, open studio galleries, and a café no guidebook has listed yet.</p>
-          <button class="read-btn" onclick="openPost('hidden','San Ángel on a Tuesday Morning — A Different City','Hidden Gems','Most visitors see San Ángel only on Saturdays for the Bazar. But Tuesday mornings reveal a completely different side — open studios, empty cobblestones, and a café no guidebook has found yet.')">
-            Read the Guide <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-          </button>
+          <button class="read-btn" onclick="openPost('hidden','San Ángel on a Tuesday Morning — A Different City','Hidden Gems','Most visitors see San Ángel only on Saturdays for the Bazar. But Tuesday mornings reveal a completely different side — open studios, empty cobblestones, and a café no guidebook has found yet.')">Read the Guide <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
         </div>
       </div>
-
+ 
       <div class="post-card" data-topic="hidden">
         <div class="post-thumb">
           <svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg">
             <rect fill="#0c0e12" width="300" height="180"/>
-            <g stroke="rgba(201,169,110,0.1)" stroke-width="1" fill="none">
-              <path d="M150,10 C80,50 52,100 80,148 C108,180 192,180 220,148 C248,100 220,50 150,10Z"/>
-              <path d="M150,40 C100,72 82,115 106,150 C126,178 174,178 194,150 C218,115 200,72 150,40Z"/>
-            </g>
+            <g stroke="rgba(201,169,110,0.1)" stroke-width="1" fill="none"><path d="M150,10 C80,50 52,100 80,148 C108,180 192,180 220,148 C248,100 220,50 150,10Z"/><path d="M150,40 C100,72 82,115 106,150 C126,178 174,178 194,150 C218,115 200,72 150,40Z"/></g>
             <circle cx="150" cy="90" r="9" fill="rgba(201,169,110,0.22)"/>
             <circle cx="150" cy="90" r="3" fill="rgba(201,169,110,0.7)"/>
           </svg>
@@ -450,16 +439,14 @@ footer { background: var(--deep); border-top: 1px solid var(--border); padding: 
           <div class="post-cat">Hidden Gems</div>
           <h3>Chimalistac — The Neighborhood<br/>Even <em>Chilangos</em> Forget</h3>
           <p>Wedged between San Ángel and Pedregal, this village-within-the-city moves at a different rhythm. Colonial architecture, a private art foundation, and one of CDMX's most peaceful lunch terraces.</p>
-          <button class="read-btn" onclick="openPost('hidden','Chimalistac — The Neighborhood Even Chilangos Forget','Hidden Gems','Wedged between San Ángel and Pedregal, Chimalistac is a village-within-the-city. Colonial architecture, a private art foundation, and one of CDMX\'s quietest lunch terraces await.')">
-            Read the Guide <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg>
-          </button>
+          <button class="read-btn" onclick="openPost('hidden','Chimalistac — The Neighborhood Even Chilangos Forget','Hidden Gems','Wedged between San Ángel and Pedregal, Chimalistac is a village-within-the-city. Colonial architecture, a private art foundation, and one of CDMX\'s quietest lunch terraces await.')">Read the Guide <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h10M9 4l4 4-4 4"/></svg></button>
         </div>
       </div>
-
+ 
     </div>
   </div>
 </section>
-
+ 
 <footer>
   <span class="fcopy">© 2026 Infinite Logistic Technologies · Mexico City Black Car · All rights reserved</span>
   <div class="flinks">
@@ -469,7 +456,7 @@ footer { background: var(--deep); border-top: 1px solid var(--border); padding: 
     <a href="mikey.html">Talk to Mikey</a>
   </div>
 </footer>
-
+ 
 <!-- MODAL -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModalClick(event)">
   <div class="modal-box" id="modalBox">
@@ -479,20 +466,95 @@ footer { background: var(--deep); border-top: 1px solid var(--border); padding: 
     <div id="modalContent"></div>
   </div>
 </div>
-
+ 
 <script>
-// State
+// ─── STATE ────────────────────────────────────────────────────────────────────
 let currentLang = 'English';
-
-// Cursor
+let langAutoDetected = false;
+ 
+// ─── COUNTRY → LANGUAGE MAP ───────────────────────────────────────────────────
+const countryToLang = {
+  MX:'Spanish',GT:'Spanish',SV:'Spanish',HN:'Spanish',NI:'Spanish',CR:'Spanish',
+  PA:'Spanish',CU:'Spanish',DO:'Spanish',PR:'Spanish',CO:'Spanish',VE:'Spanish',
+  EC:'Spanish',PE:'Spanish',BO:'Spanish',PY:'Spanish',UY:'Spanish',AR:'Spanish',CL:'Spanish',
+  BR:'Portuguese',PT:'Portuguese',AO:'Portuguese',MZ:'Portuguese',
+  FR:'French',BE:'French',CH:'French',LU:'French',MC:'French',SN:'French',CI:'French',CM:'French',MG:'French',
+  DE:'German',AT:'German',LI:'German',
+  IT:'Italian',SM:'Italian',VA:'Italian',
+  NL:'Dutch',
+  PL:'Polish',
+  SE:'Swedish',
+  NO:'Norwegian',
+  DK:'Danish',
+  FI:'Finnish',
+  GR:'Greek',CY:'Greek',
+  CZ:'Czech',
+  RO:'Romanian',
+  HU:'Hungarian',
+  UA:'Ukrainian',
+  RU:'Russian',BY:'Russian',KZ:'Russian',
+  SA:'Arabic',AE:'Arabic',EG:'Arabic',IQ:'Arabic',SY:'Arabic',JO:'Arabic',
+  LB:'Arabic',KW:'Arabic',QA:'Arabic',BH:'Arabic',OM:'Arabic',YE:'Arabic',
+  LY:'Arabic',TN:'Arabic',DZ:'Arabic',MA:'Arabic',
+  IL:'Hebrew',
+  TR:'Turkish',
+  IR:'Persian',AF:'Persian',
+  JP:'Japanese',
+  KR:'Korean',
+  CN:'Mandarin Chinese',TW:'Mandarin Chinese',SG:'Mandarin Chinese',
+  HK:'Cantonese Chinese',MO:'Cantonese Chinese',
+  IN:'Hindi',
+  BD:'Bengali',
+  TH:'Thai',
+  VN:'Vietnamese',
+  ID:'Indonesian',
+  MY:'Malay',
+  PH:'Tagalog',
+  KE:'Swahili',TZ:'Swahili',UG:'Swahili',
+  ET:'Amharic',
+  ZA:'Afrikaans',
+};
+ 
+// ─── IP GEOLOCATION ───────────────────────────────────────────────────────────
+async function detectLanguage() {
+  try {
+    const res = await fetch('https://ipapi.co/json/', {signal: AbortSignal.timeout(4000)});
+    if (!res.ok) return;
+    const data = await res.json();
+    const lang = countryToLang[data.country_code];
+    if (lang && lang !== 'English') {
+      currentLang = lang;
+      langAutoDetected = true;
+      const sel = document.getElementById('langSelect');
+      for (let i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].value === lang) { sel.selectedIndex = i; break; }
+      }
+      const flag = sel.options[sel.selectedIndex].text.split(' ')[0];
+      document.getElementById('detectText').textContent = flag + ' Auto-detected';
+      document.getElementById('detectBadge').classList.add('visible');
+    }
+  } catch(e) {
+    // Silent fail — stay English
+  }
+}
+ 
+function onLangChange(val) {
+  currentLang = val;
+  if (langAutoDetected) {
+    document.getElementById('detectBadge').classList.remove('visible');
+    langAutoDetected = false;
+  }
+}
+ 
+// ─── CURSOR ───────────────────────────────────────────────────────────────────
 const cursor = document.getElementById('cursor');
 const ring = document.getElementById('cursor-ring');
 document.addEventListener('mousemove', e => {
   cursor.style.left = e.clientX+'px'; cursor.style.top = e.clientY+'px';
   ring.style.left = e.clientX+'px'; ring.style.top = e.clientY+'px';
 });
-
-// Week banner — deterministic by week number
+ 
+// ─── WEEK BANNER ──────────────────────────────────────────────────────────────
 const weekSpotlights = [
   'CDMX\'s emerging art corridor — from Doctores to the Tepito Creative District',
   'Rainy season logistics: how to move through the city when summer storms hit at 4pm',
@@ -509,11 +571,10 @@ const weekSpotlights = [
 ];
 const d = new Date();
 const weekNum = Math.ceil(((d - new Date(d.getFullYear(),0,1))/86400000 + new Date(d.getFullYear(),0,1).getDay()+1)/7);
-const weekLabel = `Week ${weekNum}, ${d.getFullYear()}`;
 const spotlight = weekSpotlights[weekNum % weekSpotlights.length];
-document.getElementById('weekTheme').innerHTML = `<strong>${weekLabel}:</strong> ${spotlight}`;
-
-// Topic filter
+document.getElementById('weekTheme').innerHTML = `<strong>Week ${weekNum}, ${d.getFullYear()}:</strong> ${spotlight}`;
+ 
+// ─── TOPIC FILTER ─────────────────────────────────────────────────────────────
 function filterTopic(btn) {
   document.querySelectorAll('.topic-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -522,8 +583,8 @@ function filterTopic(btn) {
     card.style.display = (topic==='all' || card.dataset.topic===topic) ? '' : 'none';
   });
 }
-
-// Anthropic API call via Cloudflare Worker proxy
+ 
+// ─── WORKER API CALL ──────────────────────────────────────────────────────────
 async function callMikey(system, user) {
   try {
     const res = await fetch('https://mexicocityblackcar.sdblackcar.workers.dev/api/messages', {
@@ -543,12 +604,12 @@ async function callMikey(system, user) {
     const data = await res.json();
     return data.content?.[0]?.text || '';
   } catch(err) {
-    console.error('callMikey fetch error:', err);
+    console.error('callMikey error:', err);
     return '';
   }
 }
-
-// Format article text → HTML
+ 
+// ─── FORMAT ARTICLE ───────────────────────────────────────────────────────────
 function formatArticle(text) {
   return text
     .replace(/^### (.+)$/gm, '<h3><em>$1</em></h3>')
@@ -556,27 +617,26 @@ function formatArticle(text) {
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/"([^"]{20,90})"/g, '<div class="pull-quote">"$1"</div>')
-    .split('\n\n')
-    .filter(p=>p.trim())
+    .split('\n\n').filter(p=>p.trim())
     .map(p=>(p.startsWith('<h3')||p.startsWith('<div'))?p:`<p>${p.replace(/\n/g,' ')}</p>`)
     .join('\n');
 }
-
-// SYSTEM PROMPT for Mikey articles
+ 
+// ─── SYSTEM PROMPT ────────────────────────────────────────────────────────────
 function mikeySystem() {
-  return `You are Mikey — the AI concierge for Mexico City Black Car, a luxury ground transportation brand powered by Infinite Logistic Technologies (ILT). You are writing insider travel journal articles for an international luxury audience.
-
-Your writing style:
+  return `You are Mikey — the AI concierge for Mexico City Black Car, a luxury ground transportation brand powered by Infinite Logistic Technologies (ILT). You write insider travel journal articles for an international luxury audience.
+ 
+Writing style:
 - Deeply specific: real streets, real venue names, real neighborhoods, real timing
-- Apolitical: zero government commentary, elections, protests, or controversy of any kind
-- SEO-smart but never forced: weave in "Mexico City luxury car service", "private driver CDMX", "luxury travel Mexico City" naturally where they fit
-- Warm, literary, and authoritative — like a trusted friend who has lived in CDMX for 20 years
+- Apolitical: zero government commentary, elections, protests, or controversy
+- SEO-smart but natural: weave in "Mexico City luxury car service", "private driver CDMX", "luxury travel Mexico City" where they fit organically
+- Warm, literary, authoritative — like a trusted friend who has lived in CDMX for 20 years
 - Written entirely in ${currentLang}
-
-Format: Use ### for section headings. Include one pull-quote wrapped in double quotes on its own line. Respond ONLY with the article body — no title, no byline, no preamble.`;
+ 
+Format: Use ### for section headings. Include one pull-quote in double quotes on its own line. Respond ONLY with the article body — no title, no byline, no preamble.`;
 }
-
-// Generate featured weekly post
+ 
+// ─── GENERATE FEATURED ────────────────────────────────────────────────────────
 async function generateFeatured() {
   const btn = document.getElementById('featBtn');
   const icon = document.getElementById('featIcon');
@@ -584,12 +644,12 @@ async function generateFeatured() {
   btn.disabled = true;
   icon.classList.add('spin');
   desc.textContent = 'Mikey is writing this week\'s post…';
-
   const dateStr = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
   try {
     const text = await callMikey(mikeySystem(),
-      `Write this week's Mexico City journal post for ${dateStr}.\n\nThis week's spotlight: ${spotlight}\n\nMake it feel timely, genuine, and deeply useful for a luxury traveler in CDMX. Include one practical insider tip. End with a natural one-sentence invitation to book their next transfer with Mexico City Black Car. 380–420 words.`
+      `Write this week's Mexico City journal post for ${dateStr}.\n\nThis week's spotlight: ${spotlight}\n\nMake it timely, genuine, and deeply useful for a luxury traveler in CDMX. Include one practical insider tip. End with a natural one-sentence invitation to book their next transfer with Mexico City Black Car. 380–420 words.`
     );
+    if (!text) throw new Error('empty');
     showModal('Weekly Spotlight', 'This Week in Mexico City', 'By Mikey, AI Concierge · Mexico City Black Car', text);
     btn.disabled = false;
     icon.classList.remove('spin');
@@ -600,8 +660,8 @@ async function generateFeatured() {
     desc.textContent = 'Unable to generate post. Please try again.';
   }
 }
-
-// Open a post card article
+ 
+// ─── OPEN POST ────────────────────────────────────────────────────────────────
 async function openPost(topic, title, category, teaser) {
   document.getElementById('modalContent').innerHTML = `
     <div class="modal-loading">
@@ -611,11 +671,11 @@ async function openPost(topic, title, category, teaser) {
     </div>`;
   document.getElementById('modalOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
-
   try {
     const text = await callMikey(mikeySystem(),
       `Write a full 520–580 word luxury travel journal article:\n\nTitle: "${title}"\nCategory: ${category}\nOpening premise: ${teaser}\n\nBe specific and insider. Real venues, real streets, real timing. End with a natural mention of Mexico City Black Car's private transfer service.`
     );
+    if (!text) throw new Error('empty');
     showModal(category, title, 'By Mikey, AI Concierge · Mexico City Black Car', text);
   } catch(e) {
     document.getElementById('modalContent').innerHTML = `
@@ -625,8 +685,8 @@ async function openPost(topic, title, category, teaser) {
       </div>`;
   }
 }
-
-// Show populated modal
+ 
+// ─── SHOW MODAL ───────────────────────────────────────────────────────────────
 function showModal(category, title, byline, bodyText) {
   const date = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
   const parts = title.split(' — ');
@@ -643,23 +703,23 @@ function showModal(category, title, byline, bodyText) {
     </div>
     <div class="modal-content">${formatArticle(bodyText)}</div>`;
 }
-
+ 
 function closeModalClick(e) { if(e.target===document.getElementById('modalOverlay')) closeModal(); }
-function closeModal() {
-  document.getElementById('modalOverlay').classList.remove('open');
-  document.body.style.overflow = '';
-}
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); document.body.style.overflow = ''; }
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
-
-// Scroll reveal for cards
+ 
+// ─── SCROLL REVEAL ────────────────────────────────────────────────────────────
 const obs = new IntersectionObserver(entries => {
   entries.forEach(e => { if(e.isIntersecting){ e.target.style.opacity='1'; e.target.style.transform='translateY(0)'; }});
-}, {threshold:0.08});
+},{threshold:0.08});
 document.querySelectorAll('.post-card, .featured-card').forEach(el => {
   el.style.opacity='0'; el.style.transform='translateY(20px)';
   el.style.transition='opacity .6s ease, transform .6s ease';
   obs.observe(el);
 });
+ 
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+detectLanguage();
 </script>
 </body>
 </html>
