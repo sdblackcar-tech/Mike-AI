@@ -33,6 +33,7 @@ import redis.asyncio as aioredis
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request, BackgroundTasks, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy import Column, String, Float, Integer, Boolean, DateTime, Text, ForeignKey
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
@@ -89,6 +90,15 @@ app.add_middleware(
 
 if email_router:
     app.include_router(email_router)
+
+# ─── STATIC HTML ───────────────────────────────────────────────────────
+@app.get("/mikey.html", include_in_schema=False)
+async def serve_mikey_html():
+    return FileResponse("mikey.html")
+
+@app.get("/mikey", include_in_schema=False)
+async def serve_mikey():
+    return FileResponse("mikey.html")
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -639,6 +649,10 @@ async def auto_dispatch_after_payment(conf_num: str, client_name: str):
             driver.is_available = False
             await db.commit()
             print(f"[DISPATCH] {driver.name} → {conf_num} · ETA {eta}min")
+
+# ═══════════════════════════════════════════════════════════════════════
+# RUN: uvicorn main:app --host 0.0.0.0 --port 8000
+# ═══════════════════════════════════════════════════════════════════════
 
 # ═══════════════════════════════════════════════════════════════════════
 # RUN: uvicorn main:app --host 0.0.0.0 --port 8000
