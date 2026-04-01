@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ILT Driver">
+<meta name="theme-color" content="#090909">
+<link rel="manifest" href="/driver-manifest.json">
+<title>ILT Driver App</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#090909;--sur:#111;--s2:#181818;--s3:#202020;--bdr:#252525;--gold:#C9A96E;--gd:rgba(201,169,110,.13);--teal:#00d4aa;--td:rgba(0,212,170,.11);--red:#e05c5c;--rd:rgba(224,92,92,.11);--ylw:#f0c040;--txt:#e4e4e4;--dim:#7a7a7a;--mut:#3d3d3d;--mono:"IBM Plex Mono",monospace;--sans:"IBM Plex Sans",sans-serif}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{font-family:var(--sans);color:var(--txt);display:flex;flex-direction:column;max-width:480px;margin:0 auto;position:relative}
+
+/* STATUS BAR */
+.status-bar{height:44px;background:var(--sur);border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0}
+.status-brand{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--gold);letter-spacing:.12em}
+.status-right{display:flex;align-items:center;gap:10px}
+.status-time{font-family:var(--mono);font-size:11px;color:var(--mut)}
+.gps-pill{display:flex;align-items:center;gap:4px;font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:3px;background:var(--s3);border:1px solid var(--bdr)}
+.gps-dot{width:6px;height:6px;border-radius:50%;background:var(--mut);transition:background .3s}
+.gps-dot.active{background:var(--teal);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* SCROLL AREA */
+.scroll{flex:1;overflow-y:auto;padding:0;scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+
+/* LOGIN SCREEN */
+#screen-login{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:32px 20px;background:var(--bg)}
+.login-logo{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--gold);letter-spacing:.15em;margin-bottom:6px}
+.login-sub{font-size:11px;color:var(--mut);font-family:var(--mono);margin-bottom:36px}
+.login-card{width:100%;max-width:340px;background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:24px}
+.login-title{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--txt);margin-bottom:20px;text-align:center}
+.lf{margin-bottom:14px}
+.ll{font-family:var(--mono);font-size:9px;color:var(--mut);letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px}
+.lin{width:100%;background:var(--s3);border:1px solid var(--bdr);color:var(--txt);padding:10px 12px;border-radius:6px;font-size:14px;font-family:var(--mono);outline:none;transition:border-color .12s}
+.lin:focus{border-color:var(--gold)}
+.login-btn{width:100%;background:var(--gold);border:none;color:#0a0a0a;padding:12px;border-radius:6px;font-family:var(--mono);font-size:12px;font-weight:600;cursor:pointer;margin-top:8px;letter-spacing:.05em}
+.login-btn:active{opacity:.85}
+.login-err{font-family:var(--mono);font-size:10px;color:var(--red);text-align:center;margin-top:8px;min-height:16px}
+.login-link{font-family:var(--mono);font-size:10px;color:var(--gold);text-align:center;margin-top:14px;cursor:pointer;text-decoration:underline}
+
+/* MAIN APP */
+#screen-app{display:none;flex-direction:column;height:100%}
+
+/* DRIVER HEADER */
+.drv-header{background:var(--sur);border-bottom:1px solid var(--bdr);padding:14px 16px;flex-shrink:0}
+.drv-greeting{font-family:var(--mono);font-size:11px;color:var(--mut);margin-bottom:3px}
+.drv-name{font-size:17px;font-weight:600;color:var(--txt)}
+.drv-status-row{display:flex;align-items:center;gap:10px;margin-top:10px}
+.avail-toggle{display:flex;align-items:center;gap:8px;flex:1}
+.avail-label{font-family:var(--mono);font-size:10px;color:var(--dim)}
+.tog{position:relative;display:inline-block;width:42px;height:22px}
+.tog input{opacity:0;width:0;height:0}
+.tosl{position:absolute;inset:0;background:var(--s3);border:1px solid var(--bdr);border-radius:11px;cursor:pointer;transition:.2s}
+.tosl:before{content:"";position:absolute;width:16px;height:16px;left:2px;top:2px;background:var(--mut);border-radius:50%;transition:.2s}
+.tog input:checked+.tosl{background:var(--td);border-color:var(--teal)}
+.tog input:checked+.tosl:before{transform:translateX(20px);background:var(--teal)}
+
+/* GPS BUTTON */
+.gps-btn{background:var(--s3);border:1px solid var(--bdr);border-radius:6px;padding:7px 14px;font-family:var(--mono);font-size:10px;color:var(--dim);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px}
+.gps-btn.active{background:var(--td);border-color:var(--teal);color:var(--teal)}
+.gps-btn:active{opacity:.8}
+
+/* TABS */
+.tabs{display:flex;background:var(--sur);border-bottom:1px solid var(--bdr);flex-shrink:0}
+.tab{flex:1;padding:11px 8px;text-align:center;font-family:var(--mono);font-size:10px;color:var(--mut);cursor:pointer;border-bottom:2px solid transparent;transition:all .12s;letter-spacing:.05em}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+
+/* TAB PANELS */
+.panels{flex:1;overflow:hidden;position:relative}
+.panel{position:absolute;inset:0;overflow-y:auto;padding:14px;display:none;scrollbar-width:none}
+.panel::-webkit-scrollbar{display:none}
+.panel.active{display:block}
+
+/* TRIP CARDS */
+.trip-card{background:var(--sur);border:1px solid var(--bdr);border-radius:8px;padding:14px;margin-bottom:12px}
+.trip-card.active-trip{border-color:var(--teal);background:var(--s2)}
+.trip-conf{font-family:var(--mono);font-size:10px;color:var(--gold);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.trip-client{font-size:15px;font-weight:600;color:var(--txt);margin-bottom:4px}
+.trip-vip{font-family:var(--mono);font-size:9px;color:var(--gold);background:var(--gd);padding:2px 7px;border-radius:3px;border:1px solid rgba(201,169,110,.3)}
+.trip-route{font-size:12px;color:var(--dim);margin-bottom:10px;line-height:1.5}
+.trip-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.trip-tag{font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:3px;background:var(--s3);color:var(--mut);border:1px solid var(--bdr)}
+.trip-actions{display:flex;gap:8px}
+.tact{flex:1;padding:9px;border-radius:6px;font-family:var(--mono);font-size:10px;font-weight:600;cursor:pointer;text-align:center;border:1px solid var(--bdr);background:var(--s3);color:var(--dim);transition:all .15s}
+.tact:active{opacity:.8}
+.tact.primary{background:var(--gold);border:none;color:#0a0a0a}
+.tact.teal{background:var(--teal);border:none;color:#0a0a0a}
+.tact.nav{background:var(--s3);border-color:var(--teal);color:var(--teal)}
+.no-trips{padding:48px 20px;text-align:center}
+.no-trips .icon{font-size:32px;margin-bottom:12px;opacity:.25}
+.no-trips .msg{font-family:var(--mono);font-size:12px;color:var(--mut)}
+
+/* CLIENT INFO */
+.client-info-card{background:var(--sur);border:1px solid var(--bdr);border-radius:8px;padding:16px;margin-bottom:12px}
+.ci-name{font-size:16px;font-weight:600;color:var(--txt);margin-bottom:4px}
+.ci-sub{font-family:var(--mono);font-size:10px;color:var(--mut);margin-bottom:12px}
+.ci-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #1a1a1a;font-family:var(--mono);font-size:11px}
+.ci-row:last-child{border-bottom:none}
+.ci-lbl{color:var(--mut)}.ci-val{color:var(--txt)}
+.ci-call{display:flex;gap:8px;margin-top:12px}
+.ci-btn{flex:1;padding:10px;border-radius:6px;font-family:var(--mono);font-size:10px;font-weight:600;cursor:pointer;text-align:center;border:none;transition:all .15s}
+.ci-btn.wa{background:#25D366;color:#fff}
+.ci-btn.call{background:var(--s3);border:1px solid var(--bdr);color:var(--dim)}
+.ci-btn:active{opacity:.8}
+
+/* MIKEY CHAT */
+.chat-wrap{display:flex;flex-direction:column;height:100%}
+.chat-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:9px;scrollbar-width:none}
+.chat-msgs::-webkit-scrollbar{display:none}
+.msg-user{background:var(--gold);color:#0a0a0a;border-radius:12px 12px 2px 12px;padding:10px 13px;font-size:13px;align-self:flex-end;max-width:82%;font-weight:500}
+.msg-ai{background:var(--sur);border:1px solid var(--bdr);border-radius:12px 12px 12px 2px;padding:10px 13px;font-size:12.5px;color:var(--dim);max-width:88%;line-height:1.6;font-family:var(--mono)}
+.msg-tag{font-size:9px;color:var(--gold);margin-bottom:5px;display:block}
+.chat-bar{display:flex;gap:8px;padding:12px;background:var(--sur);border-top:1px solid var(--bdr);flex-shrink:0}
+.chat-inp{flex:1;background:var(--s3);border:1px solid var(--bdr);color:var(--txt);padding:10px 12px;border-radius:20px;font-family:var(--sans);font-size:13px;outline:none;transition:border-color .12s}
+.chat-inp:focus{border-color:var(--gold)}
+.chat-send{background:var(--gold);border:none;color:#0a0a0a;width:40px;height:40px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.chat-send:active{opacity:.8}
+
+/* WHATSAPP GROUP */
+.wa-card{background:var(--sur);border:1px solid var(--bdr);border-radius:8px;padding:16px;margin-bottom:12px}
+.wa-title{font-weight:600;color:var(--txt);font-size:14px;margin-bottom:4px}
+.wa-sub{font-family:var(--mono);font-size:10px;color:var(--mut);margin-bottom:14px}
+.wa-btn{width:100%;padding:12px;border-radius:8px;background:#25D366;border:none;color:#fff;font-family:var(--mono);font-size:12px;font-weight:600;cursor:pointer;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px}
+.wa-btn:active{opacity:.85}
+.wa-btn.secondary{background:var(--s3);border:1px solid var(--bdr);color:var(--dim)}
+
+/* TOAST */
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--teal);color:#000;font-family:var(--mono);font-size:11px;font-weight:600;padding:9px 18px;border-radius:20px;opacity:0;transition:all .26s;z-index:3000;white-space:nowrap}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+#toast.err{background:var(--red);color:#fff}
+
+/* NOTIFICATION BANNER */
+.notif-banner{background:var(--gold-dim,rgba(201,169,110,.13));border:1px solid rgba(201,169,110,.2);border-radius:8px;padding:12px 14px;margin-bottom:12px;display:flex;gap:10px;align-items:flex-start}
+.notif-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.notif-body{flex:1}
+.notif-title{font-weight:600;color:var(--txt);font-size:12px;margin-bottom:2px}
+.notif-msg{font-size:11px;color:var(--dim);font-family:var(--mono)}
+.notif-time{font-family:var(--mono);font-size:9px;color:var(--mut);margin-top:4px}
+</style>
+</head>
+<body>
+
+<script>
+const CFG={API:"https://api.mexicocityblackcar.com"};
+let driverName="",driverRole="",authToken="",gpsWatchId=null,gpsActive=false;
+let currentTrips=[],currentClient=null,chatHistory=[];
+
+const DEMO_TRIPS=[
+{id:"ILT-0041",client:"Carlos Mendoza",isVip:true,pickup:"Polanco - Presidente Masaryk 123",dropoff:"AICM Terminal 2",vehicle:"Sprinter Van",pax:2,time:"7:00 PM",amount:"$4,200 MXN",status:"confirmed",phone:"+52 55 8821 4490",notes:"Cold water x2, no perfume, prefers silence",lat:19.4326,lng:-99.1332},
+{id:"ILT-0043",client:"Group - Tulum Trip",isVip:false,pickup:"Hotel Camino Real Polanco",dropoff:"Tulum, Quintana Roo",vehicle:"Sprinter Van",pax:8,time:"6:00 AM (Apr 4)",amount:"$18,500 MXN",status:"confirmed",phone:"+52 55 9900 1234",notes:"8 passengers, luggage, departure at 6am sharp",lat:19.4284,lng:-99.1277}
+];
+
+const DEMO_NOTIFS=[
+{icon:"\u2605",title:"VIP Pickup Tonight",msg:"Carlos Mendoza confirmed for 7:00 PM. Polanco to AICM T2. Cold water ready.",time:"2 hrs ago"},
+{icon:"\u25c6",title:"Mikey Update",msg:"New route suggestion for ILT-0041: Reforma route clear, ETA 22 min.",time:"1 hr ago"},
+{icon:"\ud83d\udd14",title:"From James",msg:"Meeting tomorrow 10am to review April performance. Please confirm availability.",time:"30 min ago"}
+];
+
+async function apiFetch(path,opts={}){
+const headers={"Content-Type":"application/json",...(opts.headers||{})};
+if(authToken)headers["Authorization"]="Bearer "+authToken;
+const r=await fetch(CFG.API+path,{...opts,headers});
+if(!r.ok)throw new Error(r.status);
+return r.json();
+}
+
+async function login(){
+const user=document.getElementById("l-user").value.trim();
+const pass=document.getElementById("l-pass").value.trim();
+const err=document.getElementById("l-err");
+if(!user||!pass){err.textContent="Enter username and password";return;}
+err.textContent="";
+document.getElementById("login-btn").textContent="Logging in...";
+try{
+const r=await apiFetch("/auth/login",{method:"POST",body:JSON.stringify({username:user,password:pass})});
+authToken=r.token;driverName=r.name||r.username;driverRole=r.role||"driver";
+localStorage.setItem("ilt_token",authToken);
+localStorage.setItem("ilt_name",driverName);
+localStorage.setItem("ilt_role",driverRole);
+showApp();
+}catch{
+// Demo login fallback
+const demoUsers={ivan:{name:"Ivan",role:"driver"},barbie:{name:"Barbie",role:"driver"},jaime:{name:"Jaime",role:"driver"},james:{name:"James",role:"owner"}};
+const demo=demoUsers[user.toLowerCase()];
+if(demo&&pass.length>=4){
+driverName=demo.name;driverRole=demo.role;authToken="demo_"+user;
+localStorage.setItem("ilt_token",authToken);
+localStorage.setItem("ilt_name",driverName);
+localStorage.setItem("ilt_role",driverRole);
+showApp();
+}else{
+err.textContent="Invalid username or password";
+document.getElementById("login-btn").textContent="Log In";
+}
+}
+}
+
+function showApp(){
+document.getElementById("screen-login").style.display="none";
+const app=document.getElementById("screen-app");
+app.style.display="flex";
+const h=new Date().getHours();
+const greet=h<12?"Good morning":h<18?"Good afternoon":"Good evening";
+document.getElementById("drv-greeting").textContent=greet+",";
+document.getElementById("drv-name").textContent=driverName;
+loadTrips();
+renderNotifs();
+startClock();
+}
+
+function logout(){
+localStorage.clear();authToken="";driverName="";driverRole="";
+stopGPS();
+document.getElementById("screen-app").style.display="none";
+document.getElementById("screen-login").style.display="flex";
+document.getElementById("l-user").value="";
+document.getElementById("l-pass").value="";
+document.getElementById("login-btn").textContent="Log In";
+}
+
+async function loadTrips(){
+try{
+const r=await apiFetch("/api/bookings?driver="+encodeURIComponent(driverName)+"&status=confirmed");
+currentTrips=r.data||r;
+}catch{currentTrips=DEMO_TRIPS;}
+renderTrips();
+renderClientInfo();
+}
+
+function renderTrips(){
+const el=document.getElementById("trips-panel");
+if(!currentTrips.length){
+el.innerHTML=`<div class="no-trips"><div class="icon">&#9711;</div><div class="msg">No trips assigned today</div></div>`;
+return;
+}
+el.innerHTML=currentTrips.map((trip,i)=>`
+<div class="trip-card ${i===0?"active-trip":""}">
+<div class="trip-conf">
+<span>${trip.id}</span>
+${trip.isVip?`<span class="trip-vip">&#9733; VIP</span>`:`<span style="font-family:var(--mono);font-size:9px;color:var(--mut)">${trip.time||""}</span>`}
+</div>
+<div class="trip-client">${trip.client}</div>
+<div class="trip-route">
+<span style="color:var(--teal)">&#9650;</span> ${trip.pickup||""}<br>
+<span style="color:var(--red)">&#9650;</span> ${trip.dropoff||""}
+</div>
+<div class="trip-meta">
+<span class="trip-tag">&#128664; ${trip.vehicle||""}</span>
+<span class="trip-tag">&#128101; ${trip.pax||1} pax</span>
+<span class="trip-tag">&#128176; ${trip.amount||""}</span>
+${trip.time?`<span class="trip-tag">&#9201; ${trip.time}</span>`:""}
+</div>
+<div class="trip-actions">
+<button class="tact nav" onclick="openMaps('${(trip.pickup||"").replace(/'/g,"\\'")}')">&#128205; Navigate</button>
+<button class="tact teal" onclick="updateTripStatus('${trip.id}','dispatched')">En Route</button>
+<button class="tact primary" onclick="updateTripStatus('${trip.id}','completed')">Complete</button>
+</div>
+${trip.notes?`<div style="margin-top:10px;padding:8px;background:var(--s3);border-radius:5px;font-family:var(--mono);font-size:10px;color:var(--dim)">&#128203; ${trip.notes}</div>`:""}
+</div>`).join("");
+}
+
+function renderClientInfo(){
+const el=document.getElementById("client-panel");
+if(!currentTrips.length){el.innerHTML=`<div class="no-trips"><div class="icon">&#9671;</div><div class="msg">No client assigned</div></div>`;return;}
+const trip=currentTrips[0];
+el.innerHTML=`
+<div class="client-info-card">
+<div class="ci-name">${trip.client}</div>
+<div class="ci-sub">${trip.isVip?"&#9733; VIP Client":"Standard Client"} &middot; ${trip.id}</div>
+<div class="ci-row"><span class="ci-lbl">Phone</span><span class="ci-val">${trip.phone||"Not on file"}</span></div>
+<div class="ci-row"><span class="ci-lbl">Pickup</span><span class="ci-val">${trip.pickup||"&#8212;"}</span></div>
+<div class="ci-row"><span class="ci-lbl">Drop-off</span><span class="ci-val">${trip.dropoff||"&#8212;"}</span></div>
+<div class="ci-row"><span class="ci-lbl">Vehicle</span><span class="ci-val">${trip.vehicle||"&#8212;"}</span></div>
+<div class="ci-row"><span class="ci-lbl">Passengers</span><span class="ci-val">${trip.pax||1} pax</span></div>
+<div class="ci-row"><span class="ci-lbl">Amount</span><span class="ci-val" style="color:var(--teal)">${trip.amount||"&#8212;"}</span></div>
+${trip.notes?`<div class="ci-row"><span class="ci-lbl">Notes</span><span class="ci-val" style="font-size:10px">${trip.notes}</span></div>`:""}
+<div class="ci-call">
+<button class="ci-btn wa" onclick="waClient('${trip.phone||""}','${trip.client}')" >&#128172; WhatsApp</button>
+<button class="ci-btn call" onclick="callClient('${trip.phone||""}')" >&#128222; Call</button>
+</div>
+</div>`;
+}
+
+function renderNotifs(){
+document.getElementById("notif-panel").innerHTML=DEMO_NOTIFS.map(n=>`
+<div class="notif-banner">
+<div class="notif-icon">${n.icon}</div>
+<div class="notif-body">
+<div class="notif-title">${n.title}</div>
+<div class="notif-msg">${n.msg}</div>
+<div class="notif-time">${n.time}</div>
+</div>
+</div>`).join("");
+}
+
+// GPS
+function toggleGPS(){
+if(gpsActive){stopGPS();}else{startGPS();}
+}
+
+function startGPS(){
+if(!navigator.geolocation){toast("GPS not available on this device");return;}
+document.getElementById("gps-btn").innerHTML=`<span class="gps-dot active"></span> GPS ON`;
+document.getElementById("gps-btn").className="gps-btn active";
+document.getElementById("gps-pill-dot").className="gps-dot active";
+document.getElementById("gps-pill-lbl").textContent="GPS LIVE";
+gpsActive=true;
+gpsWatchId=navigator.geolocation.watchPosition(pos=>{
+pingGPS(pos.coords.latitude,pos.coords.longitude);
+},err=>{
+toast("GPS error: "+err.message,"err");
+},{enableHighAccuracy:true,maximumAge:5000,timeout:10000});
+toast("GPS tracking started &#10003;");
+}
+
+function stopGPS(){
+if(gpsWatchId)navigator.geolocation.clearWatch(gpsWatchId);
+gpsWatchId=null;gpsActive=false;
+document.getElementById("gps-btn").innerHTML=`<span class="gps-dot"></span> Check In`;
+document.getElementById("gps-btn").className="gps-btn";
+document.getElementById("gps-pill-dot").className="gps-dot";
+document.getElementById("gps-pill-lbl").textContent="GPS OFF";
+toast("GPS stopped");
+}
+
+async function pingGPS(lat,lng){
+try{
+await apiFetch("/api/drivers/"+encodeURIComponent(driverName),{method:"PATCH",body:JSON.stringify({current_lat:lat,current_lng:lng,available:true,name:driverName})});
+}catch{} // silent fail - GPS continues locally
+}
+
+// AVAILABILITY
+async function toggleAvail(checked){
+try{await apiFetch("/api/drivers/"+encodeURIComponent(driverName),{method:"PATCH",body:JSON.stringify({available:checked,name:driverName})});}
+catch{}
+toast(checked?"You are now available":"You are now unavailable");
+}
+
+// TRIP STATUS
+async function updateTripStatus(tripId,status){
+try{await apiFetch("/api/bookings/"+tripId,{method:"PUT",body:JSON.stringify({status})});}
+catch{}
+const trip=currentTrips.find(t=>t.id===tripId);
+if(trip)trip.status=status;
+toast(status==="dispatched"?"En route &#10003;":"Trip completed &#10003;");
+if(status==="completed"){
+setTimeout(()=>{currentTrips=currentTrips.filter(t=>t.id!==tripId);renderTrips();renderClientInfo();},1500);
+}
+}
+
+// MIKEY CHAT
+const SYS_DRIVER=`You are Mikey, the AI operations intelligence for ILT Lux Tour Travel. You are talking to a driver named ${driverName||"the driver"}. Help with route questions, client info, pricing, and operations. Be concise and friendly. Answer in the same language the driver uses.`;
+
+async function sendDriverMikey(){
+const inp=document.getElementById("driver-chat-inp");
+const val=inp.value.trim();if(!val)return;inp.value="";
+const msgs=document.getElementById("driver-chat-msgs");
+msgs.innerHTML+=`<div class="msg-user">${val}</div>`;
+const el=document.createElement("div");el.className="msg-ai";el.innerHTML=`<span class="msg-tag">&#9670; MIKEY</span><span class="spin" style="display:inline-block;width:12px;height:12px;border:2px solid #333;border-top-color:var(--gold);border-radius:50%;animation:sp .8s linear infinite;vertical-align:middle"></span>`;
+msgs.appendChild(el);msgs.scrollTop=9999;
+chatHistory.push({role:"user",content:val});
+try{
+const r=await fetch(CFG.API+"/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({system:SYS_DRIVER,messages:chatHistory})});
+const d=await r.json();
+const rep=typeof d.content==="string"?d.content:d.content?.[0]?.text||"No response.";
+chatHistory.push({role:"assistant",content:rep});
+el.innerHTML=`<span class="msg-tag">&#9670; MIKEY</span>${rep.replace(/\n/g,"<br>")}`;
+}catch{el.innerHTML=`<span class="msg-tag">&#9670; MIKEY</span>Connection error. Try again.`;}
+msgs.scrollTop=9999;
+}
+
+// WHATSAPP
+function waClient(phone,name){
+const msg=encodeURIComponent(`Hola ${name}, soy ${driverName} de Lux Tour Travel. Estoy en camino.`);
+window.open(`https://wa.me/${phone.replace(/[^0-9]/g,"")}?text=${msg}`,"_blank");
+}
+function callClient(phone){window.location.href="tel:"+phone;}
+
+function waGroup(){
+const msg=encodeURIComponent(`[ILT OPS] ${driverName} - ${new Date().toLocaleTimeString()} - Check in`);
+window.open(`https://wa.me/?text=${msg}`,"_blank");
+}
+
+function waOps(){
+const msg=encodeURIComponent(`[DRIVER] ${driverName}: `);
+window.open(`https://wa.me/18589991895?text=${msg}`,"_blank");
+}
+
+// NAV
+function switchTab(tab){
+document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+document.getElementById("tab-"+tab).classList.add("active");
+document.getElementById("panel-"+tab).classList.add("active");
+if(tab==="chat"){setTimeout(()=>{const m=document.getElementById("driver-chat-msgs");m.scrollTop=9999;},100);}
+}
+
+function openMaps(address){
+const enc=encodeURIComponent(address);
+if(/iPhone|iPad|iPod/.test(navigator.userAgent)){window.open(`maps://maps.apple.com/?q=${enc}`);}
+else{window.open(`https://www.google.com/maps/search/?api=1&query=${enc}`);}
+}
+
+// CLOCK
+function startClock(){
+setInterval(()=>{
+const now=new Date();
+document.getElementById("clock").textContent=now.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",timeZone:"America/Mexico_City"});
+},1000);
+}
+
+function toast(msg,type=""){
+const el=document.getElementById("toast");el.innerHTML=msg;el.className="show"+(type?" "+type:"");
+clearTimeout(el._t);el._t=setTimeout(()=>el.className="",2800);
+}
+
+// AUTO LOGIN CHECK
+window.addEventListener("load",()=>{
+const tok=localStorage.getItem("ilt_token");
+const name=localStorage.getItem("ilt_name");
+const role=localStorage.getItem("ilt_role");
+if(tok&&name){authToken=tok;driverName=name;driverRole=role||"driver";showApp();}
+});
+
+window.addEventListener("keydown",e=>{
+if(e.key==="Enter"&&document.getElementById("screen-login").style.display!=="none")login();
+if(e.key==="Enter"&&document.getElementById("panel-chat")?.classList.contains("active"))sendDriverMikey();
+});
+</script>
+
+<!-- LOGIN SCREEN -->
+<div id="screen-login">
+<div class="login-logo">ILT &middot; LUX TOUR TRAVEL</div>
+<div class="login-sub">DRIVER &amp; OPS APP</div>
+<div class="login-card">
+<div class="login-title">Sign In</div>
+<div class="lf"><div class="ll">Username</div><input class="lin" id="l-user" type="text" placeholder="your username" autocomplete="username" autocapitalize="none"></div>
+<div class="lf"><div class="ll">Password</div><input class="lin" id="l-pass" type="password" placeholder="password" autocomplete="current-password"></div>
+<button class="login-btn" id="login-btn" onclick="login()">Log In</button>
+<div class="login-err" id="l-err"></div>
+<div class="login-link" onclick="toast('Contact James to set up your account')">New user? Contact admin</div>
+</div>
+</div>
+
+<!-- APP SCREEN -->
+<div id="screen-app">
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+<div class="status-brand">ILT DRIVER</div>
+<div class="status-right">
+<div class="gps-pill"><span class="gps-dot" id="gps-pill-dot"></span><span id="gps-pill-lbl" style="color:var(--mut)">GPS OFF</span></div>
+<span class="status-time" id="clock">--:--</span>
+<span style="font-family:var(--mono);font-size:10px;color:var(--mut);cursor:pointer" onclick="logout()">Exit</span>
+</div>
+</div>
+
+<!-- DRIVER HEADER -->
+<div class="drv-header">
+<div class="drv-greeting" id="drv-greeting">Good morning,</div>
+<div class="drv-name" id="drv-name">Driver</div>
+<div class="drv-status-row">
+<div class="avail-toggle">
+<label class="tog"><input type="checkbox" checked onchange="toggleAvail(this.checked)"><span class="tosl"></span></label>
+<span class="avail-label">Available for trips</span>
+</div>
+<button class="gps-btn" id="gps-btn" onclick="toggleGPS()">
+<span class="gps-dot" id="gps-dot"></span> Check In
+</button>
+</div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+<div class="tab active" id="tab-trips" onclick="switchTab('trips')">TRIPS</div>
+<div class="tab" id="tab-client" onclick="switchTab('client')">CLIENT</div>
+<div class="tab" id="tab-chat" onclick="switchTab('chat')">MIKEY</div>
+<div class="tab" id="tab-whatsapp" onclick="switchTab('whatsapp')">COMMS</div>
+<div class="tab" id="tab-notifs" onclick="switchTab('notifs')">ALERTS</div>
+</div>
+
+<!-- PANELS -->
+<div class="panels">
+
+<div class="panel active" id="panel-trips">
+<div id="trips-panel"></div>
+</div>
+
+<div class="panel" id="panel-client">
+<div id="client-panel"></div>
+</div>
+
+<div class="panel" id="panel-chat">
+<div class="chat-wrap" style="height:100%">
+<div class="chat-msgs" id="driver-chat-msgs">
+<div class="msg-ai"><span class="msg-tag">&#9670; MIKEY</span>Hi! I'm your Mikey. Ask me about your route, the client, pricing, or anything ops-related.</div>
+</div>
+<div class="chat-bar">
+<input class="chat-inp" id="driver-chat-inp" placeholder="Ask Mikey..." onkeydown="if(event.key==='Enter')sendDriverMikey()">
+<button class="chat-send" onclick="sendDriverMikey()">&#9658;</button>
+</div>
+</div>
+</div>
+
+<div class="panel" id="panel-whatsapp">
+<div class="wa-card">
+<div class="wa-title">&#128172; Communications</div>
+<div class="wa-sub">Quick connect to your team and clients</div>
+<button class="wa-btn" onclick="waOps()">&#128172; Message James / OPS</button>
+<button class="wa-btn" onclick="waGroup()">&#128101; ILT Team Group</button>
+<button class="wa-btn secondary" onclick="toast('Opening WhatsApp...')">&#128222; Open WhatsApp</button>
+</div>
+<div class="wa-card">
+<div class="wa-title">&#128203; Active Trip Client</div>
+<div class="wa-sub" id="wa-client-name">No active trip</div>
+<button class="wa-btn" id="wa-client-btn" onclick="toast('Tap a trip to load client contact')">&#128172; Message Client</button>
+</div>
+</div>
+
+<div class="panel" id="panel-notifs">
+<div id="notif-panel"></div>
+</div>
+
+</div><!-- /panels -->
+</div><!-- /screen-app -->
+
+<div id="toast"></div>
+<style>@keyframes sp{to{transform:rotate(360deg)}}</style>
+</body>
+</html>
