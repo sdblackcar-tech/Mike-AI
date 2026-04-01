@@ -25,7 +25,7 @@
 }
 html{scroll-behavior:smooth;}
 body{background:var(--ink);color:var(--cream);font-family:var(--fu);font-weight:300;line-height:1.7;overflow-x:hidden;}
-body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:0.18;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
 a{color:inherit;text-decoration:none;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
 @keyframes pulse{0%,100%{opacity:.4;}50%{opacity:1;}}
@@ -98,6 +98,12 @@ h1 em{color:var(--gold);font-style:italic;}
 .hsub{font-size:14px;color:var(--mist);max-width:490px;line-height:1.9;margin-bottom:44px;}
 .acts{display:flex;gap:12px;flex-wrap:wrap;}
 .hero-pills{display:flex;flex-wrap:wrap;gap:7px;margin-top:30px;}
+
+.pill-link{text-decoration:none;cursor:pointer;transition:border-color .2s,color .2s;}
+.pill-link:hover{border-color:var(--gold-dim);color:var(--gold);}
+.pill-lang-wrap{padding:0;border:1px solid var(--border);border-radius:2px;}
+.pill-lang-select{background:transparent;border:none;color:var(--mist);font-size:9px;font-family:var(--fm);letter-spacing:.1em;padding:4px 11px;cursor:pointer;outline:none;appearance:none;width:100%;}
+.pill-lang-select:focus{outline:none;}
 .pill{font-size:9px;color:var(--mist);border:1px solid var(--border);border-radius:2px;padding:4px 11px;letter-spacing:.1em;font-family:var(--fm);}
 .hscroll{position:absolute;bottom:40px;right:56px;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:8.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--soft);font-family:var(--fm);}
 .hscroll-bar{width:1px;height:44px;background:var(--gold-dim);transform-origin:top;animation:sb 2.2s ease-in-out infinite;}
@@ -222,6 +228,42 @@ footer{background:var(--deep);border-top:1px solid var(--border);padding:64px 56
 .fcopy{font-size:10px;color:var(--soft);}
 .filt{font-size:9px;color:var(--gold-dim);font-family:var(--fm);letter-spacing:.1em;}
 
+
+/* BOOK NOW */
+.book-now{padding:100px 56px;background:var(--deep);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.book-overlay{display:none;}
+.book-inner{display:grid;grid-template-columns:1fr 1.15fr;gap:80px;align-items:start;}
+/* Language picker */
+.book-lang-wrap{margin-top:36px;}
+.book-lang-label{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-family:var(--fm);margin-bottom:9px;}
+.book-lang-select{width:100%;background:rgba(17,17,17,.95);border:1px solid var(--border);color:var(--cream);font-family:var(--fu);font-size:12px;font-weight:300;padding:11px 36px 11px 14px;cursor:pointer;outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23C9A96E'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;background-size:10px;border-radius:2px;transition:border-color .2s;}
+.book-lang-select:focus,.book-lang-select:hover{border-color:var(--gold-dim);}
+.book-lang-note{font-size:10px;color:var(--soft);font-family:var(--fm);letter-spacing:.08em;margin-top:6px;}
+/* Mikey note */
+.book-mikey-note{display:flex;align-items:flex-start;gap:13px;margin-top:36px;padding:16px 18px;border:1px solid var(--border);border-left:3px solid var(--gold);background:rgba(201,169,110,.04);}
+.book-mikey-dot{width:34px;height:34px;border-radius:50%;background:var(--gold-glow);border:1px solid var(--gold-dim);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:16px;color:var(--gold);flex-shrink:0;}
+.book-mikey-head{font-size:11px;color:var(--gold);letter-spacing:.06em;margin-bottom:5px;}
+.book-mikey-link{font-size:12px;color:var(--cream);display:inline-flex;align-items:center;gap:7px;transition:gap .2s,color .2s;}
+.book-mikey-link:hover{gap:13px;color:var(--gold);}
+/* Card */
+.book-card{background:rgba(14,14,14,.97);border:1px solid var(--border);border-top:2px solid var(--gold);}
+.book-card-hd{padding:17px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.book-card-title{font-family:var(--fd);font-size:17px;color:var(--gold);font-weight:300;letter-spacing:.06em;}
+.book-card-hint{font-size:9px;color:var(--soft);letter-spacing:.16em;text-transform:uppercase;font-family:var(--fm);}
+.book-sec-label{font-size:8.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);font-family:var(--fm);padding:13px 22px 7px;border-bottom:1px solid rgba(39,39,39,.6);}
+.book-opts{padding:8px 16px 4px;display:grid;gap:2px;}
+.book-opts-2{grid-template-columns:1fr 1fr;}
+.book-opts-3{grid-template-columns:1fr 1fr 1fr;}
+.book-opt{display:flex;align-items:flex-start;gap:9px;padding:8px 6px;cursor:pointer;border:1px solid transparent;border-radius:2px;transition:background .15s,border-color .15s;}
+.book-opt:hover{background:var(--gold-glow);border-color:rgba(201,169,110,.12);}
+.book-opt input{accent-color:var(--gold);margin-top:3px;flex-shrink:0;cursor:pointer;}
+.opt-name{display:flex;flex-direction:column;gap:2px;font-size:11.5px;color:var(--cream);line-height:1.25;cursor:pointer;}
+.opt-sub{font-size:9px;color:var(--soft);font-family:var(--fm);letter-spacing:.04em;}
+.book-opt input:checked ~ .opt-name{color:var(--gold);}
+.book-cta-btn{display:flex;align-items:center;justify-content:center;gap:9px;width:calc(100% - 44px);margin:16px 22px 8px;padding:14px;background:var(--gold);border:none;border-radius:2px;font-size:10.5px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:#050505;cursor:pointer;font-family:var(--fu);transition:opacity .2s;}
+.book-cta-btn:hover{opacity:.8;}
+.book-disclaimer{text-align:center;font-size:9.5px;color:var(--soft);padding:0 22px 17px;font-family:var(--fm);letter-spacing:.06em;line-height:1.65;}
+
 @media(max-width:960px){
   nav{padding:0 24px;}.nav-links{display:none;}.nav-hbg{display:block;}
   section{padding:72px 24px;}.hero{padding:110px 24px 80px;}
@@ -231,6 +273,9 @@ footer{background:var(--deep);border-top:1px solid var(--border);padding:64px 56
   .flg{grid-template-columns:1fr 1fr;}.bl-grid{grid-template-columns:1fr 1fr;}
   .pi{flex-direction:column;}.ft{grid-template-columns:1fr 1fr;gap:32px;}
   footer{padding:48px 24px 28px;}.hscroll{display:none;}
+  .book-now{padding:72px 24px;background-attachment:scroll;}
+  .book-inner{grid-template-columns:1fr;gap:44px;}
+  .book-opts-2,.book-opts-3{grid-template-columns:1fr 1fr;}
 }
 @media(max-width:560px){
   h1{font-size:44px;}.sg{grid-template-columns:1fr;}.flg{grid-template-columns:1fr;}
@@ -242,7 +287,7 @@ footer{background:var(--deep);border-top:1px solid var(--border);padding:64px 56
 <nav id="nav">
   <a class="nav-logo" href="index.html">Mexico City Black Car</a>
   <div class="nav-links">
-    <a href="#services">Services</a><a href="#fleet">Fleet</a><a href="#blog">Journal</a>
+    <a href="#services">Services</a><a href="#fleet">Fleet</a><a href="blog.html">Journal</a>
     <a href="about.html">About</a><a href="terms.html">Terms</a>
     <a class="nav-cta" href="mikey.html">Talk to Mikey</a>
   </div>
@@ -252,7 +297,7 @@ footer{background:var(--deep);border-top:1px solid var(--border);padding:64px 56
 </nav>
 <div class="nav-mob" id="navMob">
   <a href="#services" onclick="closeNav()">Services</a><a href="#fleet" onclick="closeNav()">Fleet</a>
-  <a href="#blog" onclick="closeNav()">Journal</a><a href="about.html">About</a>
+  <a href="blog.html" onclick="closeNav()">Journal</a><a href="about.html">About</a>
   <a href="terms.html">Terms &amp; Conditions</a>
   <a href="mikey.html" style="color:var(--gold);">Talk to Mikey →</a>
 </div>
@@ -274,8 +319,31 @@ footer{background:var(--deep);border-top:1px solid var(--border);padding:64px 56
         <a class="bg" href="#services">Our Services</a>
       </div>
       <div class="hero-pills fade-up d5">
-        <span class="pill">Instant Quotes</span><span class="pill">Voice Enabled</span>
-        <span class="pill">29 Languages</span><span class="pill">Stripe Checkout</span>
+        <a class="pill pill-link" href="#book">Book Now</a>
+        <a class="pill pill-link" href="mikey.html">Voice — Talk to Mikey</a>
+        <span class="pill pill-lang-wrap">
+          <select class="pill-lang-select" onchange="if(this.value) window.location.href='mikey.html?lang='+this.value">
+            <option value="">🌐 29 Languages</option>
+            <option value="Spanish">🇲🇽 Español</option>
+            <option value="French">🇫🇷 Français</option>
+            <option value="German">🇩🇪 Deutsch</option>
+            <option value="Italian">🇮🇹 Italiano</option>
+            <option value="Portuguese">🇧🇷 Português</option>
+            <option value="Japanese">🇯🇵 日本語</option>
+            <option value="Mandarin Chinese">🇨🇳 中文</option>
+            <option value="Arabic">🇸🇦 العربية</option>
+            <option value="Russian">🇷🇺 Русский</option>
+            <option value="Korean">🇰🇷 한국어</option>
+            <option value="Hebrew">🇮🇱 עברית</option>
+            <option value="Hindi">🇮🇳 हिन्दी</option>
+            <option value="Dutch">🇳🇱 Nederlands</option>
+            <option value="Turkish">🇹🇷 Türkçe</option>
+            <option value="Polish">🇵🇱 Polski</option>
+            <option value="Swedish">🇸🇪 Svenska</option>
+            <option value="Thai">🇹🇭 ภาษาไทย</option>
+            <option value="English">🇺🇸 English</option>
+          </select>
+        </span>
       </div>
     </div>
     <div class="fade-up d3">
@@ -316,33 +384,94 @@ footer{background:var(--deep);border-top:1px solid var(--border);padding:64px 56
   <div class="ti">29 Languages · Bilingual Drivers</div>
 </div>
 
-<section class="ms" id="mikey">
-  <div class="mw ms-inner" style="padding:0;">
-    <div>
-      <div class="slabel">Powered by AI</div>
-      <h2>Meet <em>Mikey.</em><br/>Your Intelligent Concierge.</h2>
+<section class="book-now" id="book">
+  <div class="book-overlay"></div>
+  <div class="mw book-inner">
+
+    <!-- LEFT -->
+    <div class="book-left">
+      <div class="slabel" style="color:var(--gold);">Reserve Your Transfer</div>
+      <h2 style="color:var(--cream);">Book <em>À La Carte.</em><br/>Your Way.</h2>
       <div class="grule"></div>
-      <p class="ssub">Mikey is our proprietary AI engine built for luxury ground transportation. He speaks 29 languages, delivers instant quotes, books rides, speaks responses aloud, and handles venue reservations — all in real time, 24/7.</p>
-      <div class="fg">
-        <div class="fc"><div class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div><div class="ft-label">Instant Quotes</div><div class="fd2">Real-time pricing auto-populates into Stripe — no manual entry.</div></div>
-        <div class="fc"><div class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div><div class="ft-label">Airport Transfers</div><div class="fd2">AICM and AIFA — both terminals, flight monitoring, greeter included.</div></div>
-        <div class="fc"><div class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg></div><div class="ft-label">Voice — Speaks &amp; Listens</div><div class="fd2">Mikey speaks aloud and understands voice input in 29 languages.</div></div>
-        <div class="fc"><div class="fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><div class="ft-label">Venue Bookings</div><div class="fd2">Dinner &amp; nightlife at top CDMX venues with commission tracking.</div></div>
+      <p class="ssub" style="color:rgba(240,237,232,.5);">Select exactly what you need — vehicle, service, language, add-ons. Every detail configured before you arrive. No surprises.</p>
+
+      <div class="book-lang-wrap">
+        <div class="book-lang-label">Preferred Language</div>
+        <select class="book-lang-select" id="bookLang">
+          <option value="English">🇺🇸 English</option>
+          <option value="Spanish">🇲🇽 Español</option>
+          <option value="French">🇫🇷 Français</option>
+          <option value="German">🇩🇪 Deutsch</option>
+          <option value="Italian">🇮🇹 Italiano</option>
+          <option value="Portuguese">🇧🇷 Português</option>
+          <option value="Japanese">🇯🇵 日本語</option>
+          <option value="Mandarin Chinese">🇨🇳 中文</option>
+          <option value="Arabic">🇸🇦 العربية</option>
+          <option value="Russian">🇷🇺 Русский</option>
+          <option value="Korean">🇰🇷 한국어</option>
+          <option value="Hebrew">🇮🇱 עברית</option>
+          <option value="Hindi">🇮🇳 हिन्दी</option>
+          <option value="Dutch">🇳🇱 Nederlands</option>
+          <option value="Turkish">🇹🇷 Türkçe</option>
+          <option value="Polish">🇵🇱 Polski</option>
+          <option value="Swedish">🇸🇪 Svenska</option>
+          <option value="Thai">🇹🇭 ภาษาไทย</option>
+        </select>
+        <div class="book-lang-note">Mikey will respond in your language</div>
       </div>
-    </div>
-    <div class="cp">
-      <div class="cp-h"><div class="cp-dot"></div><div><div class="cp-name">Mikey</div><div class="cp-sub">Mexico City Black Car · Online</div></div></div>
-      <div class="cp-msgs">
-        <div class="cm u">Airport to Polanco, tomorrow 8pm, 1 person</div>
-        <div class="cm ai">Perfect — for one guest arriving at AICM Terminal 1, our Executive Sedan is ideal. Here's your instant quote.</div>
-        <div class="cp-price">
-          <div style="font-size:8.5px;letter-spacing:.1em;margin-bottom:4px;color:var(--mist);font-family:var(--fm);">EXECUTIVE SEDAN · AIRPORT TRANSFER — AICM</div>
-          <div class="cp-amt">$85.00 <span style="font-size:11px;color:var(--mist)">USD</span></div>
-          <div style="font-size:9px;margin-top:2px;color:var(--mist);font-family:var(--fm)">AICM → Polanco · 1 pax · REF: MCBC-X9K2</div>
+
+      <div class="book-mikey-note">
+        <div class="book-mikey-dot">M</div>
+        <div>
+          <div class="book-mikey-head">Have questions or need something custom?</div>
+          <a href="mikey.html" class="book-mikey-link">Ask Mikey — he'll build it for you <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
         </div>
       </div>
-      <div class="cp-f"><a class="cp-cta" href="mikey.html">Start a Conversation →</a></div>
     </div>
+
+    <!-- RIGHT -->
+    <div class="book-right">
+      <div class="book-card">
+        <div class="book-card-hd">
+          <span class="book-card-title">Configure Your Ride</span>
+          <span class="book-card-hint">Select all that apply</span>
+        </div>
+
+        <div class="book-sec-label">Vehicle Class</div>
+        <div class="book-opts book-opts-2">
+          <label class="book-opt"><input type="radio" name="vehicle" value="Executive Sedan"><span class="opt-name">Executive Sedan<span class="opt-sub">1–3 passengers</span></span></label>
+          <label class="book-opt"><input type="radio" name="vehicle" value="Premium SUV"><span class="opt-name">Premium SUV<span class="opt-sub">1–6 passengers</span></span></label>
+          <label class="book-opt"><input type="radio" name="vehicle" value="Executive Sprinter"><span class="opt-name">Executive Sprinter<span class="opt-sub">7–12 passengers</span></span></label>
+          <label class="book-opt"><input type="radio" name="vehicle" value="Luxury Coach"><span class="opt-name">Luxury Coach<span class="opt-sub">13–40 passengers</span></span></label>
+          <label class="book-opt"><input type="radio" name="vehicle" value="Ultra-Luxury"><span class="opt-name">Ultra-Luxury<span class="opt-sub">On request</span></span></label>
+        </div>
+
+        <div class="book-sec-label">Service Type</div>
+        <div class="book-opts book-opts-2">
+          <label class="book-opt"><input type="checkbox" name="service" value="Airport Transfer (AICM or AIFA)"><span class="opt-name">Airport Transfer<span class="opt-sub">AICM or AIFA</span></span></label>
+          <label class="book-opt"><input type="checkbox" name="service" value="Executive Transport"><span class="opt-name">Executive Transport<span class="opt-sub">Point to point</span></span></label>
+          <label class="book-opt"><input type="checkbox" name="service" value="Hourly Service"><span class="opt-name">Hourly Service<span class="opt-sub">3-hour minimum</span></span></label>
+          <label class="book-opt"><input type="checkbox" name="service" value="Event Logistics"><span class="opt-name">Event Logistics<span class="opt-sub">Group / multi-leg</span></span></label>
+        </div>
+
+        <div class="book-sec-label">Add-Ons</div>
+        <div class="book-opts book-opts-3">
+          <label class="book-opt"><input type="checkbox" name="addon" value="Meet &amp; Greet (driver inside terminal)"><span class="opt-name">Meet &amp; Greet<span class="opt-sub">Driver inside terminal</span></span></label>
+          <label class="book-opt"><input type="checkbox" name="addon" value="Child Seat"><span class="opt-name">Child Seat<span class="opt-sub">Infant or toddler</span></span></label>
+          <label class="book-opt"><input type="checkbox" name="addon" value="Champagne Service"><span class="opt-name">Champagne Service<span class="opt-sub">Upon arrival</span></span></label>
+          <label class="book-opt"><input type="checkbox" name="addon" value="Multiple Stops / Custom Itinerary"><span class="opt-name">Multiple Stops<span class="opt-sub">Custom itinerary</span></span></label>
+          <label class="book-opt"><input type="checkbox" name="addon" value="In-Car High-Speed Wi-Fi"><span class="opt-name">In-Car Wi-Fi<span class="opt-sub">High-speed hotspot</span></span></label>
+          <label class="book-opt"><input type="checkbox" name="addon" value="Bilingual Chauffeur (English + Spanish)"><span class="opt-name">Bilingual Chauffeur<span class="opt-sub">English + Spanish</span></span></label>
+        </div>
+
+        <button class="book-cta-btn" onclick="sendToMikey()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Send to Mikey &amp; Get a Quote
+        </button>
+        <div class="book-disclaimer">Mikey will confirm your selections, price every leg, and send your booking link.</div>
+      </div>
+    </div>
+
   </div>
 </section>
 
@@ -465,28 +594,30 @@ footer{background:var(--deep);border-top:1px solid var(--border);padding:64px 56
 
 <section class="blg" id="blog">
   <div class="mw">
-    <div class="slabel">Travel Insights</div>
-    <h2>Mexico City<br/><em>Travel</em> Guides</h2>
+    <div class="slabel">Travel Intelligence</div>
+    <h2>The <em>Journal</em></h2>
+    <p class="ssub" style="margin-bottom:0;max-width:560px;">Insider guides, hidden gems, and luxury travel intelligence — written on demand by Mikey AI in any language.</p>
     <div class="bl-grid">
-      <a class="bl-card" href="blog/safest-private-driver-mexico-city.html">
-        <div class="bl-cat">Safety · Executive Travel</div>
-        <div class="bl-title">Is Mexico City Safe for Business Travelers? A Ground Transportation Guide</div>
-        <div class="bl-exc">How vetted private chauffeurs, GPS tracking, and professional dispatch protocols protect executives in CDMX.</div>
-        <div class="bl-meta">5 min read · Safety</div>
-      </a>
-      <a class="bl-card" href="blog/luxury-airport-transfer-mexico-city.html">
-        <div class="bl-cat">Airport Transfers · CDMX</div>
+      <a class="bl-card" href="blog.html">
+        <div class="bl-cat">✈️ Airport Transfers · CDMX</div>
         <div class="bl-title">AICM vs AIFA: Which Airport and How to Arrive in Style</div>
-        <div class="bl-exc">A complete guide to Mexico City's two international airports — and why your ground transportation choice matters.</div>
-        <div class="bl-meta">4 min read · Airport</div>
+        <div class="bl-exc">A complete insider guide to Mexico City's two international airports — and why your ground transportation choice matters more than you think.</div>
+        <div class="bl-meta">Mikey AI · Airport</div>
       </a>
-      <a class="bl-card" href="blog/private-driver-vs-uber-mexico-city.html">
-        <div class="bl-cat">VIP Service · Comparison</div>
-        <div class="bl-title">Private Chauffeur vs Uber in Mexico City: What High-Net-Worth Travelers Choose</div>
-        <div class="bl-exc">Why discerning international travelers opt for professional black car service over ride-sharing in CDMX.</div>
-        <div class="bl-meta">6 min read · VIP</div>
+      <a class="bl-card" href="blog.html">
+        <div class="bl-cat">🗝️ Hidden Gems · CDMX</div>
+        <div class="bl-title">Seven Mexico City Secrets Most Five-Star Guests Never Find</div>
+        <div class="bl-exc">From a secret rooftop mezcal bar to a private garden restaurant behind an unmarked door in Condesa — Mikey's insider list.</div>
+        <div class="bl-meta">Mikey AI · Hidden Gems</div>
+      </a>
+      <a class="bl-card" href="blog.html">
+        <div class="bl-cat">📍 This Week in CDMX</div>
+        <div class="bl-title">The City's Most Interesting Story — Fresh Every Week</div>
+        <div class="bl-exc">Culture, cuisine, architecture, lifestyle — Mikey writes a new story about Mexico City every week. In any language. Always worth reading.</div>
+        <div class="bl-meta">Mikey AI · Weekly</div>
       </a>
     </div>
+    <div style="margin-top:36px;text-align:center;"><a class="bp" href="blog.html">Open the Journal →</a></div>
   </div>
 </section>
 
@@ -521,7 +652,7 @@ footer{background:var(--deep);border-top:1px solid var(--border);padding:64px 56
     <div class="fc2">
       <h4>Company</h4>
       <a href="about.html">About Us</a><a href="terms.html">Terms &amp; Conditions</a>
-      <a href="#blog">Travel Journal</a>
+      <a href="blog.html">Travel Journal</a>
       <a href="https://www.luxtourtravel.com" target="_blank" rel="noopener">Lux Tour Travel ↗</a>
     </div>
     <div class="fc2">
@@ -538,4 +669,26 @@ footer{background:var(--deep);border-top:1px solid var(--border);padding:64px 56
   </div>
 </footer>
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-window.addEventListener('scroll',()=>{document.get
+window.addEventListener('scroll',()=>{
+  const n=document.getElementById('nav');
+  if(n) n.classList.toggle('scrolled',window.scrollY>40);
+});
+function toggleNav(){document.getElementById('navMob').classList.toggle('open');}
+function closeNav(){document.getElementById('navMob').classList.remove('open');}
+function sendToMikey(){
+  const v=document.querySelector('input[name="vehicle"]:checked');
+  const s=[...document.querySelectorAll('input[name="service"]:checked')].map(i=>i.value);
+  const a=[...document.querySelectorAll('input[name="addon"]:checked')].map(i=>i.value);
+  const lang=document.getElementById('bookLang').value;
+  let msg='Please respond in '+lang+'. ';
+  msg+="I'd like to book a transfer. ";
+  if(v) msg+='Vehicle: '+v.value+'. ';
+  if(s.length) msg+='Service: '+s.join(', ')+'. ';
+  if(a.length) msg+='Add-ons: '+a.join(', ')+'. ';
+  if(!v&&!s.length) msg+='Can you help me configure a booking?';
+  msg+=' Please provide a quote and next steps.';
+  window.location.href='mikey.html?msg='+encodeURIComponent(msg);
+}
+</script>-e 
+</body>
+</html>
