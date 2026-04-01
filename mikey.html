@@ -337,7 +337,7 @@ textarea#userInput::placeholder{color:var(--soft);}
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════
-// MEXICO CITY BLACK CAR — MIKEY AI v5.8
+// MEXICO CITY BLACK CAR — MIKEY AI v5.9
 // © 2026 James-Michael Prieto Corbin / Infinite Logistic Technologies
 // All rights reserved. Patent pending. USPTO + PCT filing in progress.
 //
@@ -977,7 +977,25 @@ GENERAL RULES (both modes):
 - When suggesting an itinerary: pick one confidently and say "Here's what I'd do." Don't offer three and make them choose.
 - CLOSING RULE — city/culture responses: Always end with (1) "Want to add this to your itinerary?" and (2) a one-line vehicle recommendation. Always. This is the bridge between inspiration and booking.
 
-TONE: You're the most useful person in Mexico City — part cultural guide, part logistics pro, part well-connected local who knows which table to book and which pyramid to climb first. Warm, direct, genuinely in love with this city. Like texting a brilliant friend who's been here for years. Never a brochure. Never a bot.`;
+TONE — TWO MODES, ONE PERSONALITY:
+
+You are not a booking widget and you are not a tour guide app. You are the most well-connected person in Mexico City — part concierge, part local legend, part operations genius. You genuinely love this city and that energy is present in everything you say.
+
+YOUR DEFAULT VOICE:
+Warm, alive, charming. You make people feel taken care of. You make the city feel exciting. You make Mexico City Black Car feel like the only choice. When routing someone to Polanco for dinner, you might mention what they'll see along Reforma at golden hour. When confirming an airport transfer, you might note what makes this city unlike any other arrival experience. These touches are natural — you read whether the moment calls for it. Never forced. Never a brochure.
+
+You're funny when the vibe allows — dry, well-timed, never at anyone's expense. You're like that brilliant friend who's been here for years and makes everything feel effortless. You sell this city and this company through genuine enthusiasm — never like a pitch, always like a recommendation from someone who actually cares.
+
+SERIOUS MODE — auto-activates instantly when you detect any of these in the client's message:
+"problem", "issue", "cancel", "late", "angry", "complain", "stuck", "no show", "missed", "emergency", "urgent", "stranded", "lost", "wrong terminal", "wrong address", "accident", "threatening", "refund", "not responding", "delay", "confused", "help"
+
+In SERIOUS MODE:
+- The warmth steps back but doesn't disappear — you are the calm, capable person in the room
+- Zero jokes. No filler sentences. Direct and focused.
+- Lead with the SITUATION ASSESSMENT, then IMMEDIATE ACTION STEPS — numbered, with clear ownership and timing
+- Use **bold** for action items and the person responsible
+- End every serious response with: "What's the current status? Tell me exactly where things stand."
+- Once the situation is resolved, ease naturally back into your warm default voice.`;
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -1139,6 +1157,9 @@ async function sendMessage() {
   appendMsg('user', text);
   conversationHistory.push({role:'user', content:text});
   showTyping();
+  // Compress history if conversation is getting long — prevents Mikey from forgetting
+  if (conversationHistory.length > 14) await compressHistory();
+
   const isVoice = lastInputWasVoice;
   lastInputWasVoice = false;
   const maxTok = isVoice ? 500 : 1100;
@@ -1394,6 +1415,46 @@ function activateVIPMode(reason) {
 // ═══════════════════════════════════════════════════════════════════════
 // BACKEND CRM SAVE — stub ready for IT to wire to FastAPI
 // ═══════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════
+// MEMORY COMPRESSION — prevents context drift after many turns
+// Fires when conversationHistory exceeds 14 messages.
+// Compresses oldest messages into a bullet summary, keeps last 10 fresh.
+// ═══════════════════════════════════════════════════════════════════════
+async function compressHistory() {
+  if (conversationHistory.length <= 14) return;
+
+  const toCompress = conversationHistory.slice(0, conversationHistory.length - 10);
+  const keepRecent = conversationHistory.slice(conversationHistory.length - 10);
+
+  const summaryPrompt = `Summarize this conversation in 4-5 bullet points. Preserve: client name, group size, hotel, trip dates, vehicles quoted, confirmation numbers, venues discussed, any special occasion (anniversary, birthday etc), open issues, and any decisions made. Be terse — this is a memory digest for an AI concierge.\n\n${toCompress.map(m => m.role.toUpperCase() + ': ' + m.content).join('\n')}`;
+
+  try {
+    const res = await fetch(CONFIG.WORKER_URL + '/api/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 400,
+        messages: [{ role: 'user', content: summaryPrompt }]
+      })
+    });
+    const data = await res.json();
+    const summary = data.content?.map(b => b.text || '').join('') || '';
+    if (summary) {
+      conversationHistory = [
+        { role: 'user',      content: '[Earlier conversation summary]\n' + summary },
+        { role: 'assistant', content: 'Got it — I have the full context from our earlier conversation.' },
+        ...keepRecent
+      ];
+      console.log('[Mikey Memory] History compressed —', toCompress.length, 'messages summarized');
+    }
+  } catch(e) {
+    // Silent fail — just trim to recent messages
+    conversationHistory = keepRecent;
+    console.warn('[Mikey Memory] Compression failed, trimmed to recent:', e);
+  }
+}
+
 async function saveClientToBackend() {
   if (!clientInfo.email || !CONFIG.BACKEND_URL || CONFIG.BACKEND_URL === 'YOUR_BACKEND_URL_HERE') {
     console.log('[ILT CRM] Backend URL not configured — client save skipped:', clientInfo);
