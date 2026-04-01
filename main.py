@@ -39,7 +39,13 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from sqlalchemy.future import select
 
-from email_o365 import router as email_router
+try:
+    from email_o365 import router as email_router
+    EMAIL_ENABLED = True
+except Exception as e:
+    email_router = None
+    EMAIL_ENABLED = False
+    print(f"[ILT] email_o365 not loaded: {e}")
 
 load_dotenv()
 
@@ -81,7 +87,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(email_router)
+if email_router:
+    app.include_router(email_router)
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -317,7 +324,7 @@ async def health():
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# DRIVERS — added via API only, no names hardcoded
+# DRIVERS
 # ═══════════════════════════════════════════════════════════════════════
 
 @app.post("/api/drivers")
