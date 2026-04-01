@@ -523,20 +523,29 @@ function filterTopic(btn) {
   });
 }
 
-// Anthropic API call
+// Anthropic API call via Cloudflare Worker proxy
 async function callMikey(system, user) {
-  const res = await fetch('https://mexicocityblackcar.sdblackcar.workers.dev/api/messages', {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      system,
-      messages: [{role:'user', content:user}]
-    })
-  });
-  const data = await res.json();
-  return data.content?.[0]?.text || '';
+  try {
+    const res = await fetch('https://mexicocityblackcar.sdblackcar.workers.dev/api/messages', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system,
+        messages: [{role:'user', content:user}]
+      })
+    });
+    if (!res.ok) {
+      console.error('Worker error:', res.status, await res.text());
+      return '';
+    }
+    const data = await res.json();
+    return data.content?.[0]?.text || '';
+  } catch(err) {
+    console.error('callMikey fetch error:', err);
+    return '';
+  }
 }
 
 // Format article text → HTML
