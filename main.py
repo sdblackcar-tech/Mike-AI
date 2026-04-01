@@ -78,10 +78,11 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://www.mexicocityblackcar.com",
-        "https://mexicocityblackcar.com",
-        "https://www.luxtourtravel.com",
-        "http://localhost:3000",
+    "https://www.mexicocityblackcar.com",
+    "https://mexicocityblackcar.com",
+    "https://www.luxtourtravel.com",
+    "http://localhost:3000",
+    "https://ops.mexicocityblackcar.com",       
     ],
     allow_credentials=True,
     allow_methods=["*"],
