@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════════════
-# ILT PLATFORM — MIKEY CDMX BACKEND v1.0
+# ILT PLATFORM — MIKEY CDMX BACKEND v2.0
 # FastAPI + PostgreSQL + Redis
 # © 2026 James-Michael Prieto Corbin / Infinite Logistic Technologies
 # Patent pending. All rights reserved.
@@ -20,6 +20,7 @@
 #   O365_SMTP_USER=ops@mexicocityblackcar.com
 #   O365_SMTP_PASSWORD=your-app-password
 #   ANTHROPIC_API_KEY=sk-ant-...
+#   JWT_SECRET=your-long-random-secret
 # ═══════════════════════════════════════════════════════════════════════
 
 import os
@@ -29,9 +30,8 @@ import stripe
 import anthropic
 from passlib.context import CryptContext
 from jose import JWTError, jwt
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from datetime import timedelta
-from datetime import datetime, timezone
+from fastapi.security import OAuth2PasswordBearer
+from datetime import timedelta, datetime, timezone
 from typing import Optional, List
 from enum import Enum
 
@@ -42,7 +42,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy import Column, String, Float, Integer, Boolean, DateTime, Text, ForeignKey
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from sqlalchemy.future import select
 
@@ -68,11 +68,10 @@ JWT_SECRET         = os.getenv("JWT_SECRET", "ilt-change-this-secret")
 JWT_ALGORITHM      = "HS256"
 JWT_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 
-stripe.api_key     = STRIPE_SECRET
-anthropic_client   = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
-
-pwd_ctx            = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme      = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
+stripe.api_key   = STRIPE_SECRET
+anthropic_client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+pwd_ctx          = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme    = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
 
 # ─── DATABASE ──────────────────────────────────────────────────────────
 engine            = create_async_engine(DATABASE_URL, echo=False)
@@ -86,7 +85,7 @@ redis_client: aioredis.Redis = None
 app = FastAPI(
     title="ILT Mikey CDMX API",
     description="Booking, CRM, dispatch, and Stripe webhook handler for Mexico City Black Car",
-    version="1.0.0",
+    version="2.0.0",
 )
 
 app.add_middleware(
@@ -241,15 +240,13 @@ class DispatchLog(Base):
 class ILTUser(Base):
     __tablename__ = "ilt_users"
 
-    id            = Column(String(36), primary_key=True,
-                           default=lambda: str(__import__('uuid').uuid4()))
+    id            = Column(String(36), primary_key=True, default=lambda: str(__import__('uuid').uuid4()))
     email         = Column(String(255), unique=True, index=True, nullable=False)
     name          = Column(String(255), nullable=False)
     role          = Column(String(50),  nullable=False)   # owner|manager|driver|client|affiliate
     password_hash = Column(String(255), nullable=False)
     is_active     = Column(Boolean, default=True)
-    created_at    = Column(DateTime(timezone=True),
-                           default=lambda: datetime.now(timezone.utc))
+    created_at    = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     last_login    = Column(DateTime(timezone=True), nullable=True)
 
 
@@ -337,7 +334,6 @@ class ChatRequest(BaseModel):
     messages: List[dict]
     system:   Optional[str] = ""
 
-
 # ─── AUTH SCHEMAS ──────────────────────────────────────────────────────
 
 VALID_ROLES = {"owner", "manager", "driver", "client", "affiliate"}
@@ -391,7 +387,7 @@ async def startup():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     redis_client = aioredis.from_url(REDIS_URL, decode_responses=True)
-    print("ILT Backend started ✓")
+    print("ILT Backend v2.0 started ✓")
 
 @app.on_event("shutdown")
 async def shutdown():
@@ -409,7 +405,7 @@ async def get_db() -> AsyncSession:
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "service": "ILT Mikey CDMX API", "version": "1.0.0"}
+    return {"status": "ok", "service": "ILT Mikey CDMX API", "version": "2.0.0"}
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -449,7 +445,6 @@ async def auth_login(data: UserLogin, db: AsyncSession = Depends(get_db)):
         select(ILTUser).where(ILTUser.email == data.email.lower().strip())
     )
     user = result.scalar_one_or_none()
-    # Constant-time failure — never reveal which field is wrong
     if not user or not user.is_active or user.role != data.role:
         pwd_ctx.hash("dummy")
         raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -482,10 +477,12 @@ async def auth_verify(user: ILTUser = Depends(get_current_user)):
 @app.post("/auth/create-user", status_code=201)
 async def auth_create_user(
     data: UserCreate,
-    # ── BOOTSTRAP STEP ──────────────────────────────────────────────────
-    # To create your first owner account, temporarily comment out the
-    # line below, deploy, hit this endpoint once, then uncomment & redeploy.
-   # owner: ILTUser = Depends(require_owner),
+    # ═══════════════════════════════════════════════════════════════════
+    # BOOTSTRAP MODE — guard is OFF so you can create all initial accounts
+    # via the DO console. Once James, Ivan, Barbie, and Jaime are created,
+    # uncomment the line below and push to GitHub to lock this down.
+    # owner: ILTUser = Depends(require_owner),
+    # ═══════════════════════════════════════════════════════════════════
     db: AsyncSession = Depends(get_db),
 ):
     if data.role not in VALID_ROLES:
@@ -862,18 +859,6 @@ async def auto_dispatch_after_payment(conf_num: str, client_name: str):
             driver.is_available = False
             await db.commit()
             print(f"[DISPATCH] {driver.name} → {conf_num} · ETA {eta}min")
-
-# ═══════════════════════════════════════════════════════════════════════
-# RUN: uvicorn main:app --host 0.0.0.0 --port 8000
-# ═══════════════════════════════════════════════════════════════════════
-
-# ═══════════════════════════════════════════════════════════════════════
-# RUN: uvicorn main:app --host 0.0.0.0 --port 8000
-# ═══════════════════════════════════════════════════════════════════════
-
-# ═══════════════════════════════════════════════════════════════════════
-# RUN: uvicorn main:app --host 0.0.0.0 --port 8000
-# ═══════════════════════════════════════════════════════════════════════
 
 # ═══════════════════════════════════════════════════════════════════════
 # RUN: uvicorn main:app --host 0.0.0.0 --port 8000
