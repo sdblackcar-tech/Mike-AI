@@ -238,6 +238,21 @@ class DispatchLog(Base):
     driver  = relationship("Driver", back_populates="dispatch_logs")
 
 
+class ILTUser(Base):
+    __tablename__ = "ilt_users"
+
+    id            = Column(String(36), primary_key=True,
+                           default=lambda: str(__import__('uuid').uuid4()))
+    email         = Column(String(255), unique=True, index=True, nullable=False)
+    name          = Column(String(255), nullable=False)
+    role          = Column(String(50),  nullable=False)   # owner|manager|driver|client|affiliate
+    password_hash = Column(String(255), nullable=False)
+    is_active     = Column(Boolean, default=True)
+    created_at    = Column(DateTime(timezone=True),
+                           default=lambda: datetime.now(timezone.utc))
+    last_login    = Column(DateTime(timezone=True), nullable=True)
+
+
 # ═══════════════════════════════════════════════════════════════════════
 # SCHEMAS
 # ═══════════════════════════════════════════════════════════════════════
@@ -323,6 +338,49 @@ class ChatRequest(BaseModel):
     system:   Optional[str] = ""
 
 
+# ─── AUTH SCHEMAS ──────────────────────────────────────────────────────
+
+VALID_ROLES = {"owner", "manager", "driver", "client", "affiliate"}
+
+ROLE_SCOPES = {
+    "driver":    ["jobs:own", "checkin:write", "schedule:own"],
+    "manager":   ["jobs:all", "drivers:all", "clients:all",
+                  "financials:read", "analytics:read"],
+    "owner":     ["jobs:all", "drivers:all", "clients:all",
+                  "financials:all", "analytics:all",
+                  "affiliates:all", "settings:all", "users:manage"],
+    "client":    ["bookings:own", "documents:own"],
+    "affiliate": ["revenue:own", "referrals:own", "reports:own"],
+}
+
+class UserLogin(BaseModel):
+    email:    str
+    password: str
+    role:     str
+
+class UserCreate(BaseModel):
+    email:    str
+    password: str
+    name:     str
+    role:     str
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type:   str = "bearer"
+    user_name:    str
+    user_role:    str
+    scopes:       List[str]
+    expires_in:   int
+
+class VerifyResponse(BaseModel):
+    valid:      bool
+    user_id:    str
+    user_name:  str
+    user_email: str
+    user_role:  str
+    scopes:     List[str]
+
+
 # ═══════════════════════════════════════════════════════════════════════
 # STARTUP / SHUTDOWN
 # ═══════════════════════════════════════════════════════════════════════
@@ -352,6 +410,120 @@ async def get_db() -> AsyncSession:
 @app.get("/health")
 async def health():
     return {"status": "ok", "service": "ILT Mikey CDMX API", "version": "1.0.0"}
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# AUTH — Portal login, token verify, user management
+# ═══════════════════════════════════════════════════════════════════════
+
+async def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    db: AsyncSession = Depends(get_db)
+) -> ILTUser:
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        user_id: str = payload.get("sub")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Token invalid or expired")
+    result = await db.execute(select(ILTUser).where(ILTUser.id == user_id))
+    user   = result.scalar_one_or_none()
+    if not user or not user.is_active:
+        raise HTTPException(status_code=401, detail="User not found or inactive")
+    return user
+
+async def require_owner(user: ILTUser = Depends(get_current_user)) -> ILTUser:
+    if user.role != "owner":
+        raise HTTPException(status_code=403, detail="Owner access required")
+    return user
+
+
+@app.post("/auth/login", response_model=TokenResponse)
+async def auth_login(data: UserLogin, db: AsyncSession = Depends(get_db)):
+    if data.role not in VALID_ROLES:
+        raise HTTPException(status_code=400, detail="Invalid role")
+    result = await db.execute(
+        select(ILTUser).where(ILTUser.email == data.email.lower().strip())
+    )
+    user = result.scalar_one_or_none()
+    # Constant-time failure — never reveal which field is wrong
+    if not user or not user.is_active or user.role != data.role:
+        pwd_ctx.hash("dummy")
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    if not pwd_ctx.verify(data.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    user.last_login = datetime.now(timezone.utc)
+    await db.commit()
+    scopes  = ROLE_SCOPES[user.role]
+    expires = datetime.now(timezone.utc) + timedelta(minutes=JWT_EXPIRE_MINUTES)
+    token   = jwt.encode(
+        {"sub": user.id, "email": user.email, "name": user.name,
+         "role": user.role, "scope": scopes, "exp": expires},
+        JWT_SECRET, algorithm=JWT_ALGORITHM,
+    )
+    return TokenResponse(
+        access_token=token, user_name=user.name, user_role=user.role,
+        scopes=scopes, expires_in=JWT_EXPIRE_MINUTES * 60,
+    )
+
+
+@app.get("/auth/verify", response_model=VerifyResponse)
+async def auth_verify(user: ILTUser = Depends(get_current_user)):
+    return VerifyResponse(
+        valid=True, user_id=user.id, user_name=user.name,
+        user_email=user.email, user_role=user.role,
+        scopes=ROLE_SCOPES[user.role],
+    )
+
+
+@app.post("/auth/create-user", status_code=201)
+async def auth_create_user(
+    data: UserCreate,
+    # ── BOOTSTRAP STEP ──────────────────────────────────────────────────
+    # To create your first owner account, temporarily comment out the
+    # line below, deploy, hit this endpoint once, then uncomment & redeploy.
+    owner: ILTUser = Depends(require_owner),
+    db: AsyncSession = Depends(get_db),
+):
+    if data.role not in VALID_ROLES:
+        raise HTTPException(status_code=400, detail="Invalid role")
+    existing = await db.execute(
+        select(ILTUser).where(ILTUser.email == data.email.lower().strip())
+    )
+    if existing.scalar_one_or_none():
+        raise HTTPException(status_code=409, detail="Email already registered")
+    user = ILTUser(
+        email=data.email.lower().strip(), name=data.name,
+        role=data.role, password_hash=pwd_ctx.hash(data.password),
+        is_active=True,
+    )
+    db.add(user)
+    await db.commit()
+    return {"status": "created", "email": user.email, "role": user.role}
+
+
+@app.get("/auth/users", dependencies=[Depends(require_owner)])
+async def auth_list_users(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(ILTUser).order_by(ILTUser.role, ILTUser.name))
+    users  = result.scalars().all()
+    return [{"id": u.id, "email": u.email, "name": u.name, "role": u.role,
+             "is_active": u.is_active,
+             "last_login": u.last_login.isoformat() if u.last_login else None}
+            for u in users]
+
+
+@app.patch("/auth/users/{user_id}/deactivate", dependencies=[Depends(require_owner)])
+async def auth_deactivate_user(user_id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(ILTUser).where(ILTUser.id == user_id))
+    user   = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.is_active = False
+    await db.commit()
+    return {"status": "deactivated", "email": user.email}
 
 
 # ═══════════════════════════════════════════════════════════════════════
