@@ -523,6 +523,37 @@ async def auth_deactivate_user(user_id: str, db: AsyncSession = Depends(get_db))
     return {"status": "deactivated", "email": user.email}
 
 
+@app.delete("/auth/users/reset-all")
+async def auth_reset_all_users(db: AsyncSession = Depends(get_db)):
+    """
+    Deletes ALL portal login accounts. Use this to clean up and start fresh.
+    Does NOT affect bookings, clients, drivers, or any other data.
+    Remove or protect this endpoint after initial setup is complete.
+    """
+    await db.execute(__import__('sqlalchemy').text("DELETE FROM ilt_users"))
+    await db.commit()
+    return {"status": "all users deleted"}
+
+
+class PasswordReset(BaseModel):
+    email:        str
+    new_password: str
+
+@app.post("/auth/users/reset-password")
+async def auth_reset_password(data: PasswordReset, db: AsyncSession = Depends(get_db)):
+    """
+    Resets a user's password by email.
+    Bootstrap mode — no auth required. Lock this down after setup.
+    """
+    result = await db.execute(select(ILTUser).where(ILTUser.email == data.email.lower().strip()))
+    user   = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.password_hash = pwd_ctx.hash(data.new_password)
+    await db.commit()
+    return {"status": "password updated", "email": user.email}
+
+
 # ═══════════════════════════════════════════════════════════════════════
 # MIKEY CHAT — Proxy to Anthropic (key stays server-side)
 # ═══════════════════════════════════════════════════════════════════════
