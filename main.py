@@ -485,7 +485,7 @@ async def auth_create_user(
     # ── BOOTSTRAP STEP ──────────────────────────────────────────────────
     # To create your first owner account, temporarily comment out the
     # line below, deploy, hit this endpoint once, then uncomment & redeploy.
-    owner: ILTUser = Depends(require_owner),
+   # owner: ILTUser = Depends(require_owner),
     db: AsyncSession = Depends(get_db),
 ):
     if data.role not in VALID_ROLES:
