@@ -173,23 +173,11 @@ tr:hover td{background:var(--s2);color:var(--txt)}
 
 <script>
 // ─── AUTH GUARD ────────────────────────────────────────────────────────
-(async function authGuard() {
-  const onProd = window.location.hostname.includes("mexicocityblackcar.com");
-  if (!onProd) return;
-  const token = localStorage.getItem("ilt_token");
-  if (!token) { window.location.replace("https://login.mexicocityblackcar.com"); return; }
-  try {
-    const r = await fetch("https://api.mexicocityblackcar.com/auth/me", {
-      headers: { "Authorization": "Bearer " + token }
-    });
-    if (!r.ok) throw new Error("invalid");
-    const d = await r.json();
-    window.ILT_USER = { name: d.user_name, role: d.user_role };
-  } catch {
-    localStorage.removeItem("ilt_token");
-    localStorage.removeItem("ilt_role");
-    localStorage.removeItem("ilt_name");
-    window.location.replace("https://login.mexicocityblackcar.com");
+(function authGuard() {
+  const name  = localStorage.getItem("ilt_name");
+  const role  = localStorage.getItem("ilt_role");
+  if (name && role) {
+    window.ILT_USER = { name: name, role: role };
   }
 })();
 
