@@ -243,7 +243,7 @@ class ILTUser(Base):
     id            = Column(String(36), primary_key=True, default=lambda: str(__import__('uuid').uuid4()))
     email         = Column(String(255), unique=True, index=True, nullable=False)
     name          = Column(String(255), nullable=False)
-    role          = Column(String(50),  nullable=False)   # owner|manager|driver|client|affiliate
+    role          = Column(String(50),  nullable=False)
     password_hash = Column(String(255), nullable=False)
     is_active     = Column(Boolean, default=True)
     created_at    = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
@@ -409,7 +409,7 @@ async def health():
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# AUTH — Portal login, token verify, user management
+# AUTH
 # ═══════════════════════════════════════════════════════════════════════
 
 async def get_current_user(
@@ -477,12 +477,8 @@ async def auth_verify(user: ILTUser = Depends(get_current_user)):
 @app.post("/auth/create-user", status_code=201)
 async def auth_create_user(
     data: UserCreate,
-    # ═══════════════════════════════════════════════════════════════════
-    # BOOTSTRAP MODE — guard is OFF so you can create all initial accounts
-    # via the DO console. Once James, Ivan, Barbie, and Jaime are created,
-    # uncomment the line below and push to GitHub to lock this down.
+    # BOOTSTRAP MODE — uncomment below once all accounts are created:
     # owner: ILTUser = Depends(require_owner),
-    # ═══════════════════════════════════════════════════════════════════
     db: AsyncSession = Depends(get_db),
 ):
     if data.role not in VALID_ROLES:
@@ -525,11 +521,6 @@ async def auth_deactivate_user(user_id: str, db: AsyncSession = Depends(get_db))
 
 @app.delete("/auth/users/reset-all")
 async def auth_reset_all_users(db: AsyncSession = Depends(get_db)):
-    """
-    Deletes ALL portal login accounts. Use this to clean up and start fresh.
-    Does NOT affect bookings, clients, drivers, or any other data.
-    Remove or protect this endpoint after initial setup is complete.
-    """
     await db.execute(__import__('sqlalchemy').text("DELETE FROM ilt_users"))
     await db.commit()
     return {"status": "all users deleted"}
@@ -541,10 +532,6 @@ class PasswordReset(BaseModel):
 
 @app.post("/auth/users/reset-password")
 async def auth_reset_password(data: PasswordReset, db: AsyncSession = Depends(get_db)):
-    """
-    Resets a user's password by email.
-    Bootstrap mode — no auth required. Lock this down after setup.
-    """
     result = await db.execute(select(ILTUser).where(ILTUser.email == data.email.lower().strip()))
     user   = result.scalar_one_or_none()
     if not user:
