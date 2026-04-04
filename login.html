@@ -82,6 +82,11 @@ body{
 }
 .btn-submit:hover{opacity:.82;}
 .btn-submit:disabled{opacity:.4;cursor:not-allowed;}
+.password-wrap{position:relative;}
+.password-wrap .field-input{padding-right:40px;}
+.eye-btn{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--dim);padding:4px;display:flex;align-items:center;transition:color .15s;}
+.eye-btn:hover{color:var(--gold);}
+.eye-btn svg{width:16px;height:16px;}
 
 /* SPINNER */
 .spin{display:none;width:13px;height:13px;border:2px solid rgba(5,5,5,.3);border-top-color:#050505;border-radius:50%;animation:sp .7s linear infinite;}
@@ -144,7 +149,14 @@ body{
 
   <div class="field">
     <label class="field-label" for="password">Password</label>
-    <input class="field-input" type="password" id="password" placeholder="••••••••••••" autocomplete="current-password"/>
+    <div class="password-wrap">
+      <input class="field-input" type="password" id="password" placeholder="••••••••••••" autocomplete="current-password"/>
+      <button class="eye-btn" type="button" onclick="togglePassword()" title="Show password">
+        <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+        </svg>
+      </button>
+    </div>
   </div>
 
   <div class="field">
@@ -184,7 +196,7 @@ body{
 
   <div class="card-links">
     <a class="card-link" href="https://www.mexicocityblackcar.com">← Public Site</a>
-    <a class="card-link" href="mailto:ops@mexicocityblackcar.com">Request Access</a>
+    <a class="card-link" href="/cdn-cgi/l/email-protection#d2bda2a192bfb7aabbb1bdb1bba6abb0beb3b1b9b1b3a0fcb1bdbf">Request Access</a>
   </div>
 
   <div class="card-foot">
@@ -203,7 +215,7 @@ body{
   </div>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 const API = "https://api.mexicocityblackcar.com";
 
 // ─── ROLE SELECTOR ─────────────────────────────────────────────────────
@@ -254,6 +266,16 @@ fetch(API + "/health")
   });
 
 // ─── LOGIN ─────────────────────────────────────────────────────────────
+function togglePassword() {
+  const input = document.getElementById("password");
+  const icon  = document.getElementById("eyeIcon");
+  const show  = input.type === "password";
+  input.type  = show ? "text" : "password";
+  icon.innerHTML = show
+    ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>'
+    : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+}
+
 async function doLogin() {
   const email    = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
@@ -345,10 +367,4 @@ function redirectByRole(role, name) {
   window.location.href = destinations[role] || "https://ops.mexicocityblackcar.com";
 }
 
-// ─── ENTER KEY ─────────────────────────────────────────────────────────
-document.addEventListener("keydown", e => {
-  if (e.key === "Enter") doLogin();
-});
-</script>
-</body>
-</html>
+// ─── ENTER KEY ─────────────────────────────────────────
