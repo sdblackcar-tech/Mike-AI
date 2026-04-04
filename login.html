@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ILT Portal — Sign In</title>
+<meta name="robots" content="noindex,nofollow"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500&family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#090909;--sur:#111;--s2:#181818;--s3:#202020;--bdr:#252525;
+  --gold:#C9A96E;--gd:rgba(201,169,110,.10);--gdb:rgba(201,169,110,.18);
+  --teal:#00d4aa;--td:rgba(0,212,170,.11);
+  --red:#e05c5c;--rd:rgba(224,92,92,.11);
+  --txt:#e4e4e4;--dim:#7a7a7a;--mut:#3d3d3d;
+  --mono:"IBM Plex Mono",monospace;--sans:"IBM Plex Sans",sans-serif;--serif:"Cormorant Garamond",serif;
+}
+html,body{height:100%;}
+body{
+  background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:13px;
+  display:flex;align-items:center;justify-content:center;min-height:100vh;
+  background-image:
+    repeating-linear-gradient(0deg,transparent,transparent 48px,rgba(201,169,110,.018) 48px,rgba(201,169,110,.018) 49px),
+    repeating-linear-gradient(90deg,transparent,transparent 48px,rgba(201,169,110,.018) 48px,rgba(201,169,110,.018) 49px);
+}
+
+/* WORDMARK */
+.wm{position:fixed;top:22px;left:28px;font-family:var(--mono);font-size:10px;font-weight:600;color:var(--gold);letter-spacing:.18em;text-transform:uppercase;opacity:.7;}
+.wm-sub{font-size:8px;color:var(--dim);letter-spacing:.12em;margin-top:2px;}
+
+/* VERSION PILL */
+.vpill{position:fixed;top:26px;right:28px;font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.12em;display:flex;align-items:center;gap:6px;}
+.vdot{width:5px;height:5px;border-radius:50%;background:var(--teal);animation:blink 2.4s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.2;}}
+
+/* CARD */
+.card{
+  background:var(--sur);border:1px solid var(--bdr);border-top:2px solid var(--gold);
+  border-radius:6px;width:100%;max-width:400px;padding:36px 32px 32px;
+  box-shadow:0 40px 120px rgba(0,0,0,.7);
+  animation:fadeUp .5s cubic-bezier(.22,1,.36,1) forwards;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+
+.card-head{margin-bottom:28px;}
+.card-brand{font-family:var(--serif);font-size:28px;font-weight:300;color:var(--gold);letter-spacing:.04em;line-height:1;margin-bottom:6px;}
+.card-sub{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.18em;text-transform:uppercase;}
+
+/* FORM */
+.field{margin-bottom:14px;}
+.field-label{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase;margin-bottom:5px;display:block;}
+.field-input{
+  width:100%;background:var(--s3);border:1px solid var(--bdr);color:var(--txt);
+  padding:10px 12px;border-radius:4px;font-size:12px;font-family:var(--mono);
+  outline:none;transition:border-color .15s;
+}
+.field-input:focus{border-color:var(--gold);}
+.field-input::placeholder{color:var(--mut);}
+
+/* ROLE SELECTOR */
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:5px;}
+.role-opt{
+  display:flex;align-items:center;gap:7px;padding:8px 10px;
+  background:var(--s3);border:1px solid var(--bdr);border-radius:4px;
+  cursor:pointer;transition:border-color .15s,background .15s;
+}
+.role-opt:hover{border-color:var(--gold);background:var(--gd);}
+.role-opt.selected{border-color:var(--gold);background:var(--gd);}
+.role-opt input{display:none;}
+.role-icon{font-size:13px;opacity:.7;}
+.role-label{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.06em;transition:color .15s;}
+.role-opt.selected .role-label{color:var(--gold);}
+
+/* SUBMIT */
+.btn-submit{
+  width:100%;margin-top:20px;padding:12px;
+  background:var(--gold);border:none;border-radius:4px;
+  font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;
+  color:#050505;cursor:pointer;font-family:var(--mono);
+  transition:opacity .2s;display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn-submit:hover{opacity:.82;}
+.btn-submit:disabled{opacity:.4;cursor:not-allowed;}
+
+/* SPINNER */
+.spin{display:none;width:13px;height:13px;border:2px solid rgba(5,5,5,.3);border-top-color:#050505;border-radius:50%;animation:sp .7s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg);}}
+
+/* ERROR */
+.err-box{
+  display:none;background:var(--rd);border:1px solid rgba(224,92,92,.2);border-radius:4px;
+  padding:10px 13px;font-family:var(--mono);font-size:11px;color:var(--red);
+  margin-top:14px;
+}
+.err-box.show{display:block;}
+
+/* DIVIDER */
+.divider{display:flex;align-items:center;gap:10px;margin:20px 0 0;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--bdr);}
+.divider-text{font-family:var(--mono);font-size:8.5px;color:var(--mut);letter-spacing:.12em;white-space:nowrap;}
+
+/* LINKS */
+.card-links{display:flex;justify-content:space-between;margin-top:16px;}
+.card-link{font-family:var(--mono);font-size:9.5px;color:var(--dim);letter-spacing:.08em;text-decoration:none;transition:color .15s;}
+.card-link:hover{color:var(--gold);}
+
+/* FOOTER */
+.card-foot{margin-top:24px;padding-top:16px;border-top:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;}
+.foot-brand{font-family:var(--mono);font-size:8px;color:var(--mut);letter-spacing:.12em;}
+.foot-patent{font-family:var(--mono);font-size:8px;color:var(--mut);letter-spacing:.08em;}
+
+/* SUCCESS STATE */
+.success-state{display:none;text-align:center;padding:12px 0;}
+.success-icon{font-size:28px;margin-bottom:14px;opacity:.9;}
+.success-title{font-family:var(--serif);font-size:22px;color:var(--gold);font-weight:300;margin-bottom:6px;}
+.success-sub{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.1em;}
+.success-bar{width:100%;height:2px;background:var(--bdr);border-radius:1px;margin-top:20px;overflow:hidden;}
+.success-fill{height:100%;background:var(--teal);width:0%;transition:width 1.8s linear;}
+</style>
+</head>
+<body>
+
+<div class="wm">
+  ILT PLATFORM
+  <div class="wm-sub">INFINITE LOGISTIC TECHNOLOGIES</div>
+</div>
+
+<div class="vpill">
+  <span class="vdot"></span>
+  <span id="apiStatus">CONNECTING...</span>
+</div>
+
+<div class="card" id="loginCard">
+  <div class="card-head">
+    <div class="card-brand">Portal Sign In</div>
+    <div class="card-sub">Mexico City Black Car · ILT Operations</div>
+  </div>
+
+  <div class="field">
+    <label class="field-label" for="email">Email Address</label>
+    <input class="field-input" type="email" id="email" placeholder="you@mexicocityblackcar.com" autocomplete="email"/>
+  </div>
+
+  <div class="field">
+    <label class="field-label" for="password">Password</label>
+    <input class="field-input" type="password" id="password" placeholder="••••••••••••" autocomplete="current-password"/>
+  </div>
+
+  <div class="field">
+    <label class="field-label">Access Role</label>
+    <div class="role-grid" id="roleGrid">
+      <label class="role-opt selected" data-role="owner">
+        <input type="radio" name="role" value="owner" checked/>
+        <span class="role-icon">◆</span>
+        <span class="role-label">Owner</span>
+      </label>
+      <label class="role-opt" data-role="manager">
+        <input type="radio" name="role" value="manager"/>
+        <span class="role-icon">▲</span>
+        <span class="role-label">Manager</span>
+      </label>
+      <label class="role-opt" data-role="driver">
+        <input type="radio" name="role" value="driver"/>
+        <span class="role-icon">◎</span>
+        <span class="role-label">Driver</span>
+      </label>
+      <label class="role-opt" data-role="affiliate">
+        <input type="radio" name="role" value="affiliate"/>
+        <span class="role-icon">◇</span>
+        <span class="role-label">Affiliate</span>
+      </label>
+    </div>
+  </div>
+
+  <button class="btn-submit" id="submitBtn" onclick="doLogin()">
+    <span id="btnText">Sign In</span>
+    <span class="spin" id="spinner"></span>
+  </button>
+
+  <div class="err-box" id="errBox"></div>
+
+  <div class="divider"><span class="divider-text">ILT SECURE ACCESS</span></div>
+
+  <div class="card-links">
+    <a class="card-link" href="https://www.mexicocityblackcar.com">← Public Site</a>
+    <a class="card-link" href="mailto:ops@mexicocityblackcar.com">Request Access</a>
+  </div>
+
+  <div class="card-foot">
+    <span class="foot-brand">© 2026 ILT · CDMX</span>
+    <span class="foot-patent">USPTO PATENT PENDING</span>
+  </div>
+</div>
+
+<!-- SUCCESS STATE -->
+<div class="card" id="successCard" style="display:none;">
+  <div class="success-state" style="display:block;">
+    <div class="success-icon">✦</div>
+    <div class="success-title">Welcome back</div>
+    <div class="success-sub" id="successName">Loading...</div>
+    <div class="success-bar"><div class="success-fill" id="successFill"></div></div>
+  </div>
+</div>
+
+<script>
+const API = "https://api.mexicocityblackcar.com";
+
+// ─── ROLE SELECTOR ─────────────────────────────────────────────────────
+document.querySelectorAll(".role-opt").forEach(opt => {
+  opt.addEventListener("click", () => {
+    document.querySelectorAll(".role-opt").forEach(o => o.classList.remove("selected"));
+    opt.classList.add("selected");
+    opt.querySelector("input").checked = true;
+  });
+});
+
+// ─── CHECK EXISTING SESSION ────────────────────────────────────────────
+(function checkSession() {
+  const token = localStorage.getItem("ilt_token");
+  const role  = localStorage.getItem("ilt_role");
+  if (token && role) {
+    // Verify token is still valid
+    fetch(API + "/auth/verify", {
+      headers: { Authorization: "Bearer " + token }
+    })
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      if (data && data.valid) {
+        redirectByRole(data.user_role, data.user_name);
+      }
+    })
+    .catch(() => {});
+  }
+})();
+
+// ─── API STATUS ────────────────────────────────────────────────────────
+fetch(API + "/health")
+  .then(r => r.ok ? r.json() : null)
+  .then(d => {
+    const el = document.getElementById("apiStatus");
+    if (d && d.status === "ok") {
+      el.textContent = "API LIVE";
+      el.style.color = "var(--teal)";
+    } else {
+      el.textContent = "API OFFLINE";
+      el.style.color = "var(--red)";
+    }
+  })
+  .catch(() => {
+    const el = document.getElementById("apiStatus");
+    el.textContent = "API OFFLINE";
+    el.style.color = "var(--red)";
+  });
+
+// ─── LOGIN ─────────────────────────────────────────────────────────────
+async function doLogin() {
+  const email    = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const role     = document.querySelector("input[name='role']:checked")?.value;
+  const errBox   = document.getElementById("errBox");
+  const btn      = document.getElementById("submitBtn");
+  const spinner  = document.getElementById("spinner");
+  const btnText  = document.getElementById("btnText");
+
+  // Clear error
+  errBox.classList.remove("show");
+  errBox.textContent = "";
+
+  // Validate
+  if (!email || !password) {
+    showError("Email and password are required.");
+    return;
+  }
+  if (!role) {
+    showError("Please select your access role.");
+    return;
+  }
+
+  // Loading state
+  btn.disabled      = true;
+  spinner.style.display = "block";
+  btnText.textContent   = "Authenticating...";
+
+  try {
+    const res = await fetch(API + "/auth/login", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ email, password, role }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      showError(data.detail || "Invalid credentials. Please check your email, password, and role.");
+      return;
+    }
+
+    // Store token
+    localStorage.setItem("ilt_token",    data.access_token);
+    localStorage.setItem("ilt_role",     data.user_role);
+    localStorage.setItem("ilt_name",     data.user_name);
+    localStorage.setItem("ilt_scopes",   JSON.stringify(data.scopes));
+
+    // Show success then redirect
+    showSuccess(data.user_name, data.user_role);
+
+  } catch (err) {
+    showError("Connection error. Check your network and try again.");
+  } finally {
+    btn.disabled          = false;
+    spinner.style.display = "none";
+    btnText.textContent   = "Sign In";
+  }
+}
+
+function showError(msg) {
+  const errBox = document.getElementById("errBox");
+  errBox.textContent = "✕  " + msg;
+  errBox.classList.add("show");
+}
+
+function showSuccess(name, role) {
+  document.getElementById("loginCard").style.display  = "none";
+  document.getElementById("successCard").style.display = "block";
+  document.getElementById("successName").textContent  =
+    name.toUpperCase() + " · " + role.toUpperCase() + " ACCESS";
+  // Animate bar then redirect
+  setTimeout(() => {
+    document.getElementById("successFill").style.width = "100%";
+  }, 50);
+  setTimeout(() => {
+    redirectByRole(role, name);
+  }, 2000);
+}
+
+function redirectByRole(role, name) {
+  const destinations = {
+    owner:     "https://ops.mexicocityblackcar.com",
+    manager:   "https://ops.mexicocityblackcar.com",
+    driver:    "https://driver.mexicocityblackcar.com",
+    affiliate: "https://ops.mexicocityblackcar.com",
+    client:    "https://www.mexicocityblackcar.com",
+  };
+  window.location.href = destinations[role] || "https://ops.mexicocityblackcar.com";
+}
+
+// ─── ENTER KEY ─────────────────────────────────────────────────────────
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter") doLogin();
+});
+</script>
+</body>
+</html>
