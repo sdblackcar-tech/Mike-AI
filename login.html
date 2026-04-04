@@ -24,16 +24,16 @@ body{
     repeating-linear-gradient(0deg,transparent,transparent 48px,rgba(201,169,110,.018) 48px,rgba(201,169,110,.018) 49px),
     repeating-linear-gradient(90deg,transparent,transparent 48px,rgba(201,169,110,.018) 48px,rgba(201,169,110,.018) 49px);
 }
-
+ 
 /* WORDMARK */
 .wm{position:fixed;top:22px;left:28px;font-family:var(--mono);font-size:10px;font-weight:600;color:var(--gold);letter-spacing:.18em;text-transform:uppercase;opacity:.7;}
 .wm-sub{font-size:8px;color:var(--dim);letter-spacing:.12em;margin-top:2px;}
-
+ 
 /* VERSION PILL */
 .vpill{position:fixed;top:26px;right:28px;font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.12em;display:flex;align-items:center;gap:6px;}
 .vdot{width:5px;height:5px;border-radius:50%;background:var(--teal);animation:blink 2.4s ease-in-out infinite;}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:.2;}}
-
+ 
 /* CARD */
 .card{
   background:var(--sur);border:1px solid var(--bdr);border-top:2px solid var(--gold);
@@ -42,15 +42,15 @@ body{
   animation:fadeUp .5s cubic-bezier(.22,1,.36,1) forwards;
 }
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
-
+ 
 .card-head{margin-bottom:28px;}
 .card-brand{font-family:var(--serif);font-size:28px;font-weight:300;color:var(--gold);letter-spacing:.04em;line-height:1;margin-bottom:6px;}
 .card-sub{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.18em;text-transform:uppercase;}
-
+ 
 /* FORM */
 .field{margin-bottom:14px;}
 .field-label{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase;margin-bottom:5px;display:block;}
-
+ 
 /* PASSWORD WRAPPER — show/hide toggle */
 .pw-wrap{position:relative;display:flex;align-items:center;}
 .pw-wrap .field-input{padding-right:38px;}
@@ -61,7 +61,7 @@ body{
 }
 .pw-toggle:hover{color:var(--gold);}
 .pw-toggle svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
-
+ 
 .field-input{
   width:100%;background:var(--s3);border:1px solid var(--bdr);color:var(--txt);
   padding:10px 12px;border-radius:4px;font-size:12px;font-family:var(--mono);
@@ -69,7 +69,7 @@ body{
 }
 .field-input:focus{border-color:var(--gold);}
 .field-input::placeholder{color:var(--mut);}
-
+ 
 /* ROLE SELECTOR */
 .role-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:5px;}
 .role-opt{
@@ -83,7 +83,7 @@ body{
 .role-icon{font-size:13px;opacity:.7;}
 .role-label{font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.06em;transition:color .15s;}
 .role-opt.selected .role-label{color:var(--gold);}
-
+ 
 /* SUBMIT */
 .btn-submit{
   width:100%;margin-top:20px;padding:12px;
@@ -94,11 +94,11 @@ body{
 }
 .btn-submit:hover{opacity:.82;}
 .btn-submit:disabled{opacity:.4;cursor:not-allowed;}
-
+ 
 /* SPINNER */
 .spin{display:none;width:13px;height:13px;border:2px solid rgba(5,5,5,.3);border-top-color:#050505;border-radius:50%;animation:sp .7s linear infinite;}
 @keyframes sp{to{transform:rotate(360deg);}}
-
+ 
 /* ERROR */
 .err-box{
   display:none;background:var(--rd);border:1px solid rgba(224,92,92,.2);border-radius:4px;
@@ -106,22 +106,22 @@ body{
   margin-top:14px;
 }
 .err-box.show{display:block;}
-
+ 
 /* DIVIDER */
 .divider{display:flex;align-items:center;gap:10px;margin:20px 0 0;}
 .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--bdr);}
 .divider-text{font-family:var(--mono);font-size:8.5px;color:var(--mut);letter-spacing:.12em;white-space:nowrap;}
-
+ 
 /* LINKS */
 .card-links{display:flex;justify-content:space-between;margin-top:16px;}
 .card-link{font-family:var(--mono);font-size:9.5px;color:var(--dim);letter-spacing:.08em;text-decoration:none;transition:color .15s;}
 .card-link:hover{color:var(--gold);}
-
+ 
 /* FOOTER */
 .card-foot{margin-top:24px;padding-top:16px;border-top:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;}
 .foot-brand{font-family:var(--mono);font-size:8px;color:var(--mut);letter-spacing:.12em;}
 .foot-patent{font-family:var(--mono);font-size:8px;color:var(--mut);letter-spacing:.08em;}
-
+ 
 /* SUCCESS STATE */
 .success-state{display:none;text-align:center;padding:12px 0;}
 .success-icon{font-size:28px;margin-bottom:14px;opacity:.9;}
@@ -132,28 +132,28 @@ body{
 </style>
 </head>
 <body>
-
+ 
 <div class="wm">
   ILT PLATFORM
   <div class="wm-sub">INFINITE LOGISTIC TECHNOLOGIES</div>
 </div>
-
+ 
 <div class="vpill">
   <span class="vdot"></span>
   <span id="apiStatus">CONNECTING...</span>
 </div>
-
+ 
 <div class="card" id="loginCard">
   <div class="card-head">
     <div class="card-brand">Portal Sign In</div>
     <div class="card-sub">Mexico City Black Car · ILT Operations</div>
   </div>
-
+ 
   <div class="field">
     <label class="field-label" for="email">Email Address</label>
     <input class="field-input" type="email" id="email" placeholder="you@mexicocityblackcar.com" autocomplete="email"/>
   </div>
-
+ 
   <div class="field">
     <label class="field-label" for="password">Password</label>
     <div class="pw-wrap">
@@ -172,7 +172,7 @@ body{
       </button>
     </div>
   </div>
-
+ 
   <div class="field">
     <label class="field-label">Access Role</label>
     <div class="role-grid" id="roleGrid">
@@ -198,27 +198,27 @@ body{
       </label>
     </div>
   </div>
-
+ 
   <button class="btn-submit" id="submitBtn" onclick="doLogin()">
     <span id="btnText">Sign In</span>
     <span class="spin" id="spinner"></span>
   </button>
-
+ 
   <div class="err-box" id="errBox"></div>
-
+ 
   <div class="divider"><span class="divider-text">ILT SECURE ACCESS</span></div>
-
+ 
   <div class="card-links">
     <a class="card-link" href="https://www.mexicocityblackcar.com">← Public Site</a>
     <a class="card-link" href="mailto:ops@mexicocityblackcar.com">Request Access</a>
   </div>
-
+ 
   <div class="card-foot">
     <span class="foot-brand">© 2026 ILT · CDMX</span>
     <span class="foot-patent">USPTO PATENT PENDING</span>
   </div>
 </div>
-
+ 
 <!-- SUCCESS STATE -->
 <div class="card" id="successCard" style="display:none;">
   <div class="success-state" style="display:block;">
@@ -228,10 +228,10 @@ body{
     <div class="success-bar"><div class="success-fill" id="successFill"></div></div>
   </div>
 </div>
-
+ 
 <script>
 const API = "https://api.mexicocityblackcar.com";
-
+ 
 // ─── ROLE SELECTOR ─────────────────────────────────────────────────────
 document.querySelectorAll(".role-opt").forEach(opt => {
   opt.addEventListener("click", () => {
@@ -240,7 +240,7 @@ document.querySelectorAll(".role-opt").forEach(opt => {
     opt.querySelector("input").checked = true;
   });
 });
-
+ 
 // ─── API STATUS ────────────────────────────────────────────────────────
 fetch(API + "/health")
   .then(r => r.ok ? r.json() : null)
@@ -259,13 +259,13 @@ fetch(API + "/health")
     el.textContent = "API OFFLINE";
     el.style.color = "var(--red)";
   });
-
+ 
 // ─── SHOW / HIDE PASSWORD ──────────────────────────────────────────────
 function togglePassword() {
   const input      = document.getElementById("password");
   const eyeIcon    = document.getElementById("eyeIcon");
   const eyeOffIcon = document.getElementById("eyeOffIcon");
-
+ 
   if (input.type === "password") {
     input.type           = "text";
     eyeIcon.style.display    = "none";
@@ -276,7 +276,7 @@ function togglePassword() {
     eyeOffIcon.style.display = "none";
   }
 }
-
+ 
 // ─── LOGIN ─────────────────────────────────────────────────────────────
 async function doLogin() {
   const email    = document.getElementById("email").value.trim();
@@ -286,11 +286,11 @@ async function doLogin() {
   const btn      = document.getElementById("submitBtn");
   const spinner  = document.getElementById("spinner");
   const btnText  = document.getElementById("btnText");
-
+ 
   // Clear error
   errBox.classList.remove("show");
   errBox.textContent = "";
-
+ 
   // Validate
   if (!email || !password) {
     showError("Email and password are required.");
@@ -300,35 +300,35 @@ async function doLogin() {
     showError("Please select your access role.");
     return;
   }
-
+ 
   // Loading state
   btn.disabled          = true;
   spinner.style.display = "block";
   btnText.textContent   = "Authenticating...";
-
+ 
   try {
     const res = await fetch(API + "/auth/login", {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
       body:    JSON.stringify({ email, password, role }),
     });
-
+ 
     const data = await res.json();
-
+ 
     if (!res.ok) {
       showError(data.detail || "Invalid credentials. Please check your email, password, and role.");
       return;
     }
-
+ 
     // Store token
     localStorage.setItem("ilt_token",  data.access_token);
     localStorage.setItem("ilt_role",   data.user_role);
     localStorage.setItem("ilt_name",   data.user_name);
     localStorage.setItem("ilt_scopes", JSON.stringify(data.scopes));
-
+ 
     // Show success then redirect
     showSuccess(data.user_name, data.user_role);
-
+ 
   } catch (err) {
     showError("Connection error. Check your network and try again.");
   } finally {
@@ -337,13 +337,13 @@ async function doLogin() {
     btnText.textContent   = "Sign In";
   }
 }
-
+ 
 function showError(msg) {
   const errBox = document.getElementById("errBox");
   errBox.textContent = "✕  " + msg;
   errBox.classList.add("show");
 }
-
+ 
 function showSuccess(name, role) {
   document.getElementById("loginCard").style.display   = "none";
   document.getElementById("successCard").style.display = "block";
@@ -356,7 +356,7 @@ function showSuccess(name, role) {
     redirectByRole(role);
   }, 2000);
 }
-
+ 
 function redirectByRole(role) {
   const destinations = {
     owner:     "https://ops.mexicocityblackcar.com",
@@ -367,7 +367,7 @@ function redirectByRole(role) {
   };
   window.location.href = destinations[role] || "https://ops.mexicocityblackcar.com";
 }
-
+ 
 // ─── ENTER KEY ─────────────────────────────────────────────────────────
 document.addEventListener("keydown", e => {
   if (e.key === "Enter") doLogin();
