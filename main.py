@@ -42,8 +42,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy import Column, String, Float, Integer, Boolean, DateTime, Text, ForeignKey
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import declarative_base, sessionmaker, relationship
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.future import select
 
 try:
@@ -75,7 +75,7 @@ oauth2_scheme    = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False
 
 # ─── DATABASE ──────────────────────────────────────────────────────────
 engine            = create_async_engine(DATABASE_URL, echo=False)
-AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 Base              = declarative_base()
 
 # ─── REDIS ─────────────────────────────────────────────────────────────
@@ -564,7 +564,7 @@ async def mikey_chat(data: ChatRequest):
         raise HTTPException(status_code=500, detail="Anthropic API key not configured")
     try:
         response = anthropic_client.messages.create(
-            model="claude-sonnet-4-20250514",
+            model="claude-sonnet-4-6",
             max_tokens=1000,
             system=data.system or "You are Mikey, the AI operations intelligence engine for ILT and Lux Tour Travel in Mexico City. Be concise, professional, and operationally precise.",
             messages=data.messages
