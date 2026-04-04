@@ -1,880 +1,1084 @@
-# ═══════════════════════════════════════════════════════════════════════
-# ILT PLATFORM — MIKEY CDMX BACKEND v1.0
-# FastAPI + PostgreSQL + Redis
-# © 2026 James-Michael Prieto Corbin / Infinite Logistic Technologies
-# Patent pending. All rights reserved.
-#
-# DEPLOYMENT:
-#   pip install -r requirements.txt
-#   uvicorn main:app --host 0.0.0.0 --port 8000
-#
-# ENV VARS (.env — never commit this file):
-#   DATABASE_URL=postgresql://user:pass@localhost/ilt_cdmx
-#   REDIS_URL=redis://localhost:6379
-#   STRIPE_SECRET_KEY=sk_live_...
-#   STRIPE_WEBHOOK_SECRET=whsec_...
-#   JAMES_EMAIL=james@luxtourtravel.com
-#   OPS_EMAIL=ops@mexicocityblackcar.com
-#   O365_SMTP_HOST=smtp.office365.com
-#   O365_SMTP_PORT=587
-#   O365_SMTP_USER=ops@mexicocityblackcar.com
-#   O365_SMTP_PASSWORD=your-app-password
-#   ANTHROPIC_API_KEY=sk-ant-...
-# ═══════════════════════════════════════════════════════════════════════
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ILT OPS PORTAL v3</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+:root{--bg:#090909;--sur:#111;--s2:#181818;--s3:#202020;--bdr:#252525;--gold:#C9A96E;--gd:rgba(201,169,110,.13);--teal:#00d4aa;--td:rgba(0,212,170,.11);--red:#e05c5c;--rd:rgba(224,92,92,.11);--ylw:#f0c040;--txt:#e4e4e4;--dim:#7a7a7a;--mut:#3d3d3d;--mono:"IBM Plex Mono",monospace;--sans:"IBM Plex Sans",sans-serif;--r:5px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:13px;display:flex;height:100vh;overflow:hidden}
+#sidebar{width:222px;min-width:222px;background:var(--sur);border-right:1px solid var(--bdr);display:flex;flex-direction:column;overflow-y:auto}
+.slogo{padding:16px 14px 13px;border-bottom:1px solid var(--bdr)}
+.sbrand{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--gold);letter-spacing:.13em}
+.ssub{font-size:10px;color:var(--mut);margin-top:3px}
+.ldot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--teal);margin-right:4px;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.nsec{font-family:var(--mono);font-size:9px;color:var(--mut);letter-spacing:.14em;padding:13px 14px 4px;text-transform:uppercase}
+.ni{display:flex;align-items:center;gap:9px;padding:8px 14px;cursor:pointer;color:var(--dim);font-size:12px;transition:all .12s;border-left:2px solid transparent}
+.ni:hover{background:var(--s2);color:var(--txt)}.ni.active{background:var(--gd);color:var(--gold);border-left-color:var(--gold)}
+.nico{font-size:12px;width:15px;text-align:center;flex-shrink:0}
+.nlabel{flex:1}
+.nbadge{font-size:9px;font-family:var(--mono);font-weight:600;padding:1px 5px;border-radius:3px;background:var(--red);color:#fff;min-width:17px;text-align:center}
+.nbadge.t{background:var(--teal);color:#000}
+.sfooter{padding:12px 14px;border-top:1px solid var(--bdr);margin-top:auto}
+.lrow{display:flex;margin-bottom:9px}
+.lb{flex:1;padding:4px 0;font-family:var(--mono);font-size:10px;cursor:pointer;background:var(--s3);border:1px solid var(--bdr);color:var(--mut);text-align:center;transition:all .12s}
+.lb:first-child{border-radius:3px 0 0 3px}.lb:last-child{border-radius:0 3px 3px 0;border-left:none}
+.lb.active{background:var(--gd);color:var(--gold);border-color:rgba(201,169,110,.3)}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:46px;background:var(--sur);border-bottom:1px solid var(--bdr);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0}
+.ttitle{font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--txt);letter-spacing:.08em}
+.tright{margin-left:auto;display:flex;align-items:center;gap:9px}
+.tclock{font-family:var(--mono);font-size:11px;color:var(--mut)}
+.apill{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;background:var(--s3);border:1px solid var(--bdr);padding:3px 8px;border-radius:3px;color:var(--mut)}
+.adot{width:6px;height:6px;border-radius:50%;background:var(--mut);transition:background .4s}
+.adot.ok{background:var(--teal)}.adot.err{background:var(--red)}
+.btn{background:var(--s3);border:1px solid var(--bdr);color:var(--dim);padding:5px 11px;border-radius:var(--r);cursor:pointer;font-size:11px;font-family:var(--mono);transition:all .12s}
+.btn:hover{border-color:var(--gold);color:var(--gold)}
+.btn.gold{background:var(--gold);border:none;color:#0a0a0a;font-weight:600}.btn.gold:hover{opacity:.85}
+.btn.teal{background:var(--teal);border:none;color:#0a0a0a;font-weight:600}
+.content{flex:1;overflow-y:auto;padding:20px;scrollbar-width:thin;scrollbar-color:var(--bdr) transparent}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}
+.page{display:none}.page.active{display:block}
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+.pt{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--txt)}
+.ps{font-size:11px;color:var(--mut);margin-top:2px;font-family:var(--mono)}
+.pa{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:18px}
+.sc{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:13px 15px}
+.sl{font-family:var(--mono);font-size:9px;color:var(--mut);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
+.sv{font-family:var(--mono);font-size:22px;font-weight:600;color:var(--txt);line-height:1}
+.sv.g{color:var(--gold)}.sv.t{color:var(--teal)}.sv.r{color:var(--red)}
+.sd{font-family:var(--mono);font-size:10px;color:var(--mut);margin-top:5px}
+.sd.up{color:var(--teal)}.sd.dn{color:var(--red)}
+.tw{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+.thbar{display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid var(--bdr);gap:9px;flex-wrap:wrap}
+.tt{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--dim);letter-spacing:.07em}
+.fb{display:flex;gap:6px;margin-left:auto;align-items:center}
+.fi{background:var(--s3);border:1px solid var(--bdr);color:var(--txt);padding:4px 9px;border-radius:var(--r);font-size:11px;font-family:var(--mono);outline:none;width:150px}
+.fi:focus{border-color:var(--gold)}
+.fsel{background:var(--s3);border:1px solid var(--bdr);color:var(--dim);padding:4px 9px;border-radius:var(--r);font-size:11px;font-family:var(--mono);outline:none;cursor:pointer}
+table{width:100%;border-collapse:collapse}
+th{font-family:var(--mono);font-size:9px;font-weight:600;color:var(--mut);letter-spacing:.1em;text-transform:uppercase;padding:8px 12px;text-align:left;border-bottom:1px solid var(--bdr);background:var(--s2)}
+td{padding:9px 12px;font-size:11.5px;color:var(--dim);border-bottom:1px solid #161616;font-family:var(--mono);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--s2);color:var(--txt)}
+.tn{color:var(--txt);font-weight:500}.tc{color:var(--gold);font-size:10.5px}.ta{color:var(--teal)}
+.b{display:inline-block;padding:2px 7px;border-radius:3px;font-size:9px;font-family:var(--mono);font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+.b-confirmed,.b-paid,.b-active{background:var(--td);color:var(--teal);border:1px solid rgba(0,212,170,.2)}
+.b-pending{background:rgba(240,192,64,.11);color:#f0c040;border:1px solid rgba(240,192,64,.2)}
+.b-quote{background:var(--gd);color:var(--gold);border:1px solid rgba(201,169,110,.2)}
+.b-dispatched{background:rgba(100,100,255,.1);color:#8888ff;border:1px solid rgba(100,100,255,.2)}
+.b-complete{background:rgba(80,200,80,.09);color:#60c060;border:1px solid rgba(80,200,80,.2)}
+.b-unpaid,.b-refunded{background:var(--rd);color:var(--red);border:1px solid rgba(224,92,92,.2)}
+.b-standby,.b-standard,.b-corporate{background:var(--s3);color:var(--mut);border:1px solid var(--bdr)}
+.b-vip{background:var(--gd);color:var(--gold);border:1px solid rgba(201,169,110,.3)}
+.b-maintenance{background:rgba(240,192,64,.11);color:#f0c040;border:1px solid rgba(240,192,64,.2)}
+.ra{display:flex;gap:5px}
+.ab{background:var(--s3);border:1px solid var(--bdr);color:var(--mut);padding:3px 7px;border-radius:3px;cursor:pointer;font-size:10px;font-family:var(--mono);transition:all .11s}
+.ab:hover{border-color:var(--gold);color:var(--gold)}.ab.t:hover{border-color:var(--teal);color:var(--teal)}.ab.r:hover{border-color:var(--red);color:var(--red)}
+.empty-s{padding:50px 20px;text-align:center}
+.empty-s .ei{font-size:28px;margin-bottom:11px;opacity:.25}
+.empty-s .et{font-family:var(--mono);font-size:13px;color:var(--dim);margin-bottom:5px}
+.empty-s .es{font-size:11px;color:var(--mut);margin-bottom:16px}
+.empty-s .ea{display:flex;gap:8px;justify-content:center}
+.ldr td{text-align:center;padding:26px;color:var(--mut);font-family:var(--mono);font-size:11px}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid var(--bdr);border-top-color:var(--gold);border-radius:50%;animation:sp .8s linear infinite;margin-right:7px;vertical-align:middle}
+@keyframes sp{to{transform:rotate(360deg)}}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:15px}
+.ctit{font-family:var(--mono);font-size:9.5px;font-weight:600;color:var(--mut);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}
+.mb14{margin-bottom:14px}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:1000}
+.mo.open{display:flex}
+.md{background:var(--sur);border:1px solid var(--bdr);border-radius:7px;width:540px;max-height:90vh;overflow-y:auto;display:flex;flex-direction:column}
+.md.wide{width:700px}
+.mh{display:flex;align-items:center;justify-content:space-between;padding:14px 17px;border-bottom:1px solid var(--bdr);flex-shrink:0}
+.mtt{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--gold)}
+.mc{cursor:pointer;color:var(--mut);font-size:16px;line-height:1}
+.mb2{padding:17px;flex:1}
+.mfoot{padding:12px 17px;border-top:1px solid var(--bdr);display:flex;gap:7px;justify-content:flex-end;flex-shrink:0}
+.fr{margin-bottom:11px}
+.fl{font-family:var(--mono);font-size:9px;color:var(--mut);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.fin{width:100%;background:var(--s3);border:1px solid var(--bdr);color:var(--txt);padding:7px 9px;border-radius:var(--r);font-size:12px;font-family:var(--mono);outline:none;transition:border-color .12s}
+.fin:focus{border-color:var(--gold)}
+.fse{width:100%;background:var(--s3);border:1px solid var(--bdr);color:var(--txt);padding:7px 9px;border-radius:var(--r);font-size:12px;font-family:var(--mono);outline:none;cursor:pointer}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.fr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.mab{background:var(--gd);border:1px solid rgba(201,169,110,.2);border-radius:var(--r);padding:9px 12px;display:flex;align-items:center;gap:9px;margin-bottom:14px}
+.mabinp{flex:1;background:transparent;border:none;color:var(--txt);font-family:var(--mono);font-size:11px;outline:none}
+.mabinp::placeholder{color:rgba(201,169,110,.45)}
+.chatbox{height:300px;overflow-y:auto;padding:13px;display:flex;flex-direction:column;gap:9px;background:var(--s2);border-bottom:1px solid var(--bdr)}
+.cuser{background:var(--s3);border:1px solid var(--bdr);border-radius:var(--r);padding:9px 12px;font-size:12px;color:var(--txt);align-self:flex-end;max-width:84%}
+.cai{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:9px 12px;font-size:11.5px;color:var(--dim);font-family:var(--mono);max-width:92%;line-height:1.6}
+.ctag{font-size:9px;color:var(--gold);margin-bottom:5px;display:block}
+.cibar{display:flex;gap:8px;padding:11px 13px}
+.cinp{flex:1;background:var(--s3);border:1px solid var(--bdr);color:var(--txt);padding:7px 10px;border-radius:var(--r);font-family:var(--mono);font-size:11px;outline:none}
+.cinp:focus{border-color:var(--gold)}
+.rl{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #161616;font-family:var(--mono);font-size:11px}
+.rl:last-child{border-bottom:none}
+.uz{border:1px dashed var(--bdr);border-radius:var(--r);padding:26px;text-align:center;cursor:pointer;transition:all .18s;background:var(--s2)}
+.uz:hover,.uz.drag{border-color:var(--gold);background:var(--gd)}
+.dc{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:15px}
+.dav{width:38px;height:38px;border-radius:50%;background:var(--s3);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:600;color:var(--gold);flex-shrink:0}
+.dstats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0;padding:10px 0;border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr)}
+.dsv{font-family:var(--mono);font-size:15px;font-weight:600;color:var(--teal);text-align:center}
+.dsl{font-size:9px;color:var(--mut);text-align:center;margin-top:2px}
+.tog{position:relative;display:inline-block;width:34px;height:18px}
+.tog input{opacity:0;width:0;height:0}
+.tosl{position:absolute;inset:0;background:var(--s3);border:1px solid var(--bdr);border-radius:9px;cursor:pointer;transition:.2s}
+.tosl:before{content:"";position:absolute;width:12px;height:12px;left:2px;top:2px;background:var(--mut);border-radius:50%;transition:.2s}
+.tog input:checked+.tosl{background:var(--td);border-color:var(--teal)}
+.tog input:checked+.tosl:before{transform:translateX(16px);background:var(--teal)}
+.bw{margin-bottom:9px}
+.bl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:4px}
+.bt{background:var(--s3);border-radius:2px;height:5px}
+.bf{height:5px;border-radius:2px;background:var(--gold);transition:width .7s ease}.bf.t{background:var(--teal)}
+.vip{background:var(--gd);border:1px solid rgba(201,169,110,.2);border-radius:var(--r);padding:9px 13px;display:flex;align-items:center;gap:9px;margin-bottom:14px;font-family:var(--mono);font-size:11px;color:var(--gold)}
+.dmap{background:var(--s2);border:1px solid var(--bdr);border-radius:var(--r);height:240px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;margin-bottom:13px;position:relative;overflow:hidden}
+.dmap::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 28px,rgba(201,169,110,.022) 28px,rgba(201,169,110,.022) 29px),repeating-linear-gradient(90deg,transparent,transparent 28px,rgba(201,169,110,.022) 28px,rgba(201,169,110,.022) 29px)}
+.fitem{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:10px 12px;display:flex;gap:11px;margin-bottom:8px}
+.ftime{font-family:var(--mono);font-size:10px;color:var(--mut);white-space:nowrap;min-width:74px;padding-top:1px}
+.fq{font-size:12px;color:var(--txt);margin-bottom:3px}
+.fm{font-size:10px;color:var(--mut);font-family:var(--mono)}
+.price-card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
+.price-head{background:var(--s2);padding:12px 15px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bdr)}
+.price-veh{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--gold)}
+.price-body{padding:14px}
+.price-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1a1a1a;font-family:var(--mono);font-size:11px}
+.price-row:last-child{border-bottom:none}
+.price-lbl{color:var(--dim)}
+.price-val{color:var(--teal);font-weight:600}
+.price-empty{color:var(--mut);font-style:italic}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-day{background:var(--s3);border:1px solid var(--bdr);border-radius:3px;padding:8px 4px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--dim);cursor:pointer;transition:all .12s;min-height:48px}
+.cal-day:hover{border-color:var(--gold);color:var(--gold)}
+.cal-day.blocked{background:var(--rd);border-color:rgba(224,92,92,.3);color:var(--red)}
+.cal-day.today{border-color:var(--teal);color:var(--teal)}
+.cal-day.empty-day{opacity:.2;cursor:default}
+.cal-hdr{text-align:center;font-family:var(--mono);font-size:9px;color:var(--mut);padding:4px 0;letter-spacing:.08em}
+.promo-card{background:var(--sur);border:1px solid var(--bdr);border-radius:var(--r);padding:14px;display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.promo-code{font-family:var(--mono);font-size:16px;font-weight:600;color:var(--gold);flex:1;letter-spacing:.05em}
+.stripe-section{background:var(--s2);border:1px solid var(--bdr);border-radius:var(--r);padding:16px;margin-bottom:12px}
+#toast{position:fixed;bottom:20px;right:20px;background:var(--teal);color:#000;font-family:var(--mono);font-size:11px;font-weight:600;padding:9px 15px;border-radius:var(--r);transform:translateY(60px);opacity:0;transition:all .26s;z-index:3000}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.err{background:var(--red);color:#fff}
+</style>
+</head>
+<body>
 
-import os
-import json
-import random
-import stripe
-import anthropic
-from passlib.context import CryptContext
-from jose import JWTError, jwt
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from datetime import timedelta
-from datetime import datetime, timezone
-from typing import Optional, List
-from enum import Enum
+<script>
+const CFG={API:"https://api.mexicocityblackcar.com",MODEL:"claude-sonnet-4-20250514"};
+let lang="en";
 
-import redis.asyncio as aioredis
-from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Request, BackgroundTasks, Depends, Header
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
-from pydantic import BaseModel
-from sqlalchemy import Column, String, Float, Integer, Boolean, DateTime, Text, ForeignKey
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy.orm import declarative_base, sessionmaker, relationship
-from sqlalchemy.future import select
+const TX={
+en:{dash:"Dashboard",book:"Bookings",disp:"Dispatch",mik:"Mikey AI",pay:"Payments",rep:"Reports",cli:"Clients",drv:"Drivers",veh:"Fleet & Pricing",venues:"Venues",promo:"Promo Codes",cal:"Calendar",nb:"+ New Booking",ac:"+ Add Client",ask:"\u25c6 Ask Mikey",addVeh:"+ Add Vehicle",addVenue:"+ Add Venue",addPromo:"+ New Promo",charge:"\u26a1 Charge Card",csv:"\u2b06 Import CSV",save:"Save",cancel:"Cancel",send:"Send",view:"View",edit:"Edit",brief:"Brief Mikey",chase:"Chase",assign:"Assign",fill:"Fill",connected:"LIVE",disconnected:"OFFLINE",saved:"Saved \u2713",apiErr:"API error",noData:"No records yet",noDataSub:"Add manually or import a spreadsheet.",activeTrips:"Active Trips",revenueToday:"Revenue Today",revenueMonth:"Revenue This Month",pendingQuotes:"Pending Quotes",conf:"Conf #",date:"Date",client:"Client",vehicle:"Vehicle",route:"Route",amount:"Amount",status:"Status",driver:"Driver",actions:"Actions",name:"Name",contact:"Contact",type:"Type",trips:"Trips",ltv:"Lifetime Value",lastTrip:"Last Trip",notes:"Notes",method:"Method",rating:"Rating",clientName:"Client Name",phone:"Phone / WhatsApp",email:"Email",pickupDate:"Pickup Date",pickupTime:"Pickup Time",pickup:"Pickup Location",dropoff:"Drop-off",pax:"Passengers",totalMXN:"Total Amount (MXN)",intNotes:"Internal Notes",saveBook:"Save Booking",sendQuote:"Send Quote",descTrip:"Describe the trip \u2014 Mikey will fill the form...",hourly:"Hourly Rate (MXN)",perKm:"Per Km Rate (MXN)",capacity:"Capacity (pax)",minHours:"Min Hours",venueName:"Venue Name",commission:"Commission %",zone:"Zone / Area",venueContact:"Contact Name",promoCode:"Promo Code",discType:"Discount Type",discValue:"Discount Value",maxUses:"Max Uses",validFrom:"Valid From",expires:"Expires",appliesTo:"Applies To",chargeAmt:"Charge Amount (MXN)",cardNum:"Card Number",expDate:"Expiry",cvv:"CVV",description:"Description",addOnFees:"ADD-ON FEES",gratuity:"Gratuity",vat:"VAT",fuel:"Fuel Surcharge",waitTime:"Wait Time (per 15 min)",extraStop:"Extra Stop",greeter:"Airport Greeter",vipConc:"VIP Concierge",dinner:"Dinner Reservation",nightclub:"Nightclub Access",cleaning:"Cleaning Fee",ccFee:"CC Processing Fee",mikeyUpdatePrice:"Tell Mikey to update pricing...",blockDate:"Block Date",unblock:"Unblock",blockedDates:"BLOCKED DATES",upcomingBook:"UPCOMING BOOKINGS",noDatesBlocked:"No dates blocked",runSheet:"TODAY'S RUN SHEET",allRes:"ALL RESERVATIONS",allStatus:"All Status",payLog:"PAYMENT LOG",convLog:"CONVERSATION LOG",clientDB:"CLIENT DATABASE",venueDB:"VENUE DATABASE",drvHistory:"DRIVER TRIP HISTORY",fleet:"FLEET",mikeySub:"All client interactions \u00b7 Quotes \u00b7 Conversions",paySub:"Stripe log \u00b7 Manual charge \u00b7 Receipts",bookSub:"All reservations",dispSub:"Live trips \u00b7 Driver assignment \u00b7 ETA",repSub:"Revenue \u00b7 Volume \u00b7 Analytics",cliSub:"Client database \u00b7 VIP flags \u00b7 History",drvSub:"CDMX ops team \u00b7 Availability \u00b7 History",vehSub:"Vehicle database \u00b7 Pricing matrix \u00b7 CSV import",venSub:"Restaurants \u00b7 Clubs \u00b7 Hotels \u00b7 Commission rates",promoSub:"Discount codes \u00b7 Usage tracking",calSub:"Block dates \u00b7 Driver availability \u00b7 Fleet schedule",totalTrips:"Total Trips",avgTrip:"Avg Trip Value",vipClients:"VIP Clients",mikeyConv:"Mikey Conversion",revType:"REVENUE BY SERVICE TYPE",revVeh:"REVENUE BY VEHICLE",mikeyAct:"MIKEY ACTIVITY \u2014 LAST 6H",revBreak:"REVENUE THIS WEEK",todayTrips:"TODAY'S TRIPS",drvStatus:"DRIVER STATUS",receipt:"PAYMENT RECEIPT",whatsapp:"WhatsApp",emailReceipt:"Email Receipt",close:"Close",processPayment:"\u26a1 Process Payment",convToday:"Conversations Today",quotesGen:"Quotes Generated",conversions:"Conversions",revMikey:"Revenue via Mikey",activeNow:"ACTIVE NOW",upNext:"UP NEXT",addDriver:"+ Add Driver"},
+es:{dash:"Panel",book:"Reservas",disp:"Despacho",mik:"Mikey IA",pay:"Pagos",rep:"Reportes",cli:"Clientes",drv:"Choferes",veh:"Flota y Precios",venues:"Venues",promo:"C\u00f3digos Promo",cal:"Calendario",nb:"+ Nueva Reserva",ac:"+ Agregar Cliente",ask:"\u25c6 Preguntar a Mikey",addVeh:"+ Agregar Veh\u00edculo",addVenue:"+ Agregar Venue",addPromo:"+ Nuevo C\u00f3digo",charge:"\u26a1 Cobrar Tarjeta",csv:"\u2b06 Importar CSV",save:"Guardar",cancel:"Cancelar",send:"Enviar",view:"Ver",edit:"Editar",brief:"Briefing Mikey",chase:"Cobrar",assign:"Asignar",fill:"Llenar",connected:"EN VIVO",disconnected:"SIN CONEXI\u00d3N",saved:"Guardado \u2713",apiErr:"Error de API",noData:"Sin registros",noDataSub:"Agrega manualmente o importa una hoja de c\u00e1lculo.",activeTrips:"Viajes Activos",revenueToday:"Ingresos Hoy",revenueMonth:"Ingresos Este Mes",pendingQuotes:"Cotizaciones Pendientes",conf:"Conf #",date:"Fecha",client:"Cliente",vehicle:"Veh\u00edculo",route:"Ruta",amount:"Monto",status:"Estado",driver:"Chofer",actions:"Acciones",name:"Nombre",contact:"Contacto",type:"Tipo",trips:"Viajes",ltv:"Valor Total",lastTrip:"\u00daltimo Viaje",notes:"Notas",method:"M\u00e9todo",rating:"Calificaci\u00f3n",clientName:"Nombre del Cliente",phone:"Tel\u00e9fono / WhatsApp",email:"Correo",pickupDate:"Fecha de Salida",pickupTime:"Hora de Salida",pickup:"Punto de Salida",dropoff:"Destino",pax:"Pasajeros",totalMXN:"Monto Total (MXN)",intNotes:"Notas Internas",saveBook:"Guardar Reserva",sendQuote:"Enviar Cotizaci\u00f3n",descTrip:"Describe el viaje \u2014 Mikey llenar\u00e1 el formulario...",hourly:"Tarifa por Hora (MXN)",perKm:"Tarifa por Km (MXN)",capacity:"Capacidad (pax)",minHours:"Horas M\u00ednimas",venueName:"Nombre del Venue",commission:"Comisi\u00f3n %",zone:"Zona",venueContact:"Nombre del Contacto",promoCode:"C\u00f3digo Promo",discType:"Tipo de Descuento",discValue:"Valor del Descuento",maxUses:"Usos M\u00e1ximos",validFrom:"V\u00e1lido Desde",expires:"Vencimiento",appliesTo:"Aplica a",chargeAmt:"Monto a Cobrar (MXN)",cardNum:"N\u00famero de Tarjeta",expDate:"Vencimiento",cvv:"CVV",description:"Descripci\u00f3n",addOnFees:"CARGOS ADICIONALES",gratuity:"Propina",vat:"IVA",fuel:"Recargo de Combustible",waitTime:"Tiempo de Espera (por 15 min)",extraStop:"Parada Extra",greeter:"Asistente en Aeropuerto",vipConc:"Servicio VIP Concierge",dinner:"Reserva de Restaurante",nightclub:"Acceso a Antro",cleaning:"Cuota de Limpieza",ccFee:"Comisi\u00f3n de Tarjeta",mikeyUpdatePrice:"D\u00edle a Mikey c\u00f3mo actualizar precios...",blockDate:"Bloquear Fecha",unblock:"Desbloquear",blockedDates:"FECHAS BLOQUEADAS",upcomingBook:"PR\u00d3XIMAS RESERVAS",noDatesBlocked:"Sin fechas bloqueadas",runSheet:"HOJA DEL D\u00cdA",allRes:"TODAS LAS RESERVAS",allStatus:"Todo",payLog:"REGISTRO DE PAGOS",convLog:"REGISTRO DE CONVERSACIONES",clientDB:"BASE DE DATOS DE CLIENTES",venueDB:"BASE DE DATOS DE VENUES",drvHistory:"HISTORIAL DE CHOFERES",fleet:"FLOTA",mikeySub:"Todas las conversaciones \u00b7 Cotizaciones \u00b7 Conversiones",paySub:"Registro Stripe \u00b7 Cobro manual \u00b7 Recibos",bookSub:"Todas las reservas",dispSub:"Viajes en vivo \u00b7 Asignaci\u00f3n \u00b7 ETA",repSub:"Ingresos \u00b7 Volumen \u00b7 An\u00e1lisis",cliSub:"Base de datos \u00b7 Clientes VIP \u00b7 Historial",drvSub:"Equipo CDMX \u00b7 Disponibilidad \u00b7 Historial",vehSub:"Base de veh\u00edculos \u00b7 Matriz de precios \u00b7 Importar CSV",venSub:"Restaurantes \u00b7 Antros \u00b7 Hoteles \u00b7 Comisiones",promoSub:"C\u00f3digos de descuento \u00b7 Seguimiento de uso",calSub:"Bloquear fechas \u00b7 Disponibilidad \u00b7 Agenda",totalTrips:"Total de Viajes",avgTrip:"Valor Promedio",vipClients:"Clientes VIP",mikeyConv:"Conversi\u00f3n Mikey",revType:"INGRESOS POR TIPO DE SERVICIO",revVeh:"INGRESOS POR VEH\u00cdCULO",mikeyAct:"ACTIVIDAD MIKEY \u2014 \u00daLTIMAS 6H",revBreak:"INGRESOS ESTA SEMANA",todayTrips:"VIAJES DE HOY",drvStatus:"ESTADO DE CHOFERES",receipt:"RECIBO DE PAGO",whatsapp:"WhatsApp",emailReceipt:"Enviar por Correo",close:"Cerrar",processPayment:"\u26a1 Procesar Pago",convToday:"Conversaciones Hoy",quotesGen:"Cotizaciones Generadas",conversions:"Conversiones",revMikey:"Ingresos v\u00eda Mikey",activeNow:"ACTIVO AHORA",upNext:"PR\u00d3XIMO",addDriver:"+ Agregar Chofer"}
+};
+const t=k=>TX[lang][k]||TX.en[k]||k;
 
-try:
-    from email_o365 import router as email_router
-    EMAIL_ENABLED = True
-except Exception as e:
-    email_router = None
-    EMAIL_ENABLED = False
-    print(f"[ILT] email_o365 not loaded: {e}")
+const DEMO={
+bookings:[
+{id:"ILT-0043",date:"Apr 4",client:"Group Inquiry",vehicle:"Sprinter Van",route:"CDMX \u2192 Tulum",amount:"$18,500",status:"quote",driver:"\u2014"},
+{id:"ILT-0042",date:"Apr 1",client:"Sarah Whitfield",vehicle:"Suburban",route:"AICM T1 \u2192 Condesa",amount:"$3,200",status:"dispatched",driver:"Ivan"},
+{id:"ILT-0041",date:"Apr 1",client:"Carlos Mendoza \u2605",vehicle:"Sprinter Van",route:"Polanco \u2192 AICM T2",amount:"$4,200",status:"confirmed",driver:"\u2014"},
+{id:"ILT-0040",date:"Apr 1",client:"Piero Romano",vehicle:"Suburban",route:"Reforma \u2192 AICM",amount:"$2,800",status:"pending",driver:"Jaime"},
+{id:"ILT-0039",date:"Apr 1",client:"Diego Restrepo",vehicle:"Suburban",route:"Santa Fe \u2192 AICM",amount:"$3,800",status:"complete",driver:"Ivan"},
+{id:"ILT-0038",date:"Mar 31",client:"Helena Voss",vehicle:"Sprinter Van",route:"Polanco \u2192 Tulum",amount:"$18,500",status:"complete",driver:"Barbie"}],
+clients:[
+{id:"C001",name:"Carlos Mendoza",contact:"+52 55 8821 4490",type:"VIP",trips:4,ltv:"$29,400 MXN",lastTrip:"Apr 1",notes:"Prefers Sprinter, cold water"},
+{id:"C002",name:"Helena Voss",contact:"helena@corp.de",type:"Corporate",trips:3,ltv:"$24,100 MXN",lastTrip:"Mar 31",notes:"German client, always on time"},
+{id:"C003",name:"Sarah Whitfield",contact:"+1 310 488 2211",type:"VIP",trips:2,ltv:"$8,400 MXN",lastTrip:"Apr 1",notes:"US corporate, Amex"},
+{id:"C004",name:"Diego Restrepo",contact:"drestrepo@bogota.co",type:"Corporate",trips:5,ltv:"$19,200 MXN",lastTrip:"Apr 1",notes:"Monthly airport runs"},
+{id:"C005",name:"Piero Romano",contact:"piero@milano.it",type:"VIP",trips:6,ltv:"$44,800 MXN",lastTrip:"Apr 1",notes:"Musician, Jaime personal client"}],
+payments:[
+{date:"Apr 1",id:"ILT-0042",client:"Sarah Whitfield",amount:"$3,200 MXN",method:"Stripe \u00b7 Visa",stripe:"pi_3Oab...d4f2",status:"paid"},
+{date:"Apr 1",id:"ILT-0039",client:"Diego Restrepo",amount:"$3,800 MXN",method:"Stripe \u00b7 MC",stripe:"pi_3Oab...9c11",status:"paid"},
+{date:"Apr 1",id:"ILT-0040",client:"Piero Romano",amount:"$2,800 MXN",method:"Stripe \u00b7 Visa",stripe:"\u2014",status:"unpaid"},
+{date:"Mar 31",id:"ILT-0038",client:"Helena Voss",amount:"$18,500 MXN",method:"Wire",stripe:"\u2014",status:"paid"},
+{date:"Mar 29",id:"ILT-0034",client:"Cancelled",amount:"$4,200 MXN",method:"Stripe \u00b7 MC",stripe:"pi_3Oa9...8f00",status:"refunded"}],
+drivers:[
+{id:"D1",initials:"IV",name:"Ivan",role:"GM \u00b7 CDMX \u00b7 25 yrs logistics",status:"active",current:"ILT-0042 \u00b7 En Route",trips:18,rating:"4.9",ontime:"100%",available:true},
+{id:"D2",initials:"BA",name:"Barbie",role:"Concierge \u00b7 Culinary expert",status:"active",current:"ILT-0041 prep",trips:12,rating:"5.0",ontime:"98%",available:true},
+{id:"D3",initials:"JA",name:"Jaime",role:"Lux Tour Partner \u00b7 20 yrs touring",status:"standby",current:"No active assignment",trips:9,rating:"4.8",ontime:"96%",available:false}],
+vehicles:[],clients_v:[],promos:[],venues:[]};
 
-load_dotenv()
+let DB={bookings:[],clients:[],payments:[],drivers:[],vehicles:[],promos:[],venues:[]};
+let apiOnline=false;
+let blockedDates=new Set();
+let calYear=2026,calMonth=3;
 
-# ─── CONFIG ────────────────────────────────────────────────────────────
-DATABASE_URL       = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost/ilt_cdmx")
-REDIS_URL          = os.getenv("REDIS_URL", "redis://localhost:6379")
-STRIPE_SECRET      = os.getenv("STRIPE_SECRET_KEY", "")
-STRIPE_WEBHOOK_SEC = os.getenv("STRIPE_WEBHOOK_SECRET", "")
-JAMES_EMAIL        = os.getenv("JAMES_EMAIL", "james@luxtourtravel.com")
-OPS_EMAIL          = os.getenv("OPS_EMAIL", "ops@mexicocityblackcar.com")
-ANTHROPIC_API_KEY  = os.getenv("ANTHROPIC_API_KEY", "")
-JWT_SECRET         = os.getenv("JWT_SECRET", "ilt-change-this-secret")
-JWT_ALGORITHM      = "HS256"
-JWT_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
+async function apiFetch(path,opts={}){
+const r=await fetch(CFG.API+path,{...opts,headers:{"Content-Type":"application/json",...(opts.headers||{})}});
+if(!r.ok)throw new Error(r.status);
+return r.json();
+}
+async function checkAPI(){
+try{await apiFetch("/health");apiOnline=true;document.querySelectorAll(".adot").forEach(d=>d.className="adot ok");document.querySelectorAll(".albl").forEach(d=>d.textContent=t("connected"));}
+catch{apiOnline=false;document.querySelectorAll(".adot").forEach(d=>d.className="adot err");document.querySelectorAll(".albl").forEach(d=>d.textContent=t("disconnected"));}
+}
+async function loadData(type){
+try{const r=await apiFetch("/api/"+type);DB[type]=r.data||r;return DB[type];}
+catch{DB[type]=DEMO[type]||[];return DB[type];}
+}
+async function saveRec(type,payload){
+if(!apiOnline){const f={id:type.slice(0,3).toUpperCase()+"-"+Date.now(),...payload};DB[type].unshift(f);toast(t("saved"));return f;}
+const r=await apiFetch("/api/"+type,{method:"POST",body:JSON.stringify(payload)});
+DB[type].unshift(r);toast(t("saved"));return r;
+}
+</script>
 
-stripe.api_key     = STRIPE_SECRET
-anthropic_client   = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+<nav id="sidebar">
+<div class="slogo"><div class="sbrand">ILT OPS PORTAL</div><div class="ssub"><span class="ldot"></span>CDMX &middot; v3.0</div></div>
+<div class="nsec" id="sec-ops">OPERATIONS</div>
+<div class="ni active" onclick="nav('dash',this)"><span class="nico">&#9672;</span><span class="nlabel" id="nl-dash">Dashboard</span></div>
+<div class="ni" onclick="nav('book',this)"><span class="nico">&#8801;</span><span class="nlabel" id="nl-book">Bookings</span><span class="nbadge" id="bp">0</span></div>
+<div class="ni" onclick="nav('disp',this)"><span class="nico">&#9678;</span><span class="nlabel" id="nl-disp">Dispatch</span><span class="nbadge t" id="ba">0</span></div>
+<div class="nsec" id="sec-intel">INTELLIGENCE</div>
+<div class="ni" onclick="nav('mik',this)"><span class="nico">&#9670;</span><span class="nlabel" id="nl-mik">Mikey AI</span></div>
+<div class="ni" onclick="nav('pay',this)"><span class="nico">$</span><span class="nlabel" id="nl-pay">Payments</span></div>
+<div class="ni" onclick="nav('rep',this)"><span class="nico">&#9635;</span><span class="nlabel" id="nl-rep">Reports</span></div>
+<div class="nsec" id="sec-db">DATABASE</div>
+<div class="ni" onclick="nav('cli',this)"><span class="nico">&#9671;</span><span class="nlabel" id="nl-cli">Clients</span></div>
+<div class="ni" onclick="nav('drv',this)"><span class="nico">&#9655;</span><span class="nlabel" id="nl-drv">Drivers</span></div>
+<div class="ni" onclick="nav('veh',this)"><span class="nico">&#9633;</span><span class="nlabel" id="nl-veh">Fleet &amp; Pricing</span></div>
+<div class="ni" onclick="nav('venues',this)"><span class="nico">&#9830;</span><span class="nlabel" id="nl-venues">Venues</span></div>
+<div class="nsec" id="sec-mgmt">MANAGEMENT</div>
+<div class="ni" onclick="nav('promo',this)"><span class="nico">%</span><span class="nlabel" id="nl-promo">Promo Codes</span></div>
+<div class="ni" onclick="nav('cal',this)"><span class="nico">&#9638;</span><span class="nlabel" id="nl-cal">Calendar</span></div>
+<div class="sfooter">
+<div class="lrow"><div class="lb active" onclick="setLang('en',this)">EN</div><div class="lb" onclick="setLang('es',this)">ES</div></div>
+<div style="font-size:11px;color:var(--dim);font-family:var(--mono)">J. Corbin &mdash; Owner</div>
+<div style="font-size:10px;color:var(--mut);margin-top:2px">ILT &middot; Lux Tour Travel &middot; CDMX</div>
+</div>
+</nav>
 
-pwd_ctx            = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme      = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
+<div id="main">
+<div class="topbar">
+<div class="ttitle" id="topTitle">DASHBOARD</div>
+<div class="tright">
+<div class="apill"><div class="adot" id="adot"></div><span class="albl" id="albl">Checking...</span><span style="color:var(--mut)"> &middot; api.mexicocityblackcar.com</span></div>
+<div class="tclock" id="clock">--:--</div>
+<button class="btn" onclick="openM('mo-book')" id="btn-nb">+ New Booking</button>
+<button class="btn gold" onclick="openM('mo-mikey')" id="btn-ask">&#9670; Ask Mikey</button>
+</div>
+</div>
+<div class="content">
 
-# ─── DATABASE ──────────────────────────────────────────────────────────
-engine            = create_async_engine(DATABASE_URL, echo=False)
-AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-Base              = declarative_base()
+<!-- DASHBOARD -->
+<div class="page active" id="page-dash">
+<div class="ph"><div><div class="pt" id="dgreet">Good morning, James.</div><div class="ps" id="dsub">CDMX Operations</div></div></div>
+<div class="vip" id="vip" style="display:none"><span>&#9733;</span><span id="vipt"></span><button class="ab t" style="margin-left:auto" onclick="nav('book',document.querySelectorAll('.ni')[1])">View</button></div>
+<div class="sg">
+<div class="sc"><div class="sl" id="sl-at">Active Trips</div><div class="sv t" id="s1">&#8212;</div><div class="sd">Today</div></div>
+<div class="sc"><div class="sl" id="sl-rt">Revenue Today</div><div class="sv g" id="s2">&#8212;</div><div class="sd">MXN</div></div>
+<div class="sc"><div class="sl" id="sl-rm">Revenue This Month</div><div class="sv g" id="s3">&#8212;</div><div class="sd">MXN</div></div>
+<div class="sc"><div class="sl" id="sl-pq">Pending Quotes</div><div class="sv r" id="s4">&#8212;</div><div class="sd" id="sl-await">Awaiting confirmation</div></div>
+</div>
+<div class="g2 mb14">
+<div class="tw"><div class="thbar"><span class="tt" id="tt-td">TODAY'S TRIPS</span></div>
+<table><thead><tr><th id="th-c">Conf#</th><th id="th-cl">Client</th><th id="th-v">Vehicle</th><th id="th-s">Status</th></tr></thead><tbody id="dt"></tbody></table></div>
+<div class="tw"><div class="thbar"><span class="tt" id="tt-ds">DRIVER STATUS</span></div>
+<table><thead><tr><th id="th-d">Driver</th><th id="th-s2">Status</th><th id="th-ct">Current Trip</th></tr></thead><tbody id="dd"></tbody></table></div>
+</div>
+<div class="g2">
+<div class="card"><div class="ctit" id="ct-ma">MIKEY ACTIVITY &mdash; LAST 6H</div><div id="df"></div></div>
+<div class="card"><div class="ctit" id="ct-rw">REVENUE THIS WEEK</div><div id="db"></div></div>
+</div>
+</div>
 
-# ─── REDIS ─────────────────────────────────────────────────────────────
-redis_client: aioredis.Redis = None
+<!-- BOOKINGS -->
+<div class="page" id="page-book">
+<div class="ph"><div><div class="pt" id="pt-book">Bookings</div><div class="ps" id="ps-book">All reservations</div></div>
+<div class="pa"><button class="btn" onclick="openCSV('bookings')" id="btn-csb">&#11014; Import CSV</button><button class="btn gold" onclick="openM('mo-book')" id="btn-nb2">+ New Booking</button></div></div>
+<div class="tw"><div class="thbar"><span class="tt" id="tt-ar">ALL RESERVATIONS</span>
+<div class="fb"><input class="fi" id="bsrch" placeholder="Search..." oninput="filt('btb',this.value)">
+<select class="fsel" onchange="filtSt('btb',this.value)"><option value="" id="opt-all">All Status</option><option>quote</option><option>pending</option><option>confirmed</option><option>dispatched</option><option>complete</option></select></div></div>
+<table><thead><tr><th id="bh0">Conf#</th><th id="bh1">Date</th><th id="bh2">Client</th><th id="bh3">Vehicle</th><th id="bh4">Route</th><th id="bh5">Amount</th><th id="bh6">Status</th><th id="bh7">Driver</th><th id="bh8">Actions</th></tr></thead>
+<tbody id="btb"><tr class="ldr"><td colspan="9"><span class="spin"></span>Loading...</td></tr></tbody></table></div>
+</div>
 
-# ─── APP ───────────────────────────────────────────────────────────────
-app = FastAPI(
-    title="ILT Mikey CDMX API",
-    description="Booking, CRM, dispatch, and Stripe webhook handler for Mexico City Black Car",
-    version="1.0.0",
-)
+<!-- DISPATCH -->
+<div class="page" id="page-disp">
+<div class="ph"><div><div class="pt" id="pt-disp">Dispatch</div><div class="ps" id="ps-disp">Live trips &middot; Driver assignment &middot; ETA</div></div></div>
+<div class="dmap"><div style="font-family:var(--mono);font-size:11px;color:var(--mut);position:relative">&#9672; Live GPS Map &mdash; Driver PWA activates this</div><div style="font-family:var(--mono);font-size:10px;color:var(--mut);position:relative">GPS pings every 10s via /api/drivers/{name}</div><button class="btn" style="position:relative" onclick="toast('Driver PWA is next in the build queue')">Learn More</button></div>
+<div class="g3 mb14" id="dcards"></div>
+<div class="tw"><div class="thbar"><span class="tt" id="tt-rs">TODAY'S RUN SHEET</span></div>
+<table><thead><tr><th id="dh0">Date</th><th id="dh1">Conf#</th><th id="dh2">Client</th><th id="dh3">Vehicle</th><th id="dh4">Driver</th><th id="dh5">Status</th><th id="dh6">Actions</th></tr></thead>
+<tbody id="dtb"></tbody></table></div>
+</div>
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "https://www.mexicocityblackcar.com",
-        "https://mexicocityblackcar.com",
-        "https://www.luxtourtravel.com",
-        "http://localhost:3000",
-        "https://ops.mexicocityblackcar.com",
-        "https://driver.mexicocityblackcar.com",
-        "https://login.mexicocityblackcar.com",
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+<!-- MIKEY FEED -->
+<div class="page" id="page-mik">
+<div class="ph"><div><div class="pt" id="pt-mik">Mikey AI Feed</div><div class="ps" id="ps-mik">All client interactions &middot; Quotes &middot; Conversions</div></div>
+<div class="pa"><button class="btn" onclick="toast('Exporting log...')" id="btn-el">Export Log</button><button class="btn gold" onclick="openM('mo-mikey')" id="btn-ask2">&#9670; Ask Mikey</button></div></div>
+<div class="sg">
+<div class="sc"><div class="sl" id="sl-ct">Conversations Today</div><div class="sv t">18</div><div class="sd up">&#9650; 5 vs avg</div></div>
+<div class="sc"><div class="sl" id="sl-qg">Quotes Generated</div><div class="sv">11</div><div class="sd">61% of sessions</div></div>
+<div class="sc"><div class="sl" id="sl-cv">Conversions</div><div class="sv g">4</div><div class="sd">36% rate</div></div>
+<div class="sc"><div class="sl" id="sl-rm2">Revenue via Mikey</div><div class="sv g">$74,200</div><div class="sd">MXN today</div></div>
+</div>
+<div class="tw"><div class="thbar"><span class="tt" id="tt-cl">CONVERSATION LOG</span></div>
+<table><thead><tr><th>Time</th><th>Query</th><th>Language</th><th>Quote Value</th><th>Outcome</th><th id="mh-a">Actions</th></tr></thead>
+<tbody id="mtb"></tbody></table></div>
+</div>
 
-if email_router:
-    app.include_router(email_router)
+<!-- PAYMENTS -->
+<div class="page" id="page-pay">
+<div class="ph"><div><div class="pt" id="pt-pay">Payments</div><div class="ps" id="ps-pay">Stripe log &middot; Manual charge &middot; Receipts</div></div>
+<div class="pa"><button class="btn" onclick="toast('Exporting CSV...')" id="btn-ecp">Export CSV</button><button class="btn gold" onclick="openM('mo-charge')" id="btn-chg">&#9889; Charge Card</button></div></div>
+<div class="sg">
+<div class="sc"><div class="sl" id="sl-co">Collected (April)</div><div class="sv g">$312,600</div><div class="sd">MXN</div></div>
+<div class="sc"><div class="sl" id="sl-pe">Pending</div><div class="sv" style="color:var(--ylw)">$22,400</div><div class="sd">3 invoices</div></div>
+<div class="sc"><div class="sl" id="sl-re">Refunded</div><div class="sv r">$4,200</div><div class="sd">1 cancellation</div></div>
+<div class="sc"><div class="sl" id="sl-fe">Stripe Fees</div><div class="sv" style="font-size:18px">$9,060</div><div class="sd">2.9% avg</div></div>
+</div>
+<div class="tw"><div class="thbar"><span class="tt" id="tt-pl">PAYMENT LOG</span>
+<div class="fb"><input class="fi" placeholder="Search..." oninput="filt('ptb',this.value)">
+<select class="fsel" onchange="filtSt('ptb',this.value)"><option value="">All</option><option>paid</option><option>unpaid</option><option>refunded</option></select></div></div>
+<table><thead><tr><th id="ph0">Date</th><th id="ph1">Conf#</th><th id="ph2">Client</th><th id="ph3">Amount</th><th id="ph4">Method</th><th>Stripe ID</th><th id="ph5">Status</th><th id="ph6">Actions</th></tr></thead>
+<tbody id="ptb"><tr class="ldr"><td colspan="8"><span class="spin"></span>Loading...</td></tr></tbody></table></div>
+</div>
 
-# ─── STATIC HTML ───────────────────────────────────────────────────────
-@app.get("/mikey.html", include_in_schema=False)
-async def serve_mikey_html():
-    return FileResponse("mikey.html")
+<!-- REPORTS -->
+<div class="page" id="page-rep">
+<div class="ph"><div><div class="pt" id="pt-rep">Reports</div><div class="ps" id="ps-rep">Revenue &middot; Volume &middot; Analytics</div></div>
+<div class="pa"><select class="fsel"><option>This Month</option><option>Last Month</option><option>This Quarter</option></select><button class="btn" onclick="toast('Generating PDF...')" id="btn-pdf">Export PDF</button></div></div>
+<div class="sg">
+<div class="sc"><div class="sl" id="sl-tt">Total Trips</div><div class="sv">47</div><div class="sd up">&#9650; 12 vs last month</div></div>
+<div class="sc"><div class="sl" id="sl-av">Avg Trip Value</div><div class="sv g">$6,651</div><div class="sd">MXN</div></div>
+<div class="sc"><div class="sl" id="sl-vc">VIP Clients</div><div class="sv t">8</div><div class="sd up">&#9650; 3 new</div></div>
+<div class="sc"><div class="sl" id="sl-mc">Mikey Conversion</div><div class="sv t">36%</div><div class="sd up">&#9650; 8pts</div></div>
+</div>
+<div class="g2"><div class="card"><div class="ctit" id="ct-rt">REVENUE BY SERVICE TYPE</div><div id="rb1"></div></div><div class="card"><div class="ctit" id="ct-rv">REVENUE BY VEHICLE</div><div id="rb2"></div></div></div>
+</div>
 
-@app.get("/mikey", include_in_schema=False)
-async def serve_mikey():
-    return FileResponse("mikey.html")
+<!-- CLIENTS -->
+<div class="page" id="page-cli">
+<div class="ph"><div><div class="pt" id="pt-cli">Clients / CRM</div><div class="ps" id="ps-cli">Client database &middot; VIP flags &middot; History</div></div>
+<div class="pa"><button class="btn" onclick="openCSV('clients')" id="btn-csc">&#11014; Import CSV</button><button class="btn gold" onclick="openM('mo-client')" id="btn-ac">+ Add Client</button></div></div>
+<div class="tw"><div class="thbar"><span class="tt" id="tt-cd">CLIENT DATABASE</span>
+<div class="fb"><input class="fi" placeholder="Search..." oninput="filt('ctb',this.value)">
+<select class="fsel" onchange="filtSt('ctb',this.value)"><option value="">All</option><option>VIP</option><option>Corporate</option></select></div></div>
+<table><thead><tr><th id="ch0">Name</th><th id="ch1">Contact</th><th id="ch2">Type</th><th id="ch3">Trips</th><th id="ch4">Lifetime Value</th><th id="ch5">Last Trip</th><th id="ch6">Notes</th><th id="ch7">Actions</th></tr></thead>
+<tbody id="ctb"><tr class="ldr"><td colspan="8"><span class="spin"></span>Loading...</td></tr></tbody></table></div>
+</div>
 
+<!-- DRIVERS -->
+<div class="page" id="page-drv">
+<div class="ph"><div><div class="pt" id="pt-drv">Drivers</div><div class="ps" id="ps-drv">CDMX ops team &middot; Availability &middot; History</div></div>
+<button class="btn gold" onclick="toast('Add driver coming soon')" id="btn-ad">+ Add Driver</button></div>
+<div class="g3 mb14" id="dvcards"></div>
+<div class="tw"><div class="thbar"><span class="tt" id="tt-dh">DRIVER TRIP HISTORY</span></div>
+<table><thead><tr><th id="dvh0">Date</th><th id="dvh1">Conf#</th><th id="dvh2">Driver</th><th id="dvh3">Route</th><th id="dvh4">Vehicle</th><th id="dvh5">Value</th><th id="dvh6">Rating</th></tr></thead>
+<tbody>
+<tr><td>Apr 1</td><td class="tc">ILT-0039</td><td class="tn">Ivan</td><td>Santa Fe &#8594; AICM</td><td>Suburban</td><td class="ta">$3,800</td><td>&#11088; 5.0</td></tr>
+<tr><td>Mar 31</td><td class="tc">ILT-0038</td><td class="tn">Barbie</td><td>Polanco &#8594; Tulum</td><td>Sprinter</td><td class="ta">$18,500</td><td>&#11088; 5.0</td></tr>
+<tr><td>Mar 31</td><td class="tc">ILT-0037</td><td class="tn">Jaime</td><td>AICM &#8594; Condesa</td><td>Suburban</td><td class="ta">$2,400</td><td>&#11088; 4.8</td></tr>
+</tbody></table></div>
+</div>
 
-# ═══════════════════════════════════════════════════════════════════════
-# MODELS
-# ═══════════════════════════════════════════════════════════════════════
+<!-- FLEET & PRICING -->
+<div class="page" id="page-veh">
+<div class="ph"><div><div class="pt" id="pt-veh">Fleet &amp; Pricing</div><div class="ps" id="ps-veh">Vehicle database &middot; Pricing matrix &middot; CSV import</div></div>
+<div class="pa"><button class="btn" onclick="openCSV('vehicles')" id="btn-csv-v">&#11014; Import CSV</button><button class="btn gold" onclick="openM('mo-vehicle')" id="btn-av">+ Add Vehicle</button></div></div>
+<div class="mab" style="margin-bottom:16px"><span style="color:var(--gold);font-size:13px">&#9670;</span><input class="mabinp" id="price-prompt" placeholder="Tell Mikey to update pricing: Set Suburban hourly to $1,800 MXN..." onkeydown="if(event.key==='Enter')mikeyPriceCmd()"><button class="ab t" onclick="mikeyPriceCmd()" id="btn-mp">Update</button></div>
+<div id="veh-grid" class="g3 mb14"></div>
+<div class="tw"><div class="thbar"><span class="tt" id="tt-af">ADD-ON FEES</span></div>
+<table><thead><tr><th id="afh0">Fee Type</th><th id="afh1">Applies To</th><th id="afh2">Calc</th><th id="afh3">Value (MXN)</th><th id="afh4">Actions</th></tr></thead>
+<tbody id="fee-tbody"></tbody></table></div>
+</div>
 
-class BookingStatus(str, Enum):
-    QUOTE      = "quote"
-    CONFIRMED  = "confirmed"
-    PAID       = "paid"
-    DISPATCHED = "dispatched"
-    COMPLETED  = "completed"
-    CANCELLED  = "cancelled"
+<!-- VENUES -->
+<div class="page" id="page-venues">
+<div class="ph"><div><div class="pt" id="pt-ven">Venues</div><div class="ps" id="ps-ven">Restaurants &middot; Clubs &middot; Hotels &middot; Commission rates</div></div>
+<div class="pa"><button class="btn" onclick="openCSV('venues')" id="btn-csv-ven">&#11014; Import CSV</button><button class="btn gold" onclick="openM('mo-venue')" id="btn-aven">+ Add Venue</button></div></div>
+<div class="tw"><div class="thbar"><span class="tt" id="tt-vd">VENUE DATABASE</span>
+<div class="fb"><input class="fi" placeholder="Search..." oninput="filt('vtb',this.value)">
+<select class="fsel" onchange="filtSt('vtb',this.value)"><option value="">All</option><option>Restaurant</option><option>Nightclub</option><option>Hotel</option><option>Events</option></select></div></div>
+<table><thead><tr><th id="vh0">Name</th><th id="vh1">Type</th><th id="vh2">Commission</th><th id="vh3">Contact</th><th id="vh4">Zone</th><th id="vh5">Notes</th><th id="vh6">Actions</th></tr></thead>
+<tbody id="vtb"></tbody></table></div>
+</div>
 
+<!-- PROMO CODES -->
+<div class="page" id="page-promo">
+<div class="ph"><div><div class="pt" id="pt-promo">Promo Codes</div><div class="ps" id="ps-promo">Discount codes &middot; Usage tracking</div></div>
+<button class="btn gold" onclick="openM('mo-promo')" id="btn-apr">+ New Promo</button></div>
+<div class="sg">
+<div class="sc"><div class="sl">Active Codes</div><div class="sv t" id="promo-ac">0</div><div class="sd">In use</div></div>
+<div class="sc"><div class="sl">Total Uses</div><div class="sv" id="promo-us">0</div><div class="sd">All time</div></div>
+<div class="sc"><div class="sl">Discounts Given</div><div class="sv g" id="promo-dg">$0</div><div class="sd">MXN</div></div>
+<div class="sc"><div class="sl">Expired Codes</div><div class="sv r" id="promo-ex">0</div><div class="sd">Codes</div></div>
+</div>
+<div id="promo-list"></div>
+</div>
 
-class Client(Base):
-    __tablename__ = "clients"
+<!-- CALENDAR -->
+<div class="page" id="page-cal">
+<div class="ph"><div><div class="pt" id="pt-cal">Calendar</div><div class="ps" id="ps-cal">Block dates &middot; Driver availability &middot; Fleet schedule</div></div>
+<div class="pa"><button class="btn" onclick="prevMonth()" id="btn-prev">&#9664;</button><span style="font-family:var(--mono);font-size:12px;color:var(--txt);padding:0 10px" id="cal-lbl"></span><button class="btn" onclick="nextMonth()" id="btn-next">&#9654;</button></div></div>
+<div class="g2">
+<div class="card">
+<div class="ctit" id="ct-cal">BLOCK-OUT DATES</div>
+<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:6px">
+<div class="cal-hdr">SUN</div><div class="cal-hdr">MON</div><div class="cal-hdr">TUE</div><div class="cal-hdr">WED</div><div class="cal-hdr">THU</div><div class="cal-hdr">FRI</div><div class="cal-hdr">SAT</div>
+</div>
+<div class="cal-grid" id="cal-grid"></div>
+<div style="margin-top:10px;font-family:var(--mono);font-size:10px;color:var(--mut)">Click any date to block/unblock. <span style="color:var(--red)">&#9632;</span> = blocked</div>
+</div>
+<div>
+<div class="card mb14"><div class="ctit" id="ct-bd">BLOCKED DATES</div><div id="bd-list" style="font-family:var(--mono);font-size:11px;color:var(--mut)">No dates blocked</div></div>
+<div class="card"><div class="ctit" id="ct-ub">UPCOMING BOOKINGS</div><div id="cal-up"></div></div>
+</div>
+</div>
+</div>
 
-    id                   = Column(String(36), primary_key=True, default=lambda: str(__import__('uuid').uuid4()))
-    email                = Column(String(255), unique=True, index=True, nullable=False)
-    name                 = Column(String(255), nullable=True)
-    phone                = Column(String(50), nullable=True)
-    preferred_lang       = Column(String(10), default="en")
-    pax_typical          = Column(Integer, default=1)
-    is_vip               = Column(Boolean, default=False)
-    vip_reason           = Column(Text, nullable=True)
-    source               = Column(String(50), default="mikey-cdmx")
-    market               = Column(String(20), default="cdmx")
-    total_lifetime_spend = Column(Float, default=0.0)
-    booking_count        = Column(Integer, default=0)
-    last_seen            = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    created_at           = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    notes                = Column(Text, nullable=True)
+</div><!-- /content -->
+</div><!-- /main -->
 
-    bookings = relationship("Booking", back_populates="client", lazy="selectin")
+<!-- MODALS -->
+<div class="mo" id="mo-book">
+<div class="md"><div class="mh"><span class="mtt" id="mt-book">&#9672; NEW BOOKING</span><span class="mc" onclick="closeM('mo-book')">&#10005;</span></div>
+<div class="mb2">
+<div class="mab"><span style="color:var(--gold);font-size:13px">&#9670;</span><input class="mabinp" id="maf" placeholder="Describe the trip &#8212; Mikey will fill the form..." onkeydown="if(event.key==='Enter')maFill()"><button class="ab t" onclick="maFill()" id="btn-mf">Fill</button></div>
+<div class="fr2"><div class="fr"><div class="fl" id="fl-cn">Client Name</div><input class="fin" id="nb1"></div><div class="fr"><div class="fl" id="fl-ph">Phone / WhatsApp</div><input class="fin" id="nb2"></div></div>
+<div class="fr"><div class="fl" id="fl-em">Email</div><input class="fin" id="nb3"></div>
+<div class="fr2"><div class="fr"><div class="fl" id="fl-pd">Pickup Date</div><input class="fin" type="date" id="nb4"></div><div class="fr"><div class="fl" id="fl-pt">Pickup Time</div><input class="fin" type="time" id="nb5"></div></div>
+<div class="fr"><div class="fl" id="fl-pu">Pickup Location</div><input class="fin" id="nb6"></div>
+<div class="fr"><div class="fl" id="fl-do">Drop-off</div><input class="fin" id="nb7"></div>
+<div class="fr2">
+<div class="fr"><div class="fl" id="fl-vh">Vehicle</div><select class="fse" id="nb8"><option>Executive Sedan</option><option>Suburban / SUV</option><option>Sprinter Van (14p)</option><option>Charter / Custom</option></select></div>
+<div class="fr"><div class="fl" id="fl-px">Passengers</div><input class="fin" type="number" id="nb9" min="1"></div>
+</div>
+<div class="fr"><div class="fl" id="fl-to">Total Amount (MXN)</div><input class="fin" id="nb10"></div>
+<div class="fr"><div class="fl" id="fl-no">Internal Notes</div><input class="fin" id="nb11"></div>
+</div>
+<div class="mfoot"><button class="btn" onclick="closeM('mo-book')" id="btn-canb">Cancel</button><button class="btn" onclick="toast('Sending quote via Mikey...')" id="btn-sq">Send Quote</button><button class="btn gold" onclick="saveBook()" id="btn-sb">Save Booking</button></div>
+</div></div>
 
-    def to_memory_string(self) -> str:
-        parts = [f"Client {self.name or 'unknown'}"]
-        if self.is_vip:
-            parts.append("VIP client")
-        if self.booking_count:
-            parts.append(f"{self.booking_count} prior bookings, lifetime spend ${self.total_lifetime_spend:.0f}")
-        if self.pax_typical and self.pax_typical > 1:
-            parts.append(f"typically travels with {self.pax_typical} passengers")
-        recent = sorted(self.bookings, key=lambda b: b.created_at or datetime.min, reverse=True)
-        if recent:
-            last = recent[0]
-            parts.append(f"last booking: {last.service_type} · {last.vehicle_key} · ${last.total_usd:.0f}")
-        if self.notes:
-            parts.append(f"ops note: {self.notes}")
-        return ". ".join(parts) + "."
+<div class="mo" id="mo-client">
+<div class="md"><div class="mh"><span class="mtt" id="mt-cli">&#9671; ADD CLIENT</span><span class="mc" onclick="closeM('mo-client')">&#10005;</span></div>
+<div class="mb2">
+<div class="mab"><span style="color:var(--gold);font-size:13px">&#9670;</span><input class="mabinp" id="mcf" placeholder="Describe the client &#8212; Mikey will fill the profile..." onkeydown="if(event.key==='Enter')mcFill()"><button class="ab t" onclick="mcFill()">Fill</button></div>
+<div class="fr2"><div class="fr"><div class="fl">Full Name</div><input class="fin" id="nc1"></div><div class="fr"><div class="fl">Phone / WhatsApp</div><input class="fin" id="nc2"></div></div>
+<div class="fr"><div class="fl">Email</div><input class="fin" id="nc3"></div>
+<div class="fr2">
+<div class="fr"><div class="fl">Client Type</div><select class="fse" id="nc4"><option>VIP</option><option>Corporate</option><option>Standard</option></select></div>
+<div class="fr"><div class="fl">Preferred Vehicle</div><select class="fse" id="nc5"><option>No preference</option><option>Executive Sedan</option><option>Suburban / SUV</option><option>Sprinter Van</option></select></div>
+</div>
+<div class="fr"><div class="fl">Notes &amp; Preferences</div><input class="fin" id="nc6"></div>
+</div>
+<div class="mfoot"><button class="btn" onclick="closeM('mo-client')">Cancel</button><button class="btn gold" onclick="saveClient()">Save Client</button></div>
+</div></div>
 
+<div class="mo" id="mo-vehicle">
+<div class="md"><div class="mh"><span class="mtt" id="mt-veh">&#9633; ADD VEHICLE</span><span class="mc" onclick="closeM('mo-vehicle')">&#10005;</span></div>
+<div class="mb2">
+<div class="mab"><span style="color:var(--gold);font-size:13px">&#9670;</span><input class="mabinp" id="vaf" placeholder="Describe the vehicle &#8212; Mikey will suggest pricing..." onkeydown="if(event.key==='Enter')vaFill()"><button class="ab t" onclick="vaFill()">Fill</button></div>
+<div class="fr2"><div class="fr"><div class="fl" id="fl-vn">Vehicle Name</div><input class="fin" id="vn1" placeholder="e.g. Suburban SUV"></div><div class="fr"><div class="fl" id="fl-vc">Capacity (pax)</div><input class="fin" type="number" id="vn2"></div></div>
+<div class="fr2"><div class="fr"><div class="fl" id="fl-hr">Hourly Rate (MXN)</div><input class="fin" id="vn3" placeholder="Leave blank"></div><div class="fr"><div class="fl" id="fl-kr">Per Km Rate (MXN)</div><input class="fin" id="vn4" placeholder="Leave blank"></div></div>
+<div class="fr2"><div class="fr"><div class="fl" id="fl-mh">Min Hours</div><input class="fin" id="vn5" placeholder="2"></div><div class="fr"><div class="fl">Status</div><select class="fse" id="vn6"><option>Active</option><option>Maintenance</option><option>Inactive</option></select></div></div>
+<div class="fr"><div class="fl">Notes</div><input class="fin" id="vn7" placeholder="Special features..."></div>
+</div>
+<div class="mfoot"><button class="btn" onclick="closeM('mo-vehicle')">Cancel</button><button class="btn gold" onclick="saveVehicle()">Save Vehicle</button></div>
+</div></div>
 
-class Booking(Base):
-    __tablename__ = "bookings"
+<div class="mo" id="mo-venue">
+<div class="md"><div class="mh"><span class="mtt" id="mt-ven">&#9830; ADD VENUE</span><span class="mc" onclick="closeM('mo-venue')">&#10005;</span></div>
+<div class="mb2">
+<div class="fr2"><div class="fr"><div class="fl" id="fl-vename">Venue Name</div><input class="fin" id="ven1" placeholder="Restaurant, club, hotel..."></div><div class="fr"><div class="fl">Type</div><select class="fse" id="ven2"><option>Restaurant</option><option>Nightclub</option><option>Hotel</option><option>Events</option><option>Other</option></select></div></div>
+<div class="fr2"><div class="fr"><div class="fl" id="fl-vcomm">Commission %</div><input class="fin" id="ven3" placeholder="10"></div><div class="fr"><div class="fl" id="fl-vzone">Zone / Area</div><input class="fin" id="ven4" placeholder="Polanco, Condesa..."></div></div>
+<div class="fr2"><div class="fr"><div class="fl" id="fl-vcont">Contact Name</div><input class="fin" id="ven5"></div><div class="fr"><div class="fl">Phone / WhatsApp</div><input class="fin" id="ven6"></div></div>
+<div class="fr"><div class="fl">Email</div><input class="fin" id="ven7"></div>
+<div class="fr"><div class="fl">Notes</div><input class="fin" id="ven8" placeholder="Min spend, booking process, special notes..."></div>
+</div>
+<div class="mfoot"><button class="btn" onclick="closeM('mo-venue')">Cancel</button><button class="btn gold" onclick="saveVenue()">Save Venue</button></div>
+</div></div>
 
-    id                    = Column(String(36), primary_key=True, default=lambda: str(__import__('uuid').uuid4()))
-    confirmation_number   = Column(String(50), unique=True, index=True, nullable=False)
-    client_id             = Column(String(36), ForeignKey("clients.id"), nullable=True)
-    client_email          = Column(String(255), index=True, nullable=True)
-    client_name           = Column(String(255), nullable=True)
-    vehicle_key           = Column(String(20), nullable=True)
-    service_type          = Column(String(30), nullable=True)
-    hours                 = Column(Float, default=0)
-    miles                 = Column(Float, default=0)
-    total_usd             = Column(Float, nullable=False)
-    session_total_usd     = Column(Float, default=0)
-    status                = Column(String(20), default=BookingStatus.QUOTE)
-    is_vip                = Column(Boolean, default=False)
-    market                = Column(String(20), default="cdmx")
-    driver_assigned       = Column(String(100), nullable=True)
-    stripe_session_id     = Column(String(200), nullable=True)
-    stripe_payment_intent = Column(String(200), nullable=True)
-    paid_at               = Column(DateTime(timezone=True), nullable=True)
-    dispatched_at         = Column(DateTime(timezone=True), nullable=True)
-    completed_at          = Column(DateTime(timezone=True), nullable=True)
-    notes                 = Column(Text, nullable=True)
-    created_at            = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at            = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc),
-                                   onupdate=lambda: datetime.now(timezone.utc))
+<div class="mo" id="mo-promo">
+<div class="md"><div class="mh"><span class="mtt" id="mt-promo">% NEW PROMO CODE</span><span class="mc" onclick="closeM('mo-promo')">&#10005;</span></div>
+<div class="mb2">
+<div class="fr2"><div class="fr"><div class="fl" id="fl-pcode">Promo Code</div><input class="fin" id="pr1" placeholder="CDMX20" style="text-transform:uppercase"></div><div class="fr"><div class="fl" id="fl-dtype">Discount Type</div><select class="fse" id="pr2"><option>Percentage %</option><option>Fixed Amount MXN</option></select></div></div>
+<div class="fr2"><div class="fr"><div class="fl" id="fl-dval">Discount Value</div><input class="fin" id="pr3" placeholder="20"></div><div class="fr"><div class="fl" id="fl-muses">Max Uses</div><input class="fin" type="number" id="pr4" placeholder="100"></div></div>
+<div class="fr2"><div class="fr"><div class="fl" id="fl-vfrom">Valid From</div><input class="fin" type="date" id="pr5"></div><div class="fr"><div class="fl" id="fl-exp">Expires</div><input class="fin" type="date" id="pr6"></div></div>
+<div class="fr"><div class="fl" id="fl-app">Applies To</div><select class="fse" id="pr7"><option>All Bookings</option><option>Hourly Charter Only</option><option>One Way Only</option><option>Airport Transfers</option></select></div>
+<div class="fr"><div class="fl">Notes</div><input class="fin" id="pr8" placeholder="Campaign name, client segment..."></div>
+</div>
+<div class="mfoot"><button class="btn" onclick="closeM('mo-promo')">Cancel</button><button class="btn gold" onclick="savePromo()">Create Code</button></div>
+</div></div>
 
-    client        = relationship("Client", back_populates="bookings")
-    dispatch_logs = relationship("DispatchLog", back_populates="booking", lazy="selectin")
+<div class="mo" id="mo-charge">
+<div class="md"><div class="mh"><span class="mtt" id="mt-charge">&#9889; MANUAL STRIPE CHARGE</span><span class="mc" onclick="closeM('mo-charge')">&#10005;</span></div>
+<div class="mb2">
+<div style="background:var(--rd);border:1px solid rgba(224,92,92,.3);border-radius:var(--r);padding:9px 12px;font-family:var(--mono);font-size:10px;color:var(--red);margin-bottom:14px">&#9888; This sends a real charge via your Stripe API. Verify all details before processing.</div>
+<div class="fr2"><div class="fr"><div class="fl" id="fl-chcl">Client Name</div><input class="fin" id="ch1"></div><div class="fr"><div class="fl" id="fl-chbk">Booking Conf #</div><input class="fin" id="ch2" placeholder="ILT-0000"></div></div>
+<div class="fr"><div class="fl" id="fl-chamt">Charge Amount (MXN)</div><input class="fin" id="ch3" type="number" placeholder="0.00"></div>
+<div class="fr"><div class="fl" id="fl-chdesc">Description</div><input class="fin" id="ch4" placeholder="Ground transportation &#8212; Polanco to AICM"></div>
+<div class="stripe-section">
+<div class="fl" style="margin-bottom:10px">CARD DETAILS &mdash; STRIPE SECURE</div>
+<div class="fr"><div class="fl" id="fl-ccn">Card Number</div><input class="fin" id="cc1" placeholder="4242 4242 4242 4242" maxlength="19" oninput="fmtCard(this)" style="letter-spacing:.1em;font-size:14px"></div>
+<div class="fr2"><div class="fr"><div class="fl" id="fl-cce">Expiry</div><input class="fin" id="cc2" placeholder="MM/YY" maxlength="5"></div><div class="fr"><div class="fl">CVV</div><input class="fin" id="cc3" placeholder="123" maxlength="4" type="password"></div></div>
+</div>
+</div>
+<div class="mfoot"><button class="btn" onclick="closeM('mo-charge')">Cancel</button><button class="btn gold" onclick="processCharge()">&#9889; Process Payment</button></div>
+</div></div>
 
+<div class="mo" id="mo-mikey">
+<div class="md wide"><div class="mh"><span class="mtt" id="mt-mikey">&#9670; MIKEY &#8212; ILT OPS INTELLIGENCE v3</span><span class="mc" onclick="closeM('mo-mikey')">&#10005;</span></div>
+<div class="chatbox" id="mmsgs"><div class="cai"><span class="ctag">&#9670; MIKEY &middot; OPS MODE v3</span>Mikey online &#8212; ask me about dispatch, pricing, fleet, venues, promo codes, or clients.</div></div>
+<div class="cibar"><input class="cinp" id="minp" placeholder="Ask Mikey..." onkeydown="if(event.key==='Enter')sendMikey()"><button class="btn gold" onclick="sendMikey()">Send</button></div>
+</div></div>
 
-class Driver(Base):
-    __tablename__ = "drivers"
+<div class="mo" id="mo-csv">
+<div class="md wide"><div class="mh"><span class="mtt" id="csvtit">&#11014; IMPORT CSV</span><span class="mc" onclick="closeM('mo-csv')">&#10005;</span></div>
+<div class="mb2">
+<div class="uz" id="csvdrop" onclick="document.getElementById('csvfile').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+<div style="font-size:22px;margin-bottom:7px;color:var(--mut)">&#128202;</div>
+<div style="font-family:var(--mono);font-size:11px;color:var(--dim)">Drop CSV file here, or click to browse</div>
+<div style="font-size:10px;color:var(--mut);margin-top:3px">Supports .csv &middot; Mikey maps your columns automatically</div>
+</div>
+<input type="file" id="csvfile" accept=".csv" style="display:none" onchange="handleCSV(event)">
+<div id="csvprev" style="margin-top:12px"></div>
+<div id="csvmap" style="margin-top:10px"></div>
+</div>
+<div class="mfoot"><button class="btn" onclick="closeM('mo-csv')">Cancel</button><button class="btn gold" id="csvbtn" style="display:none" onclick="importCSV()">Import Records</button></div>
+</div></div>
 
-    id           = Column(String(36), primary_key=True, default=lambda: str(__import__('uuid').uuid4()))
-    name         = Column(String(100), unique=True, nullable=False)
-    initials     = Column(String(4), nullable=True)
-    phone        = Column(String(50), nullable=True)
-    whatsapp     = Column(String(50), nullable=True)
-    specialty    = Column(String(200), nullable=True)
-    zones        = Column(String(200), nullable=True)
-    languages    = Column(String(100), default="en,es")
-    vehicle_key  = Column(String(20), nullable=True)
-    is_active    = Column(Boolean, default=True)
-    is_available = Column(Boolean, default=True)
-    current_lat  = Column(Float, nullable=True)
-    current_lng  = Column(Float, nullable=True)
-    last_gps_at  = Column(DateTime(timezone=True), nullable=True)
-    created_at   = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+<div class="mo" id="mo-receipt">
+<div class="md" style="width:420px"><div class="mh"><span class="mtt" id="mt-rcpt">PAYMENT RECEIPT</span><span class="mc" onclick="closeM('mo-receipt')">&#10005;</span></div>
+<div class="mb2" id="rcbody"></div>
+<div class="mfoot"><button class="btn" onclick="closeM('mo-receipt')">Close</button><button class="btn" onclick="toast('Sent via WhatsApp &#10003;')">WhatsApp</button><button class="btn gold" onclick="toast('Receipt emailed via SendGrid &#10003;')">Email Receipt</button></div>
+</div></div>
 
-    dispatch_logs = relationship("DispatchLog", back_populates="driver", lazy="selectin")
+<div id="toast"></div>
 
+<script>
+// MIKEY AI
+const SYS_EN=`You are Mikey, the AI operations intelligence engine for ILT (Infinite Logistic Technologies) and Lux Tour Travel in Mexico City. Talking to James Corbin, founder. CDMX team: Ivan (GM), Barbie (concierge), Jaime (touring partner). You manage fleet pricing, venue commissions, promo codes, bookings, and client data. Help with dispatch, pricing updates, venue recommendations, promo strategy, and all operations. Be concise and precise. Always respond in English.`;
+const SYS_ES=`Eres Mikey, el motor de inteligencia operacional de ILT y Lux Tour Travel en Ciudad de M\u00e9xico. Hablas con James Corbin, fundador. Equipo CDMX: Ivan (GM), Barbie (concierge), Jaime (touring). Gestionas precios de flota, comisiones de venues, c\u00f3digos promo, reservas y datos de clientes. Ayuda con despacho, actualizaci\u00f3n de precios, recomendaciones de venues, estrategia promo y operaciones. S\u00e9 conciso y preciso. Responde SIEMPRE en espa\u00f1ol.`;
+const getSYS=()=>lang==="es"?SYS_ES:SYS_EN;
+const hist=[];
 
-class DispatchLog(Base):
-    __tablename__ = "dispatch_logs"
-
-    id          = Column(String(36), primary_key=True, default=lambda: str(__import__('uuid').uuid4()))
-    booking_id  = Column(String(36), ForeignKey("bookings.id"), nullable=False)
-    driver_id   = Column(String(36), ForeignKey("drivers.id"), nullable=False)
-    assigned_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    eta_minutes = Column(Integer, nullable=True)
-    notes       = Column(Text, nullable=True)
-    status      = Column(String(20), default="assigned")
-
-    booking = relationship("Booking", back_populates="dispatch_logs")
-    driver  = relationship("Driver", back_populates="dispatch_logs")
-
-
-class ILTUser(Base):
-    __tablename__ = "ilt_users"
-
-    id            = Column(String(36), primary_key=True,
-                           default=lambda: str(__import__('uuid').uuid4()))
-    email         = Column(String(255), unique=True, index=True, nullable=False)
-    name          = Column(String(255), nullable=False)
-    role          = Column(String(50),  nullable=False)   # owner|manager|driver|client|affiliate
-    password_hash = Column(String(255), nullable=False)
-    is_active     = Column(Boolean, default=True)
-    created_at    = Column(DateTime(timezone=True),
-                           default=lambda: datetime.now(timezone.utc))
-    last_login    = Column(DateTime(timezone=True), nullable=True)
-
-
-# ═══════════════════════════════════════════════════════════════════════
-# SCHEMAS
-# ═══════════════════════════════════════════════════════════════════════
-
-class ClientCreate(BaseModel):
-    email:         str
-    name:          Optional[str] = None
-    phone:         Optional[str] = None
-    pax:           Optional[int] = 1
-    source:        Optional[str] = "mikey-cdmx"
-    market:        Optional[str] = "cdmx"
-    is_vip:        Optional[bool] = False
-    session_total: Optional[float] = 0.0
-
-class ClientResponse(BaseModel):
-    id:                   str
-    email:                str
-    name:                 Optional[str]
-    is_vip:               bool
-    booking_count:        int
-    total_lifetime_spend: float
-    memory_string:        Optional[str] = None
-    class Config:
-        from_attributes = True
-
-class BookingCreate(BaseModel):
-    confirmation_number: str
-    client_email:        Optional[str] = None
-    client_name:         Optional[str] = None
-    vehicle_key:         Optional[str] = None
-    service_type:        Optional[str] = None
-    total_usd:           float
-    session_total:       Optional[float] = 0.0
-    is_vip:              Optional[bool] = False
-    market:              Optional[str] = "cdmx"
-    status:              Optional[str] = "confirmed"
-
-class BookingResponse(BaseModel):
-    id:                  str
-    confirmation_number: str
-    status:              str
-    total_usd:           float
-    is_vip:              bool
-    driver_assigned:     Optional[str]
-    class Config:
-        from_attributes = True
-
-class DriverCreate(BaseModel):
-    name:      str
-    initials:  Optional[str] = None
-    phone:     Optional[str] = None
-    whatsapp:  Optional[str] = None
-    specialty: Optional[str] = None
-    zones:     Optional[str] = None
-    languages: Optional[str] = "en,es"
-
-class DriverUpdate(BaseModel):
-    is_available: Optional[bool] = None
-    current_lat:  Optional[float] = None
-    current_lng:  Optional[float] = None
-
-class DispatchRequest(BaseModel):
-    booking_confirmation: str
-    driver_name:          Optional[str] = None
-    eta_minutes:          Optional[int] = None
-    notes:                Optional[str] = None
-
-class DispatchResponse(BaseModel):
-    booking_confirmation: str
-    driver_name:          str
-    eta_minutes:          int
-    vehicle:              Optional[str]
-
-class VIPAlert(BaseModel):
-    client_email:  Optional[str]
-    client_name:   Optional[str]
-    reason:        str
-    session_total: Optional[float]
-    market:        str = "cdmx"
-
-class ChatRequest(BaseModel):
-    messages: List[dict]
-    system:   Optional[str] = ""
-
-
-# ─── AUTH SCHEMAS ──────────────────────────────────────────────────────
-
-VALID_ROLES = {"owner", "manager", "driver", "client", "affiliate"}
-
-ROLE_SCOPES = {
-    "driver":    ["jobs:own", "checkin:write", "schedule:own"],
-    "manager":   ["jobs:all", "drivers:all", "clients:all",
-                  "financials:read", "analytics:read"],
-    "owner":     ["jobs:all", "drivers:all", "clients:all",
-                  "financials:all", "analytics:all",
-                  "affiliates:all", "settings:all", "users:manage"],
-    "client":    ["bookings:own", "documents:own"],
-    "affiliate": ["revenue:own", "referrals:own", "reports:own"],
+async function callMikey(messages,system){
+const r=await fetch(CFG.API+"/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({system:system||getSYS(),messages})});
+const d=await r.json();
+return typeof d.content==="string"?d.content:d.content?.[0]?.text||"No response.";
 }
 
-class UserLogin(BaseModel):
-    email:    str
-    password: str
-    role:     str
-
-class UserCreate(BaseModel):
-    email:    str
-    password: str
-    name:     str
-    role:     str
-
-class TokenResponse(BaseModel):
-    access_token: str
-    token_type:   str = "bearer"
-    user_name:    str
-    user_role:    str
-    scopes:       List[str]
-    expires_in:   int
-
-class VerifyResponse(BaseModel):
-    valid:      bool
-    user_id:    str
-    user_name:  str
-    user_email: str
-    user_role:  str
-    scopes:     List[str]
-
-
-# ═══════════════════════════════════════════════════════════════════════
-# STARTUP / SHUTDOWN
-# ═══════════════════════════════════════════════════════════════════════
-
-@app.on_event("startup")
-async def startup():
-    global redis_client
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    redis_client = aioredis.from_url(REDIS_URL, decode_responses=True)
-    print("ILT Backend started ✓")
-
-@app.on_event("shutdown")
-async def shutdown():
-    if redis_client:
-        await redis_client.close()
-
-async def get_db() -> AsyncSession:
-    async with AsyncSessionLocal() as session:
-        yield session
-
-
-# ═══════════════════════════════════════════════════════════════════════
-# HEALTH
-# ═══════════════════════════════════════════════════════════════════════
-
-@app.get("/health")
-async def health():
-    return {"status": "ok", "service": "ILT Mikey CDMX API", "version": "1.0.0"}
-
-
-# ═══════════════════════════════════════════════════════════════════════
-# AUTH — Portal login, token verify, user management
-# ═══════════════════════════════════════════════════════════════════════
-
-async def get_current_user(
-    token: str = Depends(oauth2_scheme),
-    db: AsyncSession = Depends(get_db)
-) -> ILTUser:
-    if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-        user_id: str = payload.get("sub")
-        if not user_id:
-            raise HTTPException(status_code=401, detail="Invalid token")
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Token invalid or expired")
-    result = await db.execute(select(ILTUser).where(ILTUser.id == user_id))
-    user   = result.scalar_one_or_none()
-    if not user or not user.is_active:
-        raise HTTPException(status_code=401, detail="User not found or inactive")
-    return user
-
-async def require_owner(user: ILTUser = Depends(get_current_user)) -> ILTUser:
-    if user.role != "owner":
-        raise HTTPException(status_code=403, detail="Owner access required")
-    return user
-
-
-@app.post("/auth/login", response_model=TokenResponse)
-async def auth_login(data: UserLogin, db: AsyncSession = Depends(get_db)):
-    if data.role not in VALID_ROLES:
-        raise HTTPException(status_code=400, detail="Invalid role")
-    result = await db.execute(
-        select(ILTUser).where(ILTUser.email == data.email.lower().strip())
-    )
-    user = result.scalar_one_or_none()
-    # Constant-time failure — never reveal which field is wrong
-    if not user or not user.is_active or user.role != data.role:
-        pwd_ctx.hash("dummy")
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    if not pwd_ctx.verify(data.password, user.password_hash):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    user.last_login = datetime.now(timezone.utc)
-    await db.commit()
-    scopes  = ROLE_SCOPES[user.role]
-    expires = datetime.now(timezone.utc) + timedelta(minutes=JWT_EXPIRE_MINUTES)
-    token   = jwt.encode(
-        {"sub": user.id, "email": user.email, "name": user.name,
-         "role": user.role, "scope": scopes, "exp": expires},
-        JWT_SECRET, algorithm=JWT_ALGORITHM,
-    )
-    return TokenResponse(
-        access_token=token, user_name=user.name, user_role=user.role,
-        scopes=scopes, expires_in=JWT_EXPIRE_MINUTES * 60,
-    )
-
-
-@app.get("/auth/verify", response_model=VerifyResponse)
-async def auth_verify(user: ILTUser = Depends(get_current_user)):
-    return VerifyResponse(
-        valid=True, user_id=user.id, user_name=user.name,
-        user_email=user.email, user_role=user.role,
-        scopes=ROLE_SCOPES[user.role],
-    )
-
-
-@app.post("/auth/create-user", status_code=201)
-async def auth_create_user(
-    data: UserCreate,
-    # ── BOOTSTRAP STEP ──────────────────────────────────────────────────
-    # To create your first owner account, temporarily comment out the
-    # line below, deploy, hit this endpoint once, then uncomment & redeploy.
-    owner: ILTUser = Depends(require_owner),
-    db: AsyncSession = Depends(get_db),
-):
-    if data.role not in VALID_ROLES:
-        raise HTTPException(status_code=400, detail="Invalid role")
-    existing = await db.execute(
-        select(ILTUser).where(ILTUser.email == data.email.lower().strip())
-    )
-    if existing.scalar_one_or_none():
-        raise HTTPException(status_code=409, detail="Email already registered")
-    user = ILTUser(
-        email=data.email.lower().strip(), name=data.name,
-        role=data.role, password_hash=pwd_ctx.hash(data.password),
-        is_active=True,
-    )
-    db.add(user)
-    await db.commit()
-    return {"status": "created", "email": user.email, "role": user.role}
-
-
-@app.get("/auth/users", dependencies=[Depends(require_owner)])
-async def auth_list_users(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(ILTUser).order_by(ILTUser.role, ILTUser.name))
-    users  = result.scalars().all()
-    return [{"id": u.id, "email": u.email, "name": u.name, "role": u.role,
-             "is_active": u.is_active,
-             "last_login": u.last_login.isoformat() if u.last_login else None}
-            for u in users]
-
-
-@app.patch("/auth/users/{user_id}/deactivate", dependencies=[Depends(require_owner)])
-async def auth_deactivate_user(user_id: str, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(ILTUser).where(ILTUser.id == user_id))
-    user   = result.scalar_one_or_none()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    user.is_active = False
-    await db.commit()
-    return {"status": "deactivated", "email": user.email}
-
-
-# ═══════════════════════════════════════════════════════════════════════
-# MIKEY CHAT — Proxy to Anthropic (key stays server-side)
-# ═══════════════════════════════════════════════════════════════════════
-
-@app.post("/api/chat")
-async def mikey_chat(data: ChatRequest):
-    if not ANTHROPIC_API_KEY:
-        raise HTTPException(status_code=500, detail="Anthropic API key not configured")
-    try:
-        response = anthropic_client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=1000,
-            system=data.system or "You are Mikey, the AI operations intelligence engine for ILT and Lux Tour Travel in Mexico City. Be concise, professional, and operationally precise.",
-            messages=data.messages
-        )
-        return {"content": response.content[0].text}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-# ═══════════════════════════════════════════════════════════════════════
-# DRIVERS
-# ═══════════════════════════════════════════════════════════════════════
-
-@app.post("/api/drivers")
-async def add_driver(data: DriverCreate, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Driver).where(Driver.name == data.name))
-    if result.scalar_one_or_none():
-        raise HTTPException(status_code=409, detail="Driver already exists")
-    driver = Driver(**data.dict())
-    db.add(driver)
-    await db.commit()
-    await db.refresh(driver)
-    return {"status": "created", "driver": driver.name, "id": driver.id}
-
-@app.get("/api/drivers")
-async def list_drivers(db: AsyncSession = Depends(get_db)):
-    result  = await db.execute(select(Driver).where(Driver.is_active == True))
-    drivers = result.scalars().all()
-    return [{
-        "id": d.id, "name": d.name, "initials": d.initials,
-        "specialty": d.specialty, "zones": d.zones, "languages": d.languages,
-        "is_available": d.is_available, "current_lat": d.current_lat,
-        "current_lng": d.current_lng,
-        "last_gps_at": d.last_gps_at.isoformat() if d.last_gps_at else None,
-    } for d in drivers]
-
-@app.patch("/api/drivers/{driver_name}")
-async def update_driver(driver_name: str, data: DriverUpdate, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Driver).where(Driver.name == driver_name))
-    driver = result.scalar_one_or_none()
-    if not driver:
-        raise HTTPException(status_code=404, detail="Driver not found")
-    if data.is_available is not None:
-        driver.is_available = data.is_available
-    if data.current_lat is not None:
-        driver.current_lat = data.current_lat
-        driver.current_lng = data.current_lng
-        driver.last_gps_at = datetime.now(timezone.utc)
-    await db.commit()
-    if redis_client:
-        await redis_client.publish(f"driver_gps:{driver_name}", json.dumps({
-            "name": driver.name, "lat": driver.current_lat, "lng": driver.current_lng,
-            "available": driver.is_available, "ts": datetime.now(timezone.utc).isoformat()
-        }))
-    return {"status": "ok", "driver": driver.name}
-
-@app.delete("/api/drivers/{driver_name}")
-async def deactivate_driver(driver_name: str, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Driver).where(Driver.name == driver_name))
-    driver = result.scalar_one_or_none()
-    if not driver:
-        raise HTTPException(status_code=404, detail="Driver not found")
-    driver.is_active = False
-    await db.commit()
-    return {"status": "deactivated", "driver": driver_name}
-
-
-# ═══════════════════════════════════════════════════════════════════════
-# CLIENTS
-# ═══════════════════════════════════════════════════════════════════════
-
-@app.post("/api/clients", response_model=ClientResponse)
-async def upsert_client(data: ClientCreate, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Client).where(Client.email == data.email))
-    client = result.scalar_one_or_none()
-    if client:
-        if data.name and not client.name:     client.name = data.name
-        if data.phone and not client.phone:   client.phone = data.phone
-        if data.pax:                          client.pax_typical = data.pax
-        if data.is_vip and not client.is_vip: client.is_vip = True
-        client.last_seen = datetime.now(timezone.utc)
-    else:
-        client = Client(
-            email=data.email, name=data.name, phone=data.phone,
-            pax_typical=data.pax or 1, is_vip=data.is_vip or False,
-            source=data.source or "mikey-cdmx", market=data.market or "cdmx",
-        )
-        db.add(client)
-    await db.commit()
-    await db.refresh(client)
-    memory = client.to_memory_string()
-    if redis_client:
-        await redis_client.setex(f"memory:{data.email}", 900, memory)
-    return ClientResponse(
-        id=client.id, email=client.email, name=client.name, is_vip=client.is_vip,
-        booking_count=client.booking_count, total_lifetime_spend=client.total_lifetime_spend,
-        memory_string=memory,
-    )
-
-@app.get("/api/clients/{email}", response_model=ClientResponse)
-async def get_client(email: str, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Client).where(Client.email == email))
-    client = result.scalar_one_or_none()
-    if not client:
-        raise HTTPException(status_code=404, detail="Client not found")
-    memory = client.to_memory_string()
-    return ClientResponse(
-        id=client.id, email=client.email, name=client.name, is_vip=client.is_vip,
-        booking_count=client.booking_count, total_lifetime_spend=client.total_lifetime_spend,
-        memory_string=memory,
-    )
-
-
-# ═══════════════════════════════════════════════════════════════════════
-# BOOKINGS
-# ═══════════════════════════════════════════════════════════════════════
-
-@app.post("/api/bookings", response_model=BookingResponse)
-async def create_booking(data: BookingCreate, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Booking).where(Booking.confirmation_number == data.confirmation_number))
-    existing = result.scalar_one_or_none()
-    if existing:
-        existing.status = data.status or existing.status
-        await db.commit()
-        await db.refresh(existing)
-        return BookingResponse(
-            id=existing.id, confirmation_number=existing.confirmation_number,
-            status=existing.status, total_usd=existing.total_usd,
-            is_vip=existing.is_vip, driver_assigned=existing.driver_assigned,
-        )
-    client_id = None
-    if data.client_email:
-        result = await db.execute(select(Client).where(Client.email == data.client_email))
-        client = result.scalar_one_or_none()
-        if client:
-            client_id = client.id
-            client.booking_count        += 1
-            client.total_lifetime_spend += data.total_usd
-            if data.is_vip: client.is_vip = True
-    booking = Booking(
-        confirmation_number=data.confirmation_number,
-        client_id=client_id, client_email=data.client_email,
-        client_name=data.client_name, vehicle_key=data.vehicle_key,
-        service_type=data.service_type, total_usd=data.total_usd,
-        session_total_usd=data.session_total or data.total_usd,
-        status=data.status or BookingStatus.CONFIRMED,
-        is_vip=data.is_vip or False, market=data.market or "cdmx",
-    )
-    db.add(booking)
-    await db.commit()
-    await db.refresh(booking)
-    return BookingResponse(
-        id=booking.id, confirmation_number=booking.confirmation_number,
-        status=booking.status, total_usd=booking.total_usd,
-        is_vip=booking.is_vip, driver_assigned=booking.driver_assigned,
-    )
-
-@app.get("/api/bookings", response_model=List[BookingResponse])
-async def list_bookings(
-    status: Optional[str] = None,
-    market: Optional[str] = "cdmx",
-    limit:  int = 50,
-    db: AsyncSession = Depends(get_db)
-):
-    query = select(Booking).where(Booking.market == market).order_by(Booking.created_at.desc()).limit(limit)
-    if status:
-        query = query.where(Booking.status == status)
-    result   = await db.execute(query)
-    bookings = result.scalars().all()
-    return [BookingResponse(
-        id=b.id, confirmation_number=b.confirmation_number, status=b.status,
-        total_usd=b.total_usd, is_vip=b.is_vip, driver_assigned=b.driver_assigned,
-    ) for b in bookings]
-
-
-# ═══════════════════════════════════════════════════════════════════════
-# DISPATCH
-# ═══════════════════════════════════════════════════════════════════════
-
-@app.post("/api/dispatch", response_model=DispatchResponse)
-async def dispatch_driver(data: DispatchRequest, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Booking).where(Booking.confirmation_number == data.booking_confirmation))
-    booking = result.scalar_one_or_none()
-    if not booking:
-        raise HTTPException(status_code=404, detail=f"Booking {data.booking_confirmation} not found")
-    if data.driver_name:
-        result = await db.execute(select(Driver).where(Driver.name == data.driver_name, Driver.is_active == True))
-        driver = result.scalar_one_or_none()
-        if not driver:
-            raise HTTPException(status_code=404, detail=f"Driver {data.driver_name} not found")
-    else:
-        result = await db.execute(select(Driver).where(Driver.is_active == True, Driver.is_available == True))
-        driver = result.scalars().first()
-        if not driver:
-            raise HTTPException(status_code=503, detail="No drivers available")
-    eta = data.eta_minutes or random.randint(8, 18)
-    booking.driver_assigned = driver.name
-    booking.status          = BookingStatus.DISPATCHED
-    booking.dispatched_at   = datetime.now(timezone.utc)
-    log = DispatchLog(booking_id=booking.id, driver_id=driver.id, eta_minutes=eta, notes=data.notes, status="assigned")
-    db.add(log)
-    driver.is_available = False
-    await db.commit()
-    return DispatchResponse(
-        booking_confirmation=data.booking_confirmation,
-        driver_name=driver.name, eta_minutes=eta, vehicle=driver.vehicle_key,
-    )
-
-
-# ═══════════════════════════════════════════════════════════════════════
-# VIP ALERT
-# ═══════════════════════════════════════════════════════════════════════
-
-@app.post("/api/vip-alert")
-async def vip_alert(data: VIPAlert, db: AsyncSession = Depends(get_db)):
-    if data.client_email:
-        result = await db.execute(select(Client).where(Client.email == data.client_email))
-        client = result.scalar_one_or_none()
-        if client and not client.is_vip:
-            client.is_vip     = True
-            client.vip_reason = data.reason
-            await db.commit()
-    print(f"[VIP] {data.client_name or data.client_email} — {data.reason} — ${data.session_total or 0:.0f}")
-    return {"status": "vip_flagged"}
-
-
-# ═══════════════════════════════════════════════════════════════════════
-# MEMORY
-# ═══════════════════════════════════════════════════════════════════════
-
-@app.get("/api/memory/{email}")
-async def get_client_memory(email: str, db: AsyncSession = Depends(get_db)):
-    if redis_client:
-        cached = await redis_client.get(f"memory:{email}")
-        if cached:
-            return {"memory": cached}
-    result = await db.execute(select(Client).where(Client.email == email))
-    client = result.scalar_one_or_none()
-    if not client:
-        return {"memory": None}
-    memory = client.to_memory_string()
-    if redis_client:
-        await redis_client.setex(f"memory:{email}", 900, memory)
-    return {"memory": memory}
-
-
-# ═══════════════════════════════════════════════════════════════════════
-# STRIPE WEBHOOK
-# ═══════════════════════════════════════════════════════════════════════
-
-@app.post("/webhooks/stripe")
-async def stripe_webhook(
-    request: Request,
-    background: BackgroundTasks,
-    db: AsyncSession = Depends(get_db),
-    stripe_signature: str = Header(None)
-):
-    payload = await request.body()
-    try:
-        event = stripe.Webhook.construct_event(payload, stripe_signature, STRIPE_WEBHOOK_SEC)
-    except stripe.error.SignatureVerificationError:
-        raise HTTPException(status_code=400, detail="Invalid Stripe signature")
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-    event_type = event["type"]
-    event_data = event["data"]["object"]
-
-    if event_type == "checkout.session.completed":
-        conf_num       = event_data.get("metadata", {}).get("confirmation_number")
-        stripe_sess_id = event_data.get("id")
-        payment_intent = event_data.get("payment_intent")
-        customer_email = event_data.get("customer_email") or event_data.get("customer_details", {}).get("email")
-        amount_total   = event_data.get("amount_total", 0) / 100
-        is_vip         = event_data.get("metadata", {}).get("is_vip", "false").lower() == "true"
-        if conf_num:
-            result = await db.execute(select(Booking).where(Booking.confirmation_number == conf_num))
-            booking = result.scalar_one_or_none()
-            if booking:
-                booking.status                = BookingStatus.PAID
-                booking.stripe_session_id     = stripe_sess_id
-                booking.stripe_payment_intent = payment_intent
-                booking.paid_at               = datetime.now(timezone.utc)
-                booking.is_vip                = booking.is_vip or is_vip
-                await db.commit()
-                if customer_email:
-                    result2 = await db.execute(select(Client).where(Client.email == customer_email))
-                    client  = result2.scalar_one_or_none()
-                    if client:
-                        client.total_lifetime_spend += amount_total
-                        if is_vip: client.is_vip = True
-                        await db.commit()
-                background.add_task(auto_dispatch_after_payment, conf_num, booking.client_name)
-        print(f"[STRIPE] checkout.session.completed — {conf_num} · ${amount_total:.2f}")
-
-    elif event_type == "payment_intent.payment_failed":
-        conf_num  = event_data.get("metadata", {}).get("confirmation_number", "unknown")
-        error_msg = event_data.get("last_payment_error", {}).get("message", "Unknown")
-        print(f"[STRIPE] Payment FAILED — {conf_num}: {error_msg}")
-
-    elif event_type == "charge.refunded":
-        print(f"[STRIPE] Refund — {event_data.get('id')}")
-
-    return {"received": True}
-
-
-async def auto_dispatch_after_payment(conf_num: str, client_name: str):
-    async with AsyncSessionLocal() as db:
-        result = await db.execute(select(Driver).where(Driver.is_active == True, Driver.is_available == True))
-        driver = result.scalars().first()
-        if not driver:
-            print(f"[DISPATCH] No available drivers for {conf_num}")
-            return
-        result2 = await db.execute(select(Booking).where(Booking.confirmation_number == conf_num))
-        booking  = result2.scalar_one_or_none()
-        if booking:
-            eta = random.randint(8, 15)
-            booking.driver_assigned = driver.name
-            booking.status          = BookingStatus.DISPATCHED
-            booking.dispatched_at   = datetime.now(timezone.utc)
-            log = DispatchLog(booking_id=booking.id, driver_id=driver.id, eta_minutes=eta, status="assigned")
-            db.add(log)
-            driver.is_available = False
-            await db.commit()
-            print(f"[DISPATCH] {driver.name} → {conf_num} · ETA {eta}min")
-
-# ═══════════════════════════════════════════════════════════════════════
-# RUN: uvicorn main:app --host 0.0.0.0 --port 8000
-# ═══════════════════════════════════════════════════════════════════════
-
-# ═══════════════════════════════════════════════════════════════════════
-# RUN: uvicorn main:app --host 0.0.0.0 --port 8000
-# ═══════════════════════════════════════════════════════════════════════
-
-# ═══════════════════════════════════════════════════════════════════════
-# RUN: uvicorn main:app --host 0.0.0.0 --port 8000
-# ═══════════════════════════════════════════════════════════════════════
-
-# ═══════════════════════════════════════════════════════════════════════
-# RUN: uvicorn main:app --host 0.0.0.0 --port 8000
-# ═══════════════════════════════════════════════════════════════════════
+async function sendMikey(){
+const inp=document.getElementById("minp");const val=inp.value.trim();if(!val)return;inp.value="";
+const box=document.getElementById("mmsgs");
+box.innerHTML+=`<div class="cuser">${val}</div>`;
+const el=document.createElement("div");el.className="cai";el.innerHTML=`<span class="ctag">&#9670; MIKEY</span><span class="spin"></span>`;
+box.appendChild(el);box.scrollTop=9999;
+hist.push({role:"user",content:val});
+try{const rep=await callMikey(hist);hist.push({role:"assistant",content:rep});el.innerHTML=`<span class="ctag">&#9670; MIKEY</span>${rep.replace(/\n/g,"<br>")}`;}
+catch{el.innerHTML=`<span class="ctag">&#9670; MIKEY</span>Connection error.`;}
+box.scrollTop=9999;
+}
+
+async function maFill(){
+const val=document.getElementById("maf").value.trim();if(!val)return;toast("&#9670; Mikey filling form...");
+try{
+const rep=await callMikey([{role:"user",content:`Trip: "${val}". Return ONLY JSON: {client,phone,email,date,time,pickup,dropoff,vehicle,pax,amount,notes}`}],"Return only valid JSON.");
+const p=JSON.parse(rep.replace(/```json|```/g,"").trim());
+const map={nb1:"client",nb2:"phone",nb3:"email",nb4:"date",nb5:"time",nb6:"pickup",nb7:"dropoff",nb8:"vehicle",nb9:"pax",nb10:"amount",nb11:"notes"};
+Object.entries(map).forEach(([id,k])=>{if(p[k]!==undefined){const el=document.getElementById(id);if(el)el.value=k==="amount"?"$"+p[k]:p[k];}});
+toast("&#9670; Form filled &#10003;");
+}catch{toast("Fill manually");}
+}
+
+async function mcFill(){
+const val=document.getElementById("mcf").value.trim();if(!val)return;
+try{
+const rep=await callMikey([{role:"user",content:`Client: "${val}". Return ONLY JSON: {name,phone,email,type,notes}`}],"Return only valid JSON.");
+const p=JSON.parse(rep.replace(/```json|```/g,"").trim());
+if(p.name)document.getElementById("nc1").value=p.name;
+if(p.phone)document.getElementById("nc2").value=p.phone;
+if(p.email)document.getElementById("nc3").value=p.email;
+if(p.type)document.getElementById("nc4").value=p.type;
+if(p.notes)document.getElementById("nc6").value=p.notes;
+toast("&#9670; Profile filled &#10003;");
+}catch{toast("Fill manually");}
+}
+
+async function vaFill(){
+const val=document.getElementById("vaf").value.trim();if(!val)return;
+try{
+const rep=await callMikey([{role:"user",content:`Vehicle: "${val}". Return ONLY JSON: {name,capacity,hourlyRate,perKmRate,minHours,notes}`}],"Return only valid JSON.");
+const p=JSON.parse(rep.replace(/```json|```/g,"").trim());
+if(p.name)document.getElementById("vn1").value=p.name;
+if(p.capacity)document.getElementById("vn2").value=p.capacity;
+if(p.hourlyRate)document.getElementById("vn3").value=p.hourlyRate;
+if(p.perKmRate)document.getElementById("vn4").value=p.perKmRate;
+if(p.minHours)document.getElementById("vn5").value=p.minHours;
+if(p.notes)document.getElementById("vn7").value=p.notes;
+toast("&#9670; Vehicle filled &#10003;");
+}catch{toast("Fill manually");}
+}
+
+function mikeyPriceCmd(){
+const val=document.getElementById("price-prompt").value.trim();if(!val)return;
+document.getElementById("price-prompt").value="";
+openM("mo-mikey");
+setTimeout(()=>{document.getElementById("minp").value=val;sendMikey();},300);
+}
+
+function mikeyBrief(name){openM("mo-mikey");document.getElementById("minp").value=`Full ops brief on client: ${name}`;sendMikey();}
+
+// RENDER
+function rBooks(data){
+const tb=document.getElementById("btb");
+if(!data.length){tb.innerHTML=eRow(9,"book");return;}
+tb.innerHTML=data.map(b=>`<tr><td class="tc">${b.id||"&#8212;"}</td><td>${b.date||"&#8212;"}</td><td class="tn">${b.client||"&#8212;"}</td><td>${b.vehicle||"&#8212;"}</td><td>${b.route||"&#8212;"}</td><td class="ta">${b.amount||"&#8212;"}</td><td><span class="b b-${b.status||"pending"}">${b.status||"&#8212;"}</span></td><td>${b.driver||"&#8212;"}</td><td><div class="ra"><button class="ab" onclick="toast('Opening...')">View</button><button class="ab t" onclick="toast('Editing...')">Edit</button></div></td></tr>`).join("");
+updateBadges();
+}
+
+function rClients(data){
+const tb=document.getElementById("ctb");
+if(!data.length){tb.innerHTML=eRow(8,"cli");return;}
+tb.innerHTML=data.map(c=>`<tr><td class="tn">${c.name||"&#8212;"}</td><td style="font-size:11px">${c.contact||"&#8212;"}</td><td><span class="b b-${(c.type||"standard").toLowerCase()}">${c.type||"&#8212;"}</span></td><td style="text-align:center">${c.trips||0}</td><td class="ta">${c.ltv||"&#8212;"}</td><td>${c.lastTrip||"&#8212;"}</td><td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px">${c.notes||"&#8212;"}</td><td><div class="ra"><button class="ab" onclick="toast('Profile...')">View</button><button class="ab t" onclick="mikeyBrief('${c.name||""}')">Brief</button></div></td></tr>`).join("");
+}
+
+function rPayments(data){
+const tb=document.getElementById("ptb");
+if(!data.length){tb.innerHTML=eRow(8,"pay");return;}
+tb.innerHTML=data.map(p=>`<tr><td>${p.date||"&#8212;"}</td><td class="tc">${p.id||"&#8212;"}</td><td class="tn">${p.client||"&#8212;"}</td><td class="ta">${p.amount||"&#8212;"}</td><td>${p.method||"&#8212;"}</td><td style="font-size:10px;color:var(--mut)">${p.stripe||"&#8212;"}</td><td><span class="b b-${p.status||"unpaid"}">${p.status||"&#8212;"}</span></td><td><div class="ra"><button class="ab t" onclick="openReceipt('${p.id||""}','${p.client||""}','${p.amount||""}','${p.date||""}')">Receipt</button>${p.status==="unpaid"?`<button class="ab" onclick="toast('Chasing...')">Chase</button>`:""}</div></td></tr>`).join("");
+}
+
+function rDriverCards(data){
+document.getElementById("dvcards").innerHTML=data.map(d=>`
+<div class="dc">
+<div style="display:flex;align-items:center;gap:11px;margin-bottom:11px">
+<div class="dav">${d.initials||d.name.slice(0,2).toUpperCase()}</div>
+<div><div style="font-weight:600;color:var(--txt);font-size:13px">${d.name}</div><div style="font-size:10px;color:var(--mut);margin-top:2px">${d.role||""}</div></div>
+<span class="b b-${d.status||"standby"}" style="margin-left:auto">${d.status||"standby"}</span>
+</div>
+<div style="font-family:var(--mono);font-size:10px;color:var(--mut);margin-bottom:4px">${d.current||"No active assignment"}</div>
+<div class="dstats">
+<div><div class="dsv">${d.trips||0}</div><div class="dsl">Trips/Mo</div></div>
+<div><div class="dsv">${d.rating||"&#8212;"}</div><div class="dsl">Rating</div></div>
+<div><div class="dsv">${d.ontime||"&#8212;"}</div><div class="dsl">On-time</div></div>
+</div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px">
+<span style="font-family:var(--mono);font-size:10px;color:var(--mut)">Availability</span>
+<label class="tog"><input type="checkbox" ${d.available?"checked":""} onchange="updDriver('${d.id||d.name}',this.checked)"><span class="tosl"></span></label>
+</div>
+</div>`).join("");
+}
+
+function rVehicles(data){
+const g=document.getElementById("veh-grid");
+if(!data.length){g.innerHTML=`<div style="grid-column:1/-1"><div class="empty-s"><div class="ei">&#9633;</div><div class="et">No vehicles yet</div><div class="es">Add vehicles manually or import a spreadsheet &mdash; Mikey will help populate pricing</div><div class="ea"><button class="btn gold" onclick="openM('mo-vehicle')">+ Add Vehicle</button><button class="btn" onclick="openCSV('vehicles')">&#11014; Import CSV</button></div></div></div>`;return;}
+g.innerHTML=data.map(v=>`
+<div class="price-card">
+<div class="price-head"><span class="price-veh">${v.name||v.id||"Vehicle"}</span><span class="b b-${(v.status||"active").toLowerCase()}">${v.status||"active"}</span></div>
+<div class="price-body">
+<div class="price-row"><span class="price-lbl">Capacity</span><span class="${v.capacity?"price-val":"price-empty"}">${v.capacity?v.capacity+" pax":"not set"}</span></div>
+<div class="price-row"><span class="price-lbl">Hourly</span><span class="${v.hourlyRate?"price-val":"price-empty"}">${v.hourlyRate?"$"+v.hourlyRate+" MXN/hr":"not set"}</span></div>
+<div class="price-row"><span class="price-lbl">Per Km</span><span class="${v.perKmRate?"price-val":"price-empty"}">${v.perKmRate?"$"+v.perKmRate+" MXN/km":"not set"}</span></div>
+<div class="price-row"><span class="price-lbl">Min Hours</span><span class="${v.minHours?"price-val":"price-empty"}">${v.minHours?v.minHours+"h":"not set"}</span></div>
+</div>
+<div style="padding:8px 14px;border-top:1px solid var(--bdr);display:flex;gap:6px">
+<button class="ab t" style="flex:1" onclick="toast('Editing ${v.name||""}...')">Edit</button>
+<button class="ab" onclick="toast('Blocked on calendar')">Block</button>
+</div>
+</div>`).join("");
+}
+
+function rVenues(data){
+const tb=document.getElementById("vtb");
+if(!data.length){tb.innerHTML=`<tr><td colspan="7"><div class="empty-s"><div class="ei">&#9830;</div><div class="et">No venues yet</div><div class="es">Add restaurants, clubs, and hotels you send business to</div><div class="ea"><button class="btn gold" onclick="openM('mo-venue')">+ Add Venue</button><button class="btn" onclick="openCSV('venues')">&#11014; Import CSV</button></div></div></td></tr>`;return;}
+tb.innerHTML=data.map(v=>`<tr><td class="tn">${v.name||"&#8212;"}</td><td><span class="b b-standby">${v.type||"&#8212;"}</span></td><td class="ta">${v.commission?v.commission+"%":"&#8212;"}</td><td style="font-size:11px">${v.contact||v.contactName||"&#8212;"}</td><td>${v.zone||"&#8212;"}</td><td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px">${v.notes||"&#8212;"}</td><td><div class="ra"><button class="ab" onclick="toast('View venue...')">View</button><button class="ab r" onclick="toast('Delete venue...')">Del</button></div></td></tr>`).join("");
+}
+
+function rPromos(data){
+document.getElementById("promo-ac").textContent=data.filter(p=>p.active!==false).length;
+document.getElementById("promo-us").textContent=data.reduce((a,p)=>a+(parseInt(p.uses)||0),0);
+document.getElementById("promo-dg").textContent="$"+data.reduce((a,p)=>a+(parseFloat(p.totalDiscount)||0),0).toLocaleString();
+document.getElementById("promo-ex").textContent=data.filter(p=>p.expired||p.active===false).length;
+const list=document.getElementById("promo-list");
+if(!data.length){list.innerHTML=`<div class="empty-s"><div class="ei">%</div><div class="et">No promo codes yet</div><div class="es">Create discount codes for clients and campaigns</div><div class="ea"><button class="btn gold" onclick="openM('mo-promo')">+ New Promo Code</button></div></div>`;return;}
+list.innerHTML=data.map(p=>`
+<div class="promo-card">
+<div><div class="promo-code">${p.code||"&#8212;"}</div><div style="font-family:var(--mono);font-size:10px;color:var(--mut)">${p.appliesTo||"All bookings"} &middot; Expires ${p.expiry||p.expires||"&#8212;"}</div></div>
+<div style="text-align:center"><div style="font-family:var(--mono);font-size:15px;color:var(--teal);font-weight:600">${p.discountType==="%" || p.type==="%"?p.value+"%":"$"+(p.value||0)+" MXN"}</div><div style="font-family:var(--mono);font-size:10px;color:var(--mut)">${p.uses||0} / ${p.maxUses||"&#8734;"} uses</div></div>
+<span class="b b-${p.active===false||p.expired?"unpaid":"confirmed"}">${p.active===false||p.expired?"Expired":"Active"}</span>
+<div class="ra"><button class="ab r" onclick="toast('Deactivating ${p.code||""}...')">Deactivate</button></div>
+</div>`).join("");
+}
+
+function rDispatch(books){
+const active=books.filter(b=>b.status==="dispatched"||b.status==="confirmed").slice(0,3);
+document.getElementById("dcards").innerHTML=active.length?active.map(b=>`
+<div class="card">
+<div class="ctit">${b.status==="dispatched"?"ACTIVE NOW":"UP NEXT"}</div>
+<div style="font-family:var(--mono);font-size:11px;margin-bottom:6px"><span class="tc">${b.id}</span> &middot; ${b.client}</div>
+<div style="font-size:11px;color:var(--dim);margin-bottom:5px">${b.route}</div>
+<div style="font-family:var(--mono);font-size:10px;color:var(--mut)">Driver: ${b.driver||"Unassigned"}</div>
+<div style="margin-top:9px;display:flex;gap:5px"><span class="b b-${b.status}">${b.status}</span>${(!b.driver||b.driver==="&#8212;")?`<button class="ab t" onclick="toast('Assign driver')">Assign</button>`:""}</div>
+</div>`).join(""):`<div style="grid-column:1/-1;padding:28px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--mut)">No active trips right now</div>`;
+document.getElementById("dtb").innerHTML=books.slice(0,6).map(b=>`<tr><td>${b.date||"&#8212;"}</td><td class="tc">${b.id}</td><td class="tn">${b.client}</td><td>${b.vehicle}</td><td>${b.driver||"&#8212;"}</td><td><span class="b b-${b.status}">${b.status}</span></td><td><div class="ra"><button class="ab t" onclick="toast('Assign driver')">Assign</button></div></td></tr>`).join("");
+}
+
+function rMikeyFeed(){
+const feed=[
+{time:"01:22 AM",q:'&ldquo;Airport transfer tomorrow, 2 pax, Polanco&rdquo;',lang:"English",val:"$2,800 MXN",out:"quote"},
+{time:"11:48 PM",q:'&ldquo;Van for 8 people Saturday, Tulum&rdquo;',lang:"English",val:"$18,500 MXN",out:"converted"},
+{time:"09:30 PM",q:'&ldquo;&iquest;Tienen servicio a Guadalajara?&rdquo;',lang:"Spanish",val:"&#8212;",out:"inquiry"},
+{time:"08:14 PM",q:'&ldquo;Rate for exec sedan CDMX to Toluca?&rdquo;',lang:"English",val:"$4,600 MXN",out:"quote"},
+{time:"06:45 PM",q:"&ldquo;&#31169;&#12399;VIP&#12398;&#12463;&#12521;&#12452;&#12450;&#12531;&#12488;...&rdquo;",lang:"Japanese",val:"$8,200 MXN",out:"converted"}];
+document.getElementById("mtb").innerHTML=feed.map(f=>`<tr><td style="font-size:10px;white-space:nowrap">${f.time}</td><td style="font-size:11px;max-width:200px">${f.q}</td><td><span class="b b-standby">${f.lang}</span></td><td class="ta">${f.val}</td><td>${f.out==="converted"?'<span class="b b-confirmed">Converted</span>':f.out==="quote"?'<span class="b b-quote">Quote Sent</span>':'<span class="b b-standby">Inquiry</span>'}</td><td><button class="ab" onclick="toast('Opening log...')">View</button></td></tr>`).join("");
+}
+
+function rDash(books,drivers){
+const today=books.filter(b=>b.date&&b.date.includes("Apr 1")).slice(0,4);
+document.getElementById("dt").innerHTML=today.length?today.map(b=>`<tr><td class="tc">${b.id}</td><td class="tn">${b.client}</td><td>${b.vehicle}</td><td><span class="b b-${b.status}">${b.status}</span></td></tr>`).join(""):`<tr><td colspan="4" style="text-align:center;padding:18px;color:var(--mut);font-family:var(--mono);font-size:11px">No trips today</td></tr>`;
+document.getElementById("dd").innerHTML=drivers.map(d=>`<tr><td class="tn">${d.name}</td><td><span class="b b-${d.status}">${d.status}</span></td><td class="tc" style="font-size:10px">${d.current||"&#8212;"}</td></tr>`).join("");
+document.getElementById("df").innerHTML=[
+{time:"01:22 AM",q:"&ldquo;Airport transfer, 2 pax&rdquo;",m:"Quote &middot; $2,800 MXN &middot; No reply"},
+{time:"11:48 PM",q:"&ldquo;Van for 8, Tulum Saturday&rdquo;",m:"$18,500 MXN &middot; Converted &#10003;"},
+{time:"09:30 PM",q:"&ldquo;&iquest;Tienen servicio a Guadalajara?&rdquo;",m:"Routing inquiry &middot; Affiliate sent"}
+].map(f=>`<div class="fitem"><div class="ftime">${f.time}</div><div><div class="fq">${f.q}</div><div class="fm">${f.m}</div></div></div>`).join("");
+document.getElementById("db").innerHTML=[
+{l:"Airport Transfers",v:"$84,200",p:82},{l:"Corporate",v:"$51,000",p:50},
+{l:"Touring/Events",v:"$38,400",p:38,t:true},{l:"VIP/Bespoke",v:"$29,800",p:29,t:true},{l:"Venues",v:"$14,600",p:14}
+].map(b=>`<div class="bw"><div class="bl"><span>${b.l}</span><span>${b.v}</span></div><div class="bt"><div class="bf ${b.t?"t":""}" style="width:${b.p}%"></div></div></div>`).join("");
+const active=books.filter(b=>b.status==="dispatched").length;
+const quotes=books.filter(b=>b.status==="quote"||b.status==="pending").length;
+document.getElementById("s1").textContent=active;
+document.getElementById("s2").textContent="$18,400";
+document.getElementById("s3").textContent="$312,600";
+document.getElementById("s4").textContent=quotes;
+const vip=books.find(b=>b.client&&b.client.includes("\u2605"));
+if(vip){document.getElementById("vip").style.display="flex";document.getElementById("vipt").textContent=`VIP ALERT &#8212; ${vip.client} &middot; ${vip.vehicle} &middot; ${vip.amount} confirmed`;}
+}
+
+function rReports(){
+document.getElementById("rb1").innerHTML=[{l:"Airport Transfers",v:"$131,400 &middot; 42%",p:82},{l:"Corporate",v:"$78,200 &middot; 25%",p:50},{l:"Touring/Events",v:"$62,400 &middot; 20%",p:40,t:true},{l:"VIP/Bespoke",v:"$28,000 &middot; 9%",p:18,t:true},{l:"Restaurants",v:"$12,600 &middot; 4%",p:8}].map(b=>`<div class="bw"><div class="bl"><span>${b.l}</span><span>${b.v}</span></div><div class="bt"><div class="bf ${b.t?"t":""}" style="width:${b.p}%"></div></div></div>`).join("");
+document.getElementById("rb2").innerHTML=[{l:"Suburban / SUV",v:"$148,200",p:90},{l:"Sprinter Van (14p)",v:"$88,400",p:56},{l:"Executive Sedan",v:"$52,000",p:33,t:true},{l:"Charter",v:"$24,000",p:15,t:true}].map(b=>`<div class="bw"><div class="bl"><span>${b.l}</span><span>${b.v}</span></div><div class="bt"><div class="bf ${b.t?"t":""}" style="width:${b.p}%"></div></div></div>`).join("");
+}
+
+function rFees(){
+const fees=[
+{k:"gratuity",l:"Gratuity",c:"%",v:""},
+{k:"vat",l:"VAT",c:"%",v:"16%"},
+{k:"fuel",l:"Fuel Surcharge",c:"Flat MXN",v:""},
+{k:"waitTime",l:"Wait Time (per 15 min)",c:"Flat MXN",v:""},
+{k:"extraStop",l:"Extra Stop",c:"Flat MXN",v:""},
+{k:"greeter",l:"Airport Greeter",c:"Flat MXN",v:""},
+{k:"vipConc",l:"VIP Concierge",c:"Flat MXN",v:""},
+{k:"dinner",l:"Dinner Reservation",c:"Flat MXN",v:""},
+{k:"nightclub",l:"Nightclub Access",c:"Flat MXN",v:""},
+{k:"cleaning",l:"Cleaning Fee",c:"Flat MXN",v:""},
+{k:"ccFee",l:"CC Processing Fee",c:"%",v:"2.9%"}
+];
+document.getElementById("fee-tbody").innerHTML=fees.map(f=>`
+<tr>
+<td class="tn" id="af-${f.k}">${t(f.k)||f.l}</td>
+<td>All Vehicles</td>
+<td>${f.c}</td>
+<td class="${f.v?"ta":"" }" style="${!f.v?"color:var(--mut);font-style:italic":""}"><input style="background:transparent;border:none;color:${f.v?"var(--teal)":"var(--mut)"};font-family:var(--mono);font-size:11px;width:80px;outline:none" value="${f.v}" placeholder="not set" onchange="toast('Fee updated \u2713')"></td>
+<td><div class="ra"><button class="ab t" onclick="toast('Saved ${f.l}')">Save</button></div></td>
+</tr>`).join("");
+}
+
+// CALENDAR
+function renderCal(){
+const monthNames=["January","February","March","April","May","June","July","August","September","October","November","December"];
+document.getElementById("cal-lbl").textContent=monthNames[calMonth]+" "+calYear;
+const first=new Date(calYear,calMonth,1).getDay();
+const days=new Date(calYear,calMonth+1,0).getDate();
+const today=new Date();
+let html="";
+for(let i=0;i<first;i++)html+=`<div class="cal-day empty-day"></div>`;
+for(let d=1;d<=days;d++){
+const key=`${calYear}-${String(calMonth+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+const isToday=today.getFullYear()===calYear&&today.getMonth()===calMonth&&today.getDate()===d;
+const isBlocked=blockedDates.has(key);
+html+=`<div class="cal-day ${isBlocked?"blocked":""} ${isToday?"today":""}" onclick="toggleDate('${key}',this)">${d}</div>`;
+}
+document.getElementById("cal-grid").innerHTML=html;
+renderBlockedList();
+renderUpcoming();
+}
+
+function toggleDate(key,el){
+if(blockedDates.has(key)){blockedDates.delete(key);el.classList.remove("blocked");toast("Date unblocked");}
+else{blockedDates.add(key);el.classList.add("blocked");toast("Date blocked");}
+renderBlockedList();
+}
+
+function renderBlockedList(){
+const list=document.getElementById("bd-list");
+if(!blockedDates.size){list.textContent="No dates blocked";return;}
+list.innerHTML=[...blockedDates].sort().map(d=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #1a1a1a"><span style="color:var(--red)">${d}</span><button class="ab r" onclick="unblockDate('${d}')" style="font-size:9px">Remove</button></div>`).join("");
+}
+
+function unblockDate(key){
+blockedDates.delete(key);
+renderCal();
+toast("Date unblocked");
+}
+
+function renderUpcoming(){
+const upcoming=DB.bookings.slice(0,4);
+document.getElementById("cal-up").innerHTML=upcoming.length?upcoming.map(b=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1a1a;font-family:var(--mono);font-size:10px"><span style="color:var(--gold)">${b.date||"&#8212;"}</span><span style="color:var(--dim)">${b.client}</span><span class="b b-${b.status}">${b.status}</span></div>`).join(""):`<div style="color:var(--mut);font-family:var(--mono);font-size:11px">No upcoming bookings</div>`;
+}
+
+function prevMonth(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCal();}
+function nextMonth(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCal();}
+
+// SAVES
+async function saveBook(){
+const client=document.getElementById("nb1").value.trim();if(!client){toast("Enter client name");return;}
+const payload={client,phone:document.getElementById("nb2").value,email:document.getElementById("nb3").value,date:document.getElementById("nb4").value,time:document.getElementById("nb5").value,pickup:document.getElementById("nb6").value,dropoff:document.getElementById("nb7").value,vehicle:document.getElementById("nb8").value,pax:document.getElementById("nb9").value,amount:document.getElementById("nb10").value,notes:document.getElementById("nb11").value,status:"pending",driver:"&#8212;",route:document.getElementById("nb6").value+" &#8594; "+document.getElementById("nb7").value};
+try{await saveRec("bookings",payload);rBooks(DB.bookings);closeM("mo-book");["nb1","nb2","nb3","nb6","nb7","nb10","nb11","maf"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});}
+catch{toast(t("apiErr"));}
+}
+
+async function saveClient(){
+const name=document.getElementById("nc1").value.trim();if(!name){toast("Enter client name");return;}
+const payload={name,phone:document.getElementById("nc2").value,email:document.getElementById("nc3").value,type:document.getElementById("nc4").value,notes:document.getElementById("nc6").value,trips:0,ltv:"$0 MXN",lastTrip:"&#8212;"};
+try{await saveRec("clients",payload);rClients(DB.clients);closeM("mo-client");}
+catch{toast(t("apiErr"));}
+}
+
+async function saveVehicle(){
+const name=document.getElementById("vn1").value.trim();if(!name){toast("Enter vehicle name");return;}
+const payload={name,capacity:document.getElementById("vn2").value,hourlyRate:document.getElementById("vn3").value,perKmRate:document.getElementById("vn4").value,minHours:document.getElementById("vn5").value,status:document.getElementById("vn6").value,notes:document.getElementById("vn7").value};
+try{await saveRec("vehicles",payload);rVehicles(DB.vehicles);closeM("mo-vehicle");}
+catch{DB.vehicles.unshift({id:"V-"+Date.now(),...payload});rVehicles(DB.vehicles);closeM("mo-vehicle");toast(t("saved"));}
+}
+
+async function saveVenue(){
+const name=document.getElementById("ven1").value.trim();if(!name){toast("Enter venue name");return;}
+const payload={name,type:document.getElementById("ven2").value,commission:document.getElementById("ven3").value,zone:document.getElementById("ven4").value,contactName:document.getElementById("ven5").value,phone:document.getElementById("ven6").value,email:document.getElementById("ven7").value,notes:document.getElementById("ven8").value};
+try{await saveRec("venues",payload);rVenues(DB.venues);closeM("mo-venue");}
+catch{DB.venues.unshift({id:"VEN-"+Date.now(),...payload});rVenues(DB.venues);closeM("mo-venue");toast(t("saved"));}
+}
+
+async function savePromo(){
+const code=document.getElementById("pr1").value.trim().toUpperCase();if(!code){toast("Enter promo code");return;}
+const payload={code,discountType:document.getElementById("pr2").value.includes("%")?"%":"MXN",value:document.getElementById("pr3").value,maxUses:document.getElementById("pr4").value,validFrom:document.getElementById("pr5").value,expiry:document.getElementById("pr6").value,appliesTo:document.getElementById("pr7").value,notes:document.getElementById("pr8").value,uses:0,active:true};
+try{await saveRec("promos",payload);rPromos(DB.promos);closeM("mo-promo");}
+catch{DB.promos.unshift({id:"PR-"+Date.now(),...payload});rPromos(DB.promos);closeM("mo-promo");toast(t("saved"));}
+}
+
+async function processCharge(){
+const client=document.getElementById("ch1").value.trim();
+const amount=document.getElementById("ch3").value;
+const conf=document.getElementById("ch2").value;
+const desc=document.getElementById("ch4").value;
+if(!client||!amount){toast("Enter client and amount");return;}
+toast("&#9889; Processing via Stripe...");
+try{
+const r=await apiFetch("/api/charge",{method:"POST",body:JSON.stringify({client,amount:parseFloat(amount),conf,description:desc,currency:"mxn"})});
+toast("Payment processed &#10003; $"+amount+" MXN");
+closeM("mo-charge");
+openReceipt(conf||"MANUAL",client,"$"+amount+" MXN",new Date().toLocaleDateString());
+}catch{toast("Process in Stripe Dashboard directly for live payments");}
+}
+
+function fmtCard(inp){
+let v=inp.value.replace(/\s+/g,"").replace(/[^0-9]/gi,"");
+let matches=v.match(/\d{4,16}/g);
+let match=matches&&matches[0]||"";
+let parts=[];
+for(let i=0,len=match.length;i<len;i+=4)parts.push(match.substring(i,i+4));
+inp.value=parts.length?parts.join(" "):v;
+}
+
+async function updDriver(id,val){
+try{if(apiOnline)await apiFetch("/api/drivers/"+id,{method:"PATCH",body:JSON.stringify({available:val,name:id})});toast(t("saved"));}
+catch{toast(t("apiErr"));}
+}
+
+function openReceipt(id,client,amount,date){
+document.getElementById("rcbody").innerHTML=`
+<div style="text-align:center;padding:8px 0 14px;border-bottom:1px solid var(--bdr);margin-bottom:14px">
+<div style="font-family:var(--mono);font-size:11px;color:var(--gold);letter-spacing:.1em">LUX TOUR TRAVEL / ILT</div>
+<div style="font-size:10px;color:var(--mut);margin-top:2px">luxtourtravel.com &middot; info@luxtourtravel.com &middot; +1 858 999 1895</div>
+</div>
+<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #161616;font-family:var(--mono);font-size:11px"><span style="color:var(--mut)">Confirmation #</span><span style="color:var(--gold)">${id}</span></div>
+<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #161616;font-family:var(--mono);font-size:11px"><span style="color:var(--mut)">Client</span><span style="color:var(--txt)">${client}</span></div>
+<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #161616;font-family:var(--mono);font-size:11px"><span style="color:var(--mut)">Date</span><span style="color:var(--txt)">${date}</span></div>
+<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #161616;font-family:var(--mono);font-size:11px"><span style="color:var(--mut)">Service</span><span style="color:var(--txt)">Ground Transportation</span></div>
+<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #161616;font-family:var(--mono);font-size:11px"><span style="color:var(--mut)">IVA (16%)</span><span style="color:var(--txt)">Included</span></div>
+<div style="display:flex;justify-content:space-between;padding-top:11px;border-top:1px solid var(--bdr);margin-top:3px;font-family:var(--mono);font-size:11px"><span style="color:var(--txt);font-weight:600">TOTAL PAID</span><span style="color:var(--teal);font-size:15px">${amount}</span></div>
+<div style="margin-top:14px;padding:9px;background:var(--s2);border-radius:var(--r);font-family:var(--mono);font-size:9px;color:var(--mut);text-align:center">Payment processed via Stripe &middot; Official receipt<br>Thank you for choosing Lux Tour Travel</div>`;
+openM("mo-receipt");
+}
+
+// CSV
+let csvType="bookings",csvData=[];
+function openCSV(type){csvType=type;csvData=[];document.getElementById("csvtit").textContent="&#11014; IMPORT CSV &#8212; "+type.toUpperCase();document.getElementById("csvprev").innerHTML="";document.getElementById("csvmap").innerHTML="";document.getElementById("csvbtn").style.display="none";document.getElementById("csvfile").value="";openM("mo-csv");}
+function handleDrop(e){e.preventDefault();document.getElementById("csvdrop").classList.remove("drag");const f=e.dataTransfer.files[0];if(f)procCSV(f);}
+function handleCSV(e){const f=e.target.files[0];if(f)procCSV(f);}
+function procCSV(file){
+Papa.parse(file,{header:true,skipEmptyLines:true,complete:(res)=>{
+csvData=res.data;const cols=res.meta.fields||[];
+document.getElementById("csvprev").innerHTML=`<div style="font-family:var(--mono);font-size:11px;color:var(--dim);margin-bottom:10px">&#9670; ${csvData.length} rows detected &#8212; map your columns below</div>`;
+const fieldMap={bookings:["client","date","vehicle","route","amount","status","driver","notes"],clients:["name","contact","type","trips","ltv","lastTrip","notes"],vehicles:["name","capacity","hourlyRate","perKmRate","minHours","status","notes"],venues:["name","type","commission","zone","contactName","phone","notes"],promos:["code","value","discountType","maxUses","expiry","appliesTo","notes"]};
+const fields=fieldMap[csvType]||["name","notes"];
+document.getElementById("csvmap").innerHTML=`<div style="font-family:var(--mono);font-size:10px;color:var(--mut);margin-bottom:8px;letter-spacing:.08em">MAP COLUMNS &#8594; ILT FIELDS</div>`+fields.map(f=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:7px;padding:7px 10px;background:var(--s2);border:1px solid var(--bdr);border-radius:var(--r)"><span style="font-family:var(--mono);font-size:11px;color:var(--dim);flex:1">${f}</span><span style="color:var(--mut)">&#8592;</span><select id="mp-${f}" style="flex:1;background:var(--s3);border:1px solid var(--bdr);color:var(--txt);padding:4px 7px;border-radius:3px;font-size:11px;font-family:var(--mono);outline:none"><option value="">&#8212; skip &#8212;</option>${cols.map(c=>`<option value="${c}" ${c.toLowerCase().includes(f.toLowerCase())?"selected":""}>${c}</option>`).join("")}</select></div>`).join("");
+document.getElementById("csvbtn").style.display="inline-block";
+}});
+}
+async function importCSV(){
+const fieldMap={bookings:["client","date","vehicle","route","amount","status","driver","notes"],clients:["name","contact","type","trips","ltv","lastTrip","notes"],vehicles:["name","capacity","hourlyRate","perKmRate","minHours","status","notes"],venues:["name","type","commission","zone","contactName","phone","notes"],promos:["code","value","discountType","maxUses","expiry","appliesTo","notes"]};
+const fields=fieldMap[csvType]||["name","notes"];
+const mapping={};fields.forEach(f=>{const s=document.getElementById("mp-"+f);if(s&&s.value)mapping[f]=s.value;});
+const records=csvData.map(row=>{const rec={};fields.forEach(f=>{if(mapping[f])rec[f]=row[mapping[f]]||"";});return rec;});
+toast("Importing "+records.length+" records...");
+for(const rec of records){
+try{await saveRec(csvType,rec);}
+catch{DB[csvType].unshift({id:csvType.slice(0,3).toUpperCase()+"-"+Date.now(),...rec});}
+}
+const renderMap={bookings:rBooks,clients:rClients,vehicles:rVehicles,venues:rVenues,promos:rPromos};
+if(renderMap[csvType])renderMap[csvType](DB[csvType]);
+toast("&#10003; Imported "+records.length+" records");
+closeM("mo-csv");
+}
+
+// LANG
+function setLang(l,el){
+lang=l;
+document.querySelectorAll(".lb").forEach(b=>b.classList.remove("active"));
+el.classList.add("active");
+applyTX();
+setGreeting();
+document.querySelectorAll(".mabinp").forEach(inp=>{
+if(inp.id==="maf")inp.placeholder=t("descTrip");
+if(inp.id==="price-prompt")inp.placeholder=t("mikeyUpdatePrice");
+});
+}
+
+function applyTX(){
+const pairs=[
+["nl-dash","dash"],["nl-book","book"],["nl-disp","disp"],["nl-mik","mik"],
+["nl-pay","pay"],["nl-rep","rep"],["nl-cli","cli"],["nl-drv","drv"],
+["nl-veh","veh"],["nl-venues","venues"],["nl-promo","promo"],["nl-cal","cal"],
+["sec-ops",lang==="es"?"OPERACIONES":"OPERATIONS"],
+["sec-intel",lang==="es"?"INTELIGENCIA":"INTELLIGENCE"],
+["sec-db",lang==="es"?"BASE DE DATOS":"DATABASE"],
+["sec-mgmt",lang==="es"?"GESTI\u00d3N":"MANAGEMENT"],
+["btn-nb","nb"],["btn-ask","ask"],["btn-nb2","nb"],["btn-ask2","ask"],
+["btn-ac","ac"],["btn-av","addVeh"],["btn-aven","addVenue"],["btn-apr","addPromo"],
+["btn-chg","charge"],["btn-csb","csv"],["btn-csc","csv"],["btn-csv-v","csv"],["btn-csv-ven","csv"],
+["btn-ad","addDriver"],["btn-pdf","exportPDF"],
+["btn-prev",lang==="es"?"&#9664; Anterior":"&#9664; Prev"],
+["btn-next",lang==="es"?"Siguiente &#9654;":"Next &#9654;"],
+["pt-book","book"],["ps-book","bookSub"],
+["pt-disp","disp"],["ps-disp","dispSub"],
+["pt-mik","mik"],["ps-mik","mikeySub"],
+["pt-pay","pay"],["ps-pay","paySub"],
+["pt-rep","rep"],["ps-rep","repSub"],
+["pt-cli","cli"],["ps-cli","cliSub"],
+["pt-drv","drv"],["ps-drv","drvSub"],
+["pt-veh","veh"],["ps-veh","vehSub"],
+["pt-ven","venues"],["ps-ven","venSub"],
+["pt-promo","promo"],["ps-promo","promoSub"],
+["pt-cal","cal"],["ps-cal","calSub"],
+["tt-td","todayTrips"],["tt-ds","drvStatus"],
+["tt-ar","allRes"],["tt-rs","runSheet"],
+["tt-pl","payLog"],["tt-cl","convLog"],["tt-cd","clientDB"],
+["tt-vd","venueDB"],["tt-dh","drvHistory"],["tt-af","addOnFees"],
+["tt-af","addOnFees"],
+["ct-ma","mikeyAct"],["ct-rw","revBreak"],["ct-rt","revType"],["ct-rv","revVeh"],
+["ct-cal",lang==="es"?"FECHAS DE BLOQUEO":"BLOCK-OUT DATES"],
+["ct-bd","blockedDates"],["ct-ub","upcomingBook"],
+["sl-at","activeTrips"],["sl-rt","revenueToday"],["sl-rm","revenueMonth"],["sl-pq","pendingQuotes"],
+["sl-ct","convToday"],["sl-qg","quotesGen"],["sl-cv","conversions"],["sl-rm2","revMikey"],
+["sl-co",lang==="es"?"Recaudado (Abril)":"Collected (April)"],
+["sl-pe","pending"],["sl-re","refunded"],["sl-fe",lang==="es"?"Comisiones Stripe":"Stripe Fees"],
+["sl-tt","totalTrips"],["sl-av","avgTrip"],["sl-vc","vipClients"],["sl-mc","mikeyConv"],
+["sl-await",lang==="es"?"Esperando confirmaci\u00f3n":"Awaiting confirmation"],
+["mt-book",lang==="es"?"&#9672; NUEVA RESERVA":"&#9672; NEW BOOKING"],
+["mt-cli",lang==="es"?"&#9671; AGREGAR CLIENTE":"&#9671; ADD CLIENT"],
+["mt-veh",lang==="es"?"&#9633; AGREGAR VEH\u00cdCULO":"&#9633; ADD VEHICLE"],
+["mt-ven",lang==="es"?"&#9830; AGREGAR VENUE":"&#9830; ADD VENUE"],
+["mt-promo",lang==="es"?"% NUEVO C\u00d3DIGO PROMO":"% NEW PROMO CODE"],
+["mt-charge",lang==="es"?"&#9889; COBRO MANUAL STRIPE":"&#9889; MANUAL STRIPE CHARGE"],
+["mt-mikey",lang==="es"?"&#9670; MIKEY &#8212; INTELIGENCIA OPS ILT":"&#9670; MIKEY &#8212; ILT OPS INTELLIGENCE v3"],
+["mt-rcpt","receipt"],
+["fl-cn","clientName"],["fl-ph","phone"],["fl-em","email"],["fl-pd","pickupDate"],
+["fl-pt","pickupTime"],["fl-pu","pickup"],["fl-do","dropoff"],["fl-px","pax"],
+["fl-to","totalMXN"],["fl-no","intNotes"],
+["fl-vn","venueName"],["fl-hr","hourly"],["fl-kr","perKm"],["fl-vc","capacity"],["fl-mh","minHours"],
+["fl-vename","venueName"],["fl-vcomm","commission"],["fl-vzone","zone"],["fl-vcont","venueContact"],
+["fl-pcode","promoCode"],["fl-dtype","discType"],["fl-dval","discValue"],["fl-muses","maxUses"],
+["fl-vfrom","validFrom"],["fl-exp","expires"],["fl-app","appliesTo"],
+["fl-chcl","clientName"],["fl-chbk",lang==="es"?"Conf # de Reserva":"Booking Conf #"],
+["fl-chamt","chargeAmt"],["fl-chdesc","description"],["fl-ccn","cardNum"],["fl-cce","expDate"],
+["btn-mf","fill"],["btn-mp","update" in TX[lang]?TX[lang].update||"Update":"Update"],
+["btn-canb","cancel"],["btn-sb","saveBook"],["btn-sq","sendQuote"],
+["bh0","conf"],["bh1","date"],["bh2","client"],["bh3","vehicle"],["bh4","route"],
+["bh5","amount"],["bh6","status"],["bh7","driver"],["bh8","actions"],
+["ph0","date"],["ph1","conf"],["ph2","client"],["ph3","amount"],["ph4","method"],["ph5","status"],["ph6","actions"],
+["ch0","name"],["ch1","contact"],["ch2","type"],["ch3","trips"],["ch4","ltv"],["ch5","lastTrip"],["ch6","notes"],["ch7","actions"],
+["dh0","date"],["dh1","conf"],["dh2","client"],["dh3","vehicle"],["dh4","driver"],["dh5","status"],["dh6","actions"],
+["dvh0","date"],["dvh1","conf"],["dvh2","driver"],["dvh3","route"],["dvh4","vehicle"],["dvh5","amount"],["dvh6","rating"],
+["afh0","addOnFees"],["afh1",lang==="es"?"Aplica a":"Applies To"],["afh2",lang==="es"?"C\u00e1lculo":"Calc"],["afh3",lang==="es"?"Valor (MXN)":"Value (MXN)"],["afh4","actions"],
+["vh0","name"],["vh1","type"],["vh2","commission"],["vh3","venueContact"],["vh4","zone"],["vh5","notes"],["vh6","actions"],
+["mh-a","actions"],["th-c","conf"],["th-cl","client"],["th-v","vehicle"],["th-s","status"],
+["th-d","driver"],["th-s2","status"],["th-ct",lang==="es"?"Viaje Actual":"Current Trip"],
+["opt-all","allStatus"]
+];
+pairs.forEach(([id,key])=>{
+const el=document.getElementById(id);
+if(!el)return;
+const val=TX[lang][key]||TX.en[key]||key;
+if(el.tagName==="INPUT"||el.tagName==="SELECT")el.placeholder=val;
+else el.innerHTML=val;
+});
+// Add-on fees
+rFees();
+// Top title
+const active=document.querySelector(".ni.active .nlabel");
+if(active)document.getElementById("topTitle").textContent=active.textContent.toUpperCase();
+}
+
+// NAV
+function nav(page,el){
+document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+document.querySelectorAll(".ni").forEach(n=>n.classList.remove("active"));
+document.getElementById("page-"+page).classList.add("active");
+el.classList.add("active");
+const lbl=el.querySelector(".nlabel");
+document.getElementById("topTitle").textContent=(lbl?lbl.textContent:el.textContent).toUpperCase().replace(/[0-9]/g,"").trim();
+if(page==="cal")renderCal();
+}
+
+function openM(id){document.getElementById(id).classList.add("open");}
+function closeM(id){document.getElementById(id).classList.remove("open");}
+document.querySelectorAll(".mo").forEach(o=>o.addEventListener("click",e=>{if(e.target===o)o.classList.remove("open");}));
+function filt(id,val){document.querySelectorAll("#"+id+" tr").forEach(r=>{r.style.display=r.textContent.toLowerCase().includes(val.toLowerCase())?"":"none";});}
+function filtSt(id,val){document.querySelectorAll("#"+id+" tr").forEach(r=>{r.style.display=(!val||r.textContent.toLowerCase().includes(val.toLowerCase()))?"":"none";});}
+function toast(msg,err=false){const el=document.getElementById("toast");el.innerHTML=msg;el.className=err?"show err":"show";clearTimeout(el._t);el._t=setTimeout(()=>el.className="",2800);}
+function updateBadges(){document.getElementById("bp").textContent=DB.bookings.filter(b=>b.status==="quote"||b.status==="pending").length;document.getElementById("ba").textContent=DB.bookings.filter(b=>b.status==="dispatched").length;}
+function eRow(cols,type){return `<tr><td colspan="${cols}"><div class="empty-s"><div class="ei">&#9675;</div><div class="et">${t("noData")}</div><div class="es">${t("noDataSub")}</div><div class="ea"><button class="btn gold" onclick="${type==="book"?"openM('mo-book')":type==="cli"?"openM('mo-client')":type==="veh"?"openM('mo-vehicle')":"openCSV('"+type+"')"}">${type==="book"?t("nb"):type==="cli"?t("ac"):type==="veh"?t("addVeh"):t("csv")}</button><button class="btn" onclick="openCSV('${type}')">${t("csv")}</button></div></div></td></tr>`;}
+function updateClock(){document.getElementById("clock").textContent=new Date().toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",timeZone:"America/Mexico_City"})+" CDMX";}
+function setGreeting(){
+const h=new Date(new Date().toLocaleString("en-US",{timeZone:"America/Mexico_City"})).getHours();
+const greetEN=h<12?"Good morning":h<18?"Good afternoon":"Good evening";
+const greetES=h<12?"Buenos d\u00edas":h<18?"Buenas tardes":"Buenas noches";
+document.getElementById("dgreet").textContent=(lang==="es"?greetES:greetEN)+", James.";
+document.getElementById("dsub").textContent=new Date().toLocaleDateString(lang==="es"?"es-MX":"en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric",timeZone:"America/Mexico_City"})+" \u00b7 CDMX";
+}
+
+async function init(){
+setInterval(updateClock,1000);updateClock();setGreeting();
+await checkAPI();setInterval(checkAPI,30000);
+const[b,c,p,d]=await Promise.all([loadData("bookings"),loadData("clients"),loadData("payments"),loadData("drivers")]);
+rBooks(b);rClients(c);rPayments(p);rDriverCards(d);rDash(b,d);rDispatch(b);rMikeyFeed();rReports();rVehicles(DB.vehicles);rVenues(DB.venues);rPromos(DB.promos);rFees();
+document.getElementById("cal-lbl").textContent="";
+}
+init();
+</script>
+</body>
+</html>
