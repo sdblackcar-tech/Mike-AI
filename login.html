@@ -215,25 +215,6 @@ document.querySelectorAll(".role-opt").forEach(opt => {
   });
 });
 
-// ─── CHECK EXISTING SESSION ────────────────────────────────────────────
-(function checkSession() {
-  const token = localStorage.getItem("ilt_token");
-  const role  = localStorage.getItem("ilt_role");
-  if (token && role) {
-    // Verify token is still valid
-    fetch(API + "/auth/verify", {
-      headers: { Authorization: "Bearer " + token }
-    })
-    .then(r => r.ok ? r.json() : null)
-    .then(data => {
-      if (data && data.valid) {
-        redirectByRole(data.user_role, data.user_name);
-      }
-    })
-    .catch(() => {});
-  }
-})();
-
 // ─── API STATUS ────────────────────────────────────────────────────────
 fetch(API + "/health")
   .then(r => r.ok ? r.json() : null)
@@ -345,4 +326,4 @@ function redirectByRole(role, name) {
   window.location.href = destinations[role] || "https://ops.mexicocityblackcar.com";
 }
 
-// ─── ENTER KEY ─────────────────────────────────────────�
+// ─── ENTER KEY ─────────────────────────────────────────
