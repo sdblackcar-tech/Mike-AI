@@ -172,7 +172,28 @@ tr:hover td{background:var(--s2);color:var(--txt)}
 <body>
 
 <script>
-const CFG={API:"https://api.mexicocityblackcar.com",MODEL:"claude-sonnet-4-20250514"};
+// ─── AUTH GUARD ────────────────────────────────────────────────────────
+(async function authGuard() {
+  const onProd = window.location.hostname.includes("mexicocityblackcar.com");
+  if (!onProd) return;
+  const token = localStorage.getItem("ilt_token");
+  if (!token) { window.location.replace("https://login.mexicocityblackcar.com"); return; }
+  try {
+    const r = await fetch("https://api.mexicocityblackcar.com/auth/verify", {
+      headers: { "Authorization": "Bearer " + token }
+    });
+    if (!r.ok) throw new Error("invalid");
+    const d = await r.json();
+    window.ILT_USER = { name: d.user_name, role: d.user_role };
+  } catch {
+    localStorage.removeItem("ilt_token");
+    localStorage.removeItem("ilt_role");
+    localStorage.removeItem("ilt_name");
+    window.location.replace("https://login.mexicocityblackcar.com");
+  }
+})();
+
+const CFG={API:"https://api.mexicocityblackcar.com",MODEL:"claude-sonnet-4-6"};
 let lang="en";
 
 const TX={
@@ -212,8 +233,20 @@ let apiOnline=false;
 let blockedDates=new Set();
 let calYear=2026,calMonth=3;
 
+function getToken(){ return localStorage.getItem("ilt_token") || ""; }
+
+function doLogout(){
+  localStorage.removeItem("ilt_token");
+  localStorage.removeItem("ilt_role");
+  localStorage.removeItem("ilt_name");
+  localStorage.removeItem("ilt_scopes");
+  window.location.replace("https://login.mexicocityblackcar.com");
+}
+
 async function apiFetch(path,opts={}){
-const r=await fetch(CFG.API+path,{...opts,headers:{"Content-Type":"application/json",...(opts.headers||{})}});
+const token=getToken();
+const r=await fetch(CFG.API+path,{...opts,headers:{"Content-Type":"application/json",...(token?{"Authorization":"Bearer "+token}:{}),...(opts.headers||{})}});
+if(r.status===401){doLogout();return;}
 if(!r.ok)throw new Error(r.status);
 return r.json();
 }
@@ -263,6 +296,8 @@ DB[type].unshift(r);toast(t("saved"));return r;
 <div class="tright">
 <div class="apill"><div class="adot" id="adot"></div><span class="albl" id="albl">Checking...</span><span style="color:var(--mut)"> &middot; api.mexicocityblackcar.com</span></div>
 <div class="tclock" id="clock">--:--</div>
+<div class="apill" id="userPill" style="border-color:rgba(201,169,110,.2);color:var(--gold);">&#9670; <span id="userLabel">...</span></div>
+<button class="btn" onclick="doLogout()" style="color:var(--mut);font-size:10px;">Sign Out</button>
 <button class="btn" onclick="openM('mo-book')" id="btn-nb">+ New Booking</button>
 <button class="btn gold" onclick="openM('mo-mikey')" id="btn-ask">&#9670; Ask Mikey</button>
 </div>
@@ -1072,6 +1107,10 @@ document.getElementById("dsub").textContent=new Date().toLocaleDateString(lang==
 }
 
 async function init(){
+if(window.ILT_USER){
+  const el=document.getElementById("userLabel");
+  if(el) el.textContent=window.ILT_USER.name+" · "+window.ILT_USER.role.toUpperCase();
+}
 setInterval(updateClock,1000);updateClock();setGreeting();
 await checkAPI();setInterval(checkAPI,30000);
 const[b,c,p,d]=await Promise.all([loadData("bookings"),loadData("clients"),loadData("payments"),loadData("drivers")]);
