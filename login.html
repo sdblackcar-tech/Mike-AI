@@ -50,6 +50,18 @@ body{
 /* FORM */
 .field{margin-bottom:14px;}
 .field-label{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase;margin-bottom:5px;display:block;}
+
+/* PASSWORD WRAPPER — show/hide toggle */
+.pw-wrap{position:relative;display:flex;align-items:center;}
+.pw-wrap .field-input{padding-right:38px;}
+.pw-toggle{
+  position:absolute;right:10px;background:none;border:none;cursor:pointer;
+  padding:0;display:flex;align-items:center;color:var(--dim);
+  transition:color .15s;
+}
+.pw-toggle:hover{color:var(--gold);}
+.pw-toggle svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
+
 .field-input{
   width:100%;background:var(--s3);border:1px solid var(--bdr);color:var(--txt);
   padding:10px 12px;border-radius:4px;font-size:12px;font-family:var(--mono);
@@ -144,7 +156,21 @@ body{
 
   <div class="field">
     <label class="field-label" for="password">Password</label>
-    <input class="field-input" type="password" id="password" placeholder="••••••••••••" autocomplete="current-password"/>
+    <div class="pw-wrap">
+      <input class="field-input" type="password" id="password" placeholder="••••••••••••" autocomplete="current-password"/>
+      <button class="pw-toggle" type="button" id="pwToggle" onclick="togglePassword()" aria-label="Show password">
+        <!-- Eye icon (shown when password is hidden) -->
+        <svg id="eyeIcon" viewBox="0 0 24 24">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+        <!-- Eye-off icon (shown when password is visible) -->
+        <svg id="eyeOffIcon" viewBox="0 0 24 24" style="display:none;">
+          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+          <line x1="1" y1="1" x2="23" y2="23"/>
+        </svg>
+      </button>
+    </div>
   </div>
 
   <div class="field">
@@ -184,7 +210,7 @@ body{
 
   <div class="card-links">
     <a class="card-link" href="https://www.mexicocityblackcar.com">← Public Site</a>
-    <a class="card-link" href="/cdn-cgi/l/email-protection#9df2edeeddf0f8e5f4fef2fef4e9e4fff1fcfef6fefcefb3fef2f0">Request Access</a>
+    <a class="card-link" href="mailto:ops@mexicocityblackcar.com">Request Access</a>
   </div>
 
   <div class="card-foot">
@@ -203,7 +229,7 @@ body{
   </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 const API = "https://api.mexicocityblackcar.com";
 
 // ─── ROLE SELECTOR ─────────────────────────────────────────────────────
@@ -234,6 +260,23 @@ fetch(API + "/health")
     el.style.color = "var(--red)";
   });
 
+// ─── SHOW / HIDE PASSWORD ──────────────────────────────────────────────
+function togglePassword() {
+  const input      = document.getElementById("password");
+  const eyeIcon    = document.getElementById("eyeIcon");
+  const eyeOffIcon = document.getElementById("eyeOffIcon");
+
+  if (input.type === "password") {
+    input.type           = "text";
+    eyeIcon.style.display    = "none";
+    eyeOffIcon.style.display = "block";
+  } else {
+    input.type           = "password";
+    eyeIcon.style.display    = "block";
+    eyeOffIcon.style.display = "none";
+  }
+}
+
 // ─── LOGIN ─────────────────────────────────────────────────────────────
 async function doLogin() {
   const email    = document.getElementById("email").value.trim();
@@ -259,7 +302,7 @@ async function doLogin() {
   }
 
   // Loading state
-  btn.disabled      = true;
+  btn.disabled          = true;
   spinner.style.display = "block";
   btnText.textContent   = "Authenticating...";
 
@@ -278,10 +321,10 @@ async function doLogin() {
     }
 
     // Store token
-    localStorage.setItem("ilt_token",    data.access_token);
-    localStorage.setItem("ilt_role",     data.user_role);
-    localStorage.setItem("ilt_name",     data.user_name);
-    localStorage.setItem("ilt_scopes",   JSON.stringify(data.scopes));
+    localStorage.setItem("ilt_token",  data.access_token);
+    localStorage.setItem("ilt_role",   data.user_role);
+    localStorage.setItem("ilt_name",   data.user_name);
+    localStorage.setItem("ilt_scopes", JSON.stringify(data.scopes));
 
     // Show success then redirect
     showSuccess(data.user_name, data.user_role);
@@ -302,20 +345,19 @@ function showError(msg) {
 }
 
 function showSuccess(name, role) {
-  document.getElementById("loginCard").style.display  = "none";
+  document.getElementById("loginCard").style.display   = "none";
   document.getElementById("successCard").style.display = "block";
-  document.getElementById("successName").textContent  =
+  document.getElementById("successName").textContent   =
     name.toUpperCase() + " · " + role.toUpperCase() + " ACCESS";
-  // Animate bar then redirect
   setTimeout(() => {
     document.getElementById("successFill").style.width = "100%";
   }, 50);
   setTimeout(() => {
-    redirectByRole(role, name);
+    redirectByRole(role);
   }, 2000);
 }
 
-function redirectByRole(role, name) {
+function redirectByRole(role) {
   const destinations = {
     owner:     "https://ops.mexicocityblackcar.com",
     manager:   "https://ops.mexicocityblackcar.com",
@@ -326,4 +368,10 @@ function redirectByRole(role, name) {
   window.location.href = destinations[role] || "https://ops.mexicocityblackcar.com";
 }
 
-// ─── ENTER KEY ─────────────────────────────────────────
+// ─── ENTER KEY ─────────────────────────────────────────────────────────
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter") doLogin();
+});
+</script>
+</body>
+</html>
