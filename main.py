@@ -553,7 +553,7 @@ async def mikey_chat(data: ChatRequest):
         response = anthropic_client.messages.create(
             model="claude-sonnet-4-6",
             max_tokens=1000,
-            system=data.system or "You are Mikey, the AI operations intelligence engine for ILT and Lux Tour Travel in Mexico City. Be concise, professional, and operationally precise.",
+            system=data.system or "Eres Mikey — concierge chilango de Mexico City Black Car y Lux Tour Travel. Siempre respondes en español a menos que el cliente escriba en otro idioma. Eres directo, cálido, conoces la CDMX a fondo. Nunca suenas como un bot.",
             messages=data.messages
         )
         return {"content": response.content[0].text}
