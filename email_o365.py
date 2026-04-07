@@ -59,6 +59,11 @@ SMTP_PASS = os.getenv("O365_SMTP_PASSWORD", "")
 FROM_NAME = os.getenv("O365_FROM_NAME", "Mexico City Black Car")
 FROM_ADDR = SMTP_USER  # must match authenticated account in O365
 
+# Booking notification recipients
+EXEC_EMAIL       = os.getenv("EXEC_EMAIL",       "james@mexicocityblackcar.com")
+OPS_EMAIL        = os.getenv("OPS_EMAIL",         "ops@mexicocityblackcar.com")
+CONCIERGE_EMAIL  = os.getenv("CONCIERGE_EMAIL",   "concierge@mexicocityblackcar.com")
+
 
 # ─── REQUEST MODEL ────────────────────────────────────────────────────────────
 class EmailRequest(BaseModel):
