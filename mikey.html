@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Montserrat:wght@200;300;400;500&family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<!-- EmailJS removed — email now routes through O365 backend at /api/email -->
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -346,27 +346,21 @@ textarea#userInput::placeholder{color:var(--soft);}
 // ═══════════════════════════════════════════════════════════════════════
 
 const CONFIG = {
-  WORKER_URL:              'https://mikeyv5.sdblackcar.workers.dev',
-  BACKEND_URL:             'https://api.mexicocityblackcar.com',
-  EMAILJS_PUBLIC_KEY:      'YOUR_EMAILJS_PUBLIC_KEY',
-  EMAILJS_SERVICE_ID:      'YOUR_EMAILJS_SERVICE_ID',
-  EMAILJS_TMPL_CLIENT:     'YOUR_CLIENT_TEMPLATE_ID',
-  EMAILJS_TMPL_EXEC:       'YOUR_EXEC_TEMPLATE_ID',
-  EMAILJS_TMPL_OPS:        'YOUR_OPS_TEMPLATE_ID',
-  EMAILJS_TMPL_VENUE:      'YOUR_VENUE_TEMPLATE_ID',
-  EMAILJS_TMPL_COMMISSION: 'YOUR_COMMISSION_TEMPLATE_ID',
-  OPS_EMAIL:               'ops@mexicocityblackcar.com',
-  EXEC_EMAIL:              'james@luxtourtravel.com',
-  INFO_EMAIL:              'info@mexicocityblackcar.com',
-  COMPANY_NAME:            'Mexico City Black Car',
-  COMPANY_PHONE:           '+1 858 999 1895',
-  COMPANY_WHATSAPP:        '+18589991895',
-  COMPANY_WEBSITE:         'https://www.mexicocityblackcar.com',
-  PARTNER_SITE:            'https://www.luxtourtravel.com',
-  IATA_NUMBER:             'YOUR_IATA_NUMBER',
-  MARKET:                  'cdmx',
-  CURRENCY:                'USD',
-  VIP_SPEND_THRESHOLD:     800,
+  WORKER_URL:          'https://mikeyv5.sdblackcar.workers.dev',
+  BACKEND_URL:         'https://api.mexicocityblackcar.com',
+  OPS_EMAIL:           'ops@mexicocityblackcar.com',
+  EXEC_EMAIL:          'james@mexicocityblackcar.com',
+  CONCIERGE_EMAIL:     'concierge@mexicocityblackcar.com',
+  INFO_EMAIL:          'info@mexicocityblackcar.com',
+  COMPANY_NAME:        'Mexico City Black Car',
+  COMPANY_PHONE:       '+1 858 999 1895',
+  COMPANY_WHATSAPP:    '+18589991895',
+  COMPANY_WEBSITE:     'https://www.mexicocityblackcar.com',
+  PARTNER_SITE:        'https://www.luxtourtravel.com',
+  IATA_NUMBER:         'YOUR_IATA_NUMBER',
+  MARKET:              'cdmx',
+  CURRENCY:            'USD',
+  VIP_SPEND_THRESHOLD: 800,
 };
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -789,7 +783,6 @@ LA ÚNICA REGLA: Nunca suenes como un bot. Si una respuesta pudo haber sido gene
 // INIT
 // ═══════════════════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', async () => {
-  emailjs.init(CONFIG.EMAILJS_PUBLIC_KEY);
   buildLangMenu();
   initVoice();
   await detectLanguage();
@@ -1740,58 +1733,102 @@ function holdQuote(confNum) {
 // ═══════════════════════════════════════════════════════════════════════
 // EMAIL
 // ═══════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════
+// EMAIL — routes through O365 backend at /api/email
+// Replaces EmailJS entirely. No keys needed on the frontend.
+// ═══════════════════════════════════════════════════════════════════════
+async function sendEmail(type, payload) {
+  try {
+    const res = await fetch(`${CONFIG.BACKEND_URL}/api/email`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ type, ...payload }),
+    });
+    if (!res.ok) console.warn('[ILT EMAIL] Send failed:', type, await res.text());
+  } catch(e) {
+    console.warn('[ILT EMAIL] Error:', type, e);
+  }
+}
+
 async function triggerBookingFlow() {
   if (!lastQuote || !clientInfo.email) return;
   const cn = lastQuote.confNum;
-  const summary = `${lastQuote.veh.name} · ${lastQuote.label} · $${lastQuote.total.toFixed(2)} USD`;
-  const params = {
+  const base = {
     confirmation_number: cn,
-    client_name: clientInfo.name || 'Valued Client',
-    client_email: clientInfo.email,
-    client_phone: clientInfo.phone || 'N/A',
-    vehicle: lastQuote.veh.name,
-    service_label: lastQuote.label,
-    total_amount: `$${lastQuote.total.toFixed(2)} USD`,
-    trip_summary: summary,
-    company: CONFIG.COMPANY_NAME,
-    phone: CONFIG.COMPANY_PHONE,
-    website: CONFIG.COMPANY_WEBSITE,
-    booking_date: new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'}),
-    is_vip: sessionFlags.isVIP ? 'YES — PRIORITY SERVICE' : 'Standard',
+    client_name:         clientInfo.name  || 'Valued Client',
+    client_email:        clientInfo.email,
+    client_phone:        clientInfo.phone || 'N/A',
+    vehicle:             lastQuote.veh.name,
+    service_label:       lastQuote.label,
+    total_amount:        `$${lastQuote.total.toFixed(2)} USD`,
+    booking_date:        new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'}),
+    is_vip:              sessionFlags.isVIP ? 'YES — PRIORITY SERVICE' : 'Standard',
+    company:             CONFIG.COMPANY_NAME,
+    phone:               CONFIG.COMPANY_PHONE,
+    website:             CONFIG.COMPANY_WEBSITE,
+    pax:                 clientInfo.pax || 'N/A',
   };
-  try {
-    await emailjs.send(CONFIG.EMAILJS_SERVICE_ID, CONFIG.EMAILJS_TMPL_CLIENT, {...params, to_email:clientInfo.email, to_name:clientInfo.name||'Valued Client'});
-    await emailjs.send(CONFIG.EMAILJS_SERVICE_ID, CONFIG.EMAILJS_TMPL_EXEC,   {...params, to_email:CONFIG.EXEC_EMAIL, to_name:'James'});
-    await emailjs.send(CONFIG.EMAILJS_SERVICE_ID, CONFIG.EMAILJS_TMPL_OPS,   {
-      confirmation_number:cn, vehicle:lastQuote.veh.name, service_label:lastQuote.label,
-      client_name:clientInfo.name||'N/A', pax:clientInfo.pax||'N/A',
-      is_vip: sessionFlags.isVIP ? 'YES' : 'No',
-      to_email:CONFIG.OPS_EMAIL, to_name:'Operations'
-    });
-    showToast('Confirmation sent ✓','ok');
-    saveBookingToBackend(cn);
-  } catch(e) { console.warn('Email error',e); }
+
+  // 1. Client confirmation
+  await sendEmail('client_confirmation', {
+    ...base,
+    to_email: clientInfo.email,
+    to_name:  clientInfo.name || 'Valued Client',
+  });
+
+  // 2. James — exec copy
+  await sendEmail('exec_copy', {
+    ...base,
+    to_email: CONFIG.EXEC_EMAIL,
+    to_name:  'James',
+  });
+
+  // 3. Ivan — ops dispatch alert
+  await sendEmail('ops_alert', {
+    ...base,
+    to_email: CONFIG.OPS_EMAIL,
+    to_name:  'Ivan',
+  });
+
+  // 4. Barbie — concierge copy (same ops_alert template)
+  await sendEmail('ops_alert', {
+    ...base,
+    to_email: CONFIG.CONCIERGE_EMAIL,
+    to_name:  'Barbie',
+  });
+
+  showToast('Confirmation sent ✓', 'ok');
+  saveBookingToBackend(cn);
 }
 
 async function sendVenueReservation(venueId, estimatedSpend) {
   const venue = [...VENUES.dinner,...VENUES.nightlife].find(v => v.id === venueId);
   if (!venue) return;
   const comm = (estimatedSpend * venue.commission).toFixed(2);
-  try {
-    await emailjs.send(CONFIG.EMAILJS_SERVICE_ID, CONFIG.EMAILJS_TMPL_VENUE, {
-      venue_name:venue.name, venue_email:venue.email,
-      client_name:clientInfo.name||'Client of Mexico City Black Car',
-      client_count:clientInfo.pax||2, iata_number:CONFIG.IATA_NUMBER,
-      commission_rate:`${(venue.commission*100).toFixed(0)}%`,
-      company:CONFIG.COMPANY_NAME, to_email:venue.email, to_name:`${venue.name} Reservations`,
-    });
-    await emailjs.send(CONFIG.EMAILJS_SERVICE_ID, CONFIG.EMAILJS_TMPL_COMMISSION, {
-      venue_name:venue.name, estimated_spend:`$${estimatedSpend}`,
-      commission_rate:`${(venue.commission*100).toFixed(0)}%`,
-      commission_estimate:`$${comm}`, to_email:CONFIG.OPS_EMAIL,
-    });
-    showToast(`Reservation request sent to ${venue.name} ✓`,'ok');
-  } catch(e) { console.warn('Venue email error',e); }
+
+  // Reservation request → venue
+  await sendEmail('venue_reservation', {
+    to_email:       venue.email,
+    to_name:        `${venue.name} Reservations`,
+    venue_name:     venue.name,
+    client_name:    clientInfo.name || 'Client of Mexico City Black Car',
+    client_count:   clientInfo.pax || 2,
+    iata_number:    CONFIG.IATA_NUMBER,
+    commission_rate:`${(venue.commission*100).toFixed(0)}%`,
+    company:        CONFIG.COMPANY_NAME,
+  });
+
+  // Commission tracking → ops
+  await sendEmail('commission_notification', {
+    to_email:            CONFIG.OPS_EMAIL,
+    to_name:             'Operations',
+    venue_name:          venue.name,
+    estimated_spend:     `$${estimatedSpend}`,
+    commission_rate:     `${(venue.commission*100).toFixed(0)}%`,
+    commission_estimate: `$${comm}`,
+  });
+
+  showToast(`Reservation request sent to ${venue.name} ✓`, 'ok');
 }
 
 function selectVenue(venueId, spend) {
